@@ -1,16 +1,12 @@
 ######################################################################
 # name: Makefile
-# date: 27 JUN 12
+# date: 17 Apr 13
 # auth: Zach Hartwig
 #
 # desc: This GNUmakefile controls the building of the ADAQ C++ and
-#       Python (dynamic) shared object libraries. All necessary build
-#       options (includes, libs, etc) are automatically determined for
-#       the present machine (since ADAQ will be developed and run on
-#       multiple machines with varying architecture and software). In
-#       the code below, macros that begin with "CXX" refer to those
-#       used to build the ADAQ C++ shared object library
-#       ("libADAQ.so") and "PY" refer to those used to build the ADAQ
+#       Python shared object libraries. Macros prefix "CXX" refers to
+#       those used to build the ADAQ C++ shared object library
+#       ("libADAQ.so") and "PY" refers to those used to build the ADAQ
 #       Python shared object library ("libPyADAQ.so"), with the
 #       exception that "CXX" (full macro) specifies gcc as the
 #       compiler that will be used to build both. The target libraries
@@ -29,9 +25,9 @@
 #          --> see http://www.caen.it/csite/ProductSupport.jsp
 #
 #       1. Boost.Python (a Boost library that must be compiled)
-#          --> see http://www.boost.org/doc/libs/1_49_0/libs/python/doc/
+#          --> see http://www.boost.org/doc/libs/1_53_0/libs/python/doc/
 #
-#       2. Python (standard install is OK)
+#       2. Python (requires development headers/libraries)
 #    
 ######################################################################
 
@@ -42,7 +38,7 @@
 
 # The directory that this Makefile lives in (convenient macro for
 # specifying full path names to various items)
-DIR=$(ADAQHOME)/source/ADAQ
+DIR=$(PWD)
 
 # Specify gcc as the compiler with debug flags
 CXX=g++ -g
@@ -67,11 +63,11 @@ PYOBJS=$(SRC)/ADAQPythonWrapper.o
 # be specified for compatibility with 64-bit architectures
 ifeq ($(HOSTTYPE),x86_64)
   ARCH=x86_64
-  CAENLIBDIR=-L$(DIR)/lib/x86_64
+  CAENLIBDIR=-L$(ADAQHOME)/lib/x86_64
   CXXFLAGS+=-fPIC
 else
   ARCH=x86
-  CAENLIBDIR=-L$(DIR)/lib/x86
+  CAENLIBDIR=-L$(ADAQHOME)/lib/x86
 endif
 CAENLIB=-lCAENVME -lCAENComm -lCAENDigitizer -lncurses -lc -lm
 
@@ -161,5 +157,11 @@ $(SRC)/ADAQPythonWrapper.o : $(SRC)/ADAQPythonWrapper.cc $(HDRS) $(SRCS)
 clean:
 	@echo -e "\nRemoving ADAQ library object files ..."
 	@rm -f $(TARGET) $(PYTARGET) $(CXXOBJS) $(PYOBJS)
+	@echo -e ""
+
+.PHONY:
+install:
+	@echo -e "\nInstalling ADAQ libraries in ADAQ lib/$(ARCH) ..."
+	@cp -v lib/$(ARCH)/* ../$(ARCH)
 	@echo -e ""
 

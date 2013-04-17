@@ -70,6 +70,7 @@ else
   CAENLIBDIR=-L$(ADAQHOME)/lib/x86
 endif
 CAENLIB=-lCAENVME -lCAENComm -lCAENDigitizer -lncurses -lc -lm
+CAENINCL=-I../include
 
 # Determine the major and minor revision number of Python and use them
 # to dynamically set the correct include directory for Python headers
@@ -129,12 +130,12 @@ $(CXXTARGET) : $(CXXOBJS)
 # Build the ADAQDigitizer object from source
 $(SRC)/ADAQDigitizer.o : $(SRC)/ADAQDigitizer.cc $(INCL)/ADAQDigitizer.hh
 	@echo -e "\n---> Building $@ ..."
-	$(CXX) $(CXXFLAGS) $(ADAQINCL) $(CAENLIBDIR) $(CAENLIB) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(ADAQINCL) $(CAENLIBDIR) $(CAENLIB) $(CAENINCL) -c -o $@ $<
 
 # Build the ADAQHighVoltage object from source
 $(SRC)/ADAQHighVoltage.o : $(SRC)/ADAQHighVoltage.cc $(INCL)/ADAQHighVoltage.hh
 	@echo -e "\n---> Building $@ ..."
-	$(CXX) $(CXXFLAGS) $(ADAQINCL) $(CAENLIBDIR) $(CAENLIB) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(ADAQINCL) $(CAENLIBDIR) $(CAENLIB) $(CAENINCL) -c -o $@ $<
 
 
 #####################################
@@ -150,7 +151,12 @@ $(PYTARGET) : $(PYOBJS)
 # Build the ADAQPythonWrapper object from source
 $(SRC)/ADAQPythonWrapper.o : $(SRC)/ADAQPythonWrapper.cc $(HDRS) $(SRCS)
 	@echo -e "\n--->Building $@ ..."
-	$(CXX) $(BOOSTINCL) $(ADAQINCL) $(PYINCL) $(PYFLAGS) -o $@ -c $<
+	$(CXX) $(BOOSTINCL) $(ADAQINCL) $(PYINCL) $(PYFLAGS) $(CAENINCL) -o $@ -c $<
+
+
+#########
+# Phony #
+#########
 
 # General cleanup
 .PHONY:
@@ -159,9 +165,12 @@ clean:
 	@rm -f $(TARGET) $(PYTARGET) $(CXXOBJS) $(PYOBJS)
 	@echo -e ""
 
+# Install libs and headers to general directory
 .PHONY:
 install:
-	@echo -e "\nInstalling ADAQ libraries in ADAQ lib/$(ARCH) ..."
+	@echo -e "\nInstalling ADAQ libraries in \$$ADAQHOME/lib/$(ARCH) ..."
 	@cp -v lib/$(ARCH)/* ../$(ARCH)
+	@echo -e "\nInstalling ADAQ headers in \$$ADAQHOME/include/ ..."
+	@cp -v include/* ../include
 	@echo -e ""
 

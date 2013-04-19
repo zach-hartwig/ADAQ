@@ -11,11 +11,9 @@
 #       exception that "CXX" (full macro) specifies gcc as the
 #       compiler that will be used to build both. The target libraries
 #       will be placed in the "./lib/<architecture>/" directory, where
-#       <architecture> is either x86 (32-bit) or x86_64 (64-bit). The
-#       default architecture is 32-bit; the user building the ADAQ
-#       libraries must have an environmental variable HOSTTYPE set to
-#       "x86_64" in their shell if he/she is building on a 64-bit
-#       operating system.
+#       <architecture> is either i686 (32-bit) or x86_64 (64-bit). The
+#       ADAQ Setup.sh bash script should automatically set the
+#       HOSTTYPE environmental variable via the 'uname -m' command.
 #
 #       There are essentially three dependencies required to build the
 #       ADAQ libraries:
@@ -36,6 +34,9 @@
 # Define all necessary build options #
 ######################################
 
+# Sequential or parellel architecture
+ARCH=$(HOSTTYPE)
+
 # The directory that this Makefile lives in (convenient macro for
 # specifying full path names to various items)
 DIR=$(PWD)
@@ -54,23 +55,16 @@ SRCS=$(wildcard $(SRC)/*.cc)
 CXXOBJS=$(SRC)/ADAQDigitizer.o $(SRC)/ADAQHighVoltage.o 
 PYOBJS=$(SRC)/ADAQPythonWrapper.o
 
-
-# Get the CAEN library directory included in the ADAQ distribution
-# (for explicit version control of CAEN libraries across multiple
-# Linux boxes that will be used to develop and run the ADAQ software)
-# for the present architecture type and specify CAEN libraries for
-# linking. Note that the "-fPIC" (Position Independent Code) flag must
-# be specified for compatibility with 64-bit architectures
-ifeq ($(HOSTTYPE),x86_64)
-  ARCH=x86_64
-  CAENLIBDIR=-L$(ADAQHOME)/lib/x86_64
-  CXXFLAGS+=-fPIC
-else
-  ARCH=x86
-  CAENLIBDIR=-L$(ADAQHOME)/lib/x86
-endif
+# Set the CAEN library and include directories/flags
+CAENLIBDIR=-L$(ADAQHOME)/lib/$(HOSTTYPE)
 CAENLIB=-lCAENVME -lCAENComm -lCAENDigitizer -lncurses -lc -lm
 CAENINCL=-I../include
+
+# Specify the "-fPIC" (Position Independent Code) flag for 64-bit
+# architecture
+ifeq ($(HOSTTYPE),x86_64)
+  CXXFLAGS+=-fPIC
+endif
 
 # Determine the major and minor revision number of Python and use them
 # to dynamically set the correct include directory for Python headers

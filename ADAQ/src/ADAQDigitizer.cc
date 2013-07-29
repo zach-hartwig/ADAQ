@@ -59,7 +59,7 @@ ADAQDigitizer::ADAQDigitizer()
   LinkEstablished(false),
 
   // Bool to determine if messages to std::cout
-  Verbose(true),
+  Verbose(false),
 
   // The number of channels on the V1720
   NumChannels(8), 
@@ -262,6 +262,28 @@ uint32_t ADAQDigitizer::GetRegisterValue(uint32_t addr32)
   return data32;
 }
 
-
 bool ADAQDigitizer::CheckRegisterForWriting(uint32_t addr32)
 { return true; }
+
+bool ADAQDigitizer::CheckBufferStatus()
+{
+  // 0xEF04:
+  // bit[0] : 0 = no data ready, 1 = data ready
+  // bit[1] : 0 = buffer NOT full, 1 = buffer FULL
+  // bit[2] : 0 = bus error, 1 = NO bus error
+
+  uint32_t addr32 = 0xEF04;
+  uint32_t data32 = 0;
+
+  int Status = CAEN_DGTZ_ReadRegister(BoardHandle, addr32, &data32);
+
+  // Bitwise mask to test if the buffer is full
+  uint32_t mask = 0x0010;
+
+  // Apply the mask; the 1st bit is tested for 0/1 status
+  if((data32 & mask) == mask)
+    return true;
+  else
+    return false;
+}
+

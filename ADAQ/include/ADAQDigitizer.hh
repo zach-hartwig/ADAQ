@@ -1,20 +1,20 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 // name: ADAQDigitizer.hh 
-// date: 17 Apr 13
+// date: 09 AUG 12
 // auth: Zach Hartwig
 //
-// desc: The ADAQDigitizer class facilitiates communication with the
+// desc: The ADAQHighVoltage class facilitiates communication with the
 //       V1720 digitizer board with VME communications via the
-//       CAENComm and CAENVME libraries. The purpose of ADAQDigitizer
-//       class is to obscure the nitty-gritty-details of interfacing
-//       with the V1720 board and present the user with a relatively
-//       simple set of methods and variables that can be easibly used
-//       in his/her ADAQ projects by instantiating a single
-//       ADAQDigitizer "manager" class. Technically, this class should
-//       probably be made into a Meyer's singleton for completeness'
-//       sake, but the present code should be sufficient for
-//       anticipated applications and userbase.
+//       CAENComm and CAENVME libraries. The purpose of
+//       ADAQHighVoltage is to obscure the nitty-gritty-details of
+//       interfacing with the V1720 board and present the user with a
+//       relatively simple set of methods and variables that can be
+//       easibly used in his/her ADAQ projects by instantiating a
+//       single ADAQDigitizer "manager" class. Technically, this class
+//       should probably be made into a Meyer's singleton for
+//       completeness' sake, but the present code should be sufficient
+//       for anticipated applications and userbase.
 //        
 //       At present, the ADAQDigitizer class is compiled into two
 //       shared object libraries: libADAQ.so (C++) and libPyADAQ.so
@@ -24,9 +24,6 @@
 //       libraries exist since they are now used in multiple C++
 //       projects, multiple ROOT analysis projects, and new Python
 //       projects for interfacing ADAQ with MDSplus data system.
-//
-//       ADAQDigitizer is presently up-to-date for wrapping
-//       functions from CAENDigitizer v2.2.1
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -52,12 +49,6 @@ class ADAQDigitizer
 public:
   ADAQDigitizer();
   ~ADAQDigitizer();
-
-  ///////////////////////////////////////
-  // ADAQDigitizer Enhancement Methods //
-  ///////////////////////////////////////
-  // The following methods provide enhanced control of the CAEN X720
-  // family of digitizers using the CAENDigitizer library functions.
 
   // Open/close the VME link to the V1720 board
   int OpenLink(uint32_t);
@@ -117,6 +108,9 @@ public:
   // Prevent overwriting restricted V1720 registers
   bool CheckRegisterForWriting(uint32_t);
 
+  // Check to see if the V1720 FPGA buffer is full
+  bool CheckBufferStatus();
+
   // Store the integer reprsenting a CAEN digitizer
   int BoardType;
 
@@ -152,29 +146,37 @@ public:
   // Millivolts per bit
   const double MillivoltsPerBit;
 
-  
-  /////////////////////////////////
-  // ADAQ Python Wrapper Methods //
-  /////////////////////////////////
-  //
-  // ** WARNING : PROTOTYPE FUNCTIONS!! **
+
+  ////////////////////////////////////////////////////////////////////////////////////                                                                                                                                                                   
+  //               ** WARNING : PROTOTYPE FUNCTIONS!! **
   //                                                                                          
-  // The following ADAQDigitizer member data and functions form a
-  // prototype method for complete control of the waveform
-  // digitization portion of the acquisition process from Python. Most
-  // of the following member data (especially the CAEN structures)
-  // would be difficult if not impossible to declare on the "Python
-  // side", pass to the "C++ side" for operation, and then pass back
-  // to the Python side. Instead, they are simply declared as data
-  // members and manipulated on the C++ side via member functions,
-  // which can be easily called from the Python side. Most of the
-  // functions are of type "void"; however, several functions return
-  // either integers to the Python side (since they are extremely
-  // useful on the Python side) or a vector-of-vector<uint16_t>s
-  // representing the digitized waveform data from all 8 V1720
-  // channels. The vector-of-vector<uint16_t>s variable (on the C++
-  // side) is converted into a 2-dimensional list on the Python side,
-  // where it can be easily manipulated.
+  // ZSH: The following ADAQDigitizer member data and functions form a
+  //      prototype method for complete control of the waveform
+  //      digitization portion of the acquisition process from the
+  //      Python side. Most of the following member data (especially
+  //      the CAEN structures) would be difficult if not impossible to
+  //      declare on the Python side, pass to the C++ side for
+  //      operation, and then pass back to the Python side. Rather,
+  //      they are simply declared as data member of the ADAQDigitizer
+  //      class and manipulated on the C++ side via the ADAQDigitizer
+  //      member functions, which can be easily called from the Python
+  //      side. Most of the functions are of type "void"; however,
+  //      several functions return either integers to the Python side
+  //      (since they are extremely useful on the Python side) or a
+  //      vector-of-vector<uint16_t>s representing the digitized
+  //      waveform data from all 8 V1720 channels. The
+  //      vector-of-vector<uint16_t>s variable (on the C++ side) is
+  //      converted into a 2-dimensional list on the Python side,
+  //      where it can be easily manipulated.
+  //
+  //      Note that as of 06 JUL 12, most the the Boost.Python wrapper
+  //      functions have been provided but only minimal testing has
+  //      been accomplished. The testing that has been done shows that
+  //      the ADAQ libraries (both C++ and Python) compile perfectly,
+  //      and that the new functions provided below can be called from
+  //      Python without error or segfaulting. Testing has also shown
+  //      that test vector-of-vector<uint16_t>s can be successfully
+  //      passed into Python as a 2D list and manipulated.
 
   uint32_t BufferSize_Py, Size_Py, NumEvents_Py;
   CAEN_DGTZ_EventInfo_t EventInfo_Py;
@@ -189,16 +191,16 @@ public:
 
   void MallocReadoutBuffer_Python()
   { CommandStatus = CAEN_DGTZ_MallocReadoutBuffer(BoardHandle, &Buffer_Py, &Size_Py); }
-  
+
   void ReadData_Python()
   { CommandStatus = CAEN_DGTZ_ReadData(BoardHandle, CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, Buffer_Py, &BufferSize_Py); }
-  
+
   uint32_t GetNumEvents_Python()
   {
     CommandStatus = CAEN_DGTZ_GetNumEvents(BoardHandle, Buffer_Py, BufferSize_Py, &NumEvents_Py);
     return NumEvents_Py;
   }
-  
+
   void GetEventInfo_Python(uint32_t Event_Py)
   { CommandStatus = CAEN_DGTZ_GetEventInfo(BoardHandle, Buffer_Py, BufferSize_Py, Event_Py, &EventInfo_Py, &EventPointer_Py); }
 
@@ -216,11 +218,9 @@ public:
 
   vector< vector<uint16_t> > GetWaveforms_Python()
   {		
-    if(Verbose)
-      cout << "ADAQDigitizer Warning: 'RecordLength' is now dynamically set in GetWaveforms_Python() function! " << endl;
-    
-    uint32_t RecordLength = 0;
-    CommandStatus = CAEN_DGTZ_GetRecordLength(BoardHandle, &RecordLength);
+    cout << "ADAQDigitizer::GetWaveforms_Python() : RecordLength is hardcoded at 512!" << endl;
+
+    RecordLength = 512;
     
     Waveforms_Py.clear();
     for(int ch=0; ch<NumChannels; ch++){
@@ -242,9 +242,15 @@ public:
       // Ensure that the channel has been enabled in the channel
       // enable mask; if so, then copy the contents of that array by
       // assignment into a one-dimensional channel vector
+
+
       if(EventWaveform_Py->ChSize[ch] != 0)
+
+
 	ChannelWaveform_Py.assign(EventWaveform_Py->DataChannel[ch],
 				  EventWaveform_Py->DataChannel[ch] + RecordLength);
+
+
       
       // Push the one-dimensional vector containing the current
       // channel's digitized waveform into the double-vector
@@ -254,7 +260,9 @@ public:
     
     // Return the double-vector containing (potentially) all 8
     // channel's digitized waveforms as vector<uint16_t>s
+
     return Waveforms_Py;
+
   }
   
   // Function that provides test retrieval of a complex ADAQDigitizer
@@ -273,8 +281,8 @@ public:
     return double_vec;
   }
 
-  ///////////////////////////////////////////////////////////////////////////////
-
+  //
+  ////////////////////////////////////////////////////////////////////////////////////
 
   // The member functions that follow are wrappers for the functions
   // contained in the CAENDigitizer library (v2.2.1). The purpose is
@@ -287,6 +295,11 @@ public:
   // definitions of the CAENDigitizer functions (for the ambitious
   // user/developer) may be found in the include/CAENDigitizer.h and
   // include/CAENDigitizerTypes.h of in the V1720 user manual.
+  // 
+  // This is not necessarily the best way to do this as all of the
+  // following functions must be carefully checked (and updated if
+  // necessary) when the CAENDigitizer library is updated; however, it
+  // serves the desired purposes
 
   int Reset() {return CAEN_DGTZ_Reset(BoardHandle);}
 
@@ -416,26 +429,26 @@ public:
   int SetIOLevel(CAEN_DGTZ_IOLevel_t level) {return CAEN_DGTZ_SetIOLevel(BoardHandle, level);}
   int GetIOLevel(CAEN_DGTZ_IOLevel_t *level) {return CAEN_DGTZ_GetIOLevel(BoardHandle, level);}
 
-  int RearmInterrupt() {return CAEN_DGTZ_RearmInterrupt(BoardHandle);}
+  //////////////////////////////////////////////
+  // Presently unused CAENDigitizer functions //
+  //////////////////////////////////////////////
 
-  int SetDRS4SamplingFrequency(CAEN_DGTZ_DRS4Frequency_t frequency) {return CAEN_DGTZ_SetDRS4SamplingFrequency(BoardHandle, frequency);}
-  int GetDRS4SamplingFrequency(CAEN_DGTZ_DRS4Frequency_t *frequency) {return CAEN_DGTZ_GetDRS4SamplingFrequency(BoardHandle, frequency);}
-
-  int SetOutputSignalMode(CAEN_DGTZ_OutputSignalMode_t mode) {return CAEN_DGTZ_SetOutputSignalMode(BoardHandle, mode);}
-  int GetOutputSignalMode(CAEN_DGTZ_OutputSignalMode_t *mode) {return CAEN_DGTZ_GetOutputSignalMode( BoardHandle, mode);}
-
-  int SetGroupFastTriggerThreshold(int BoardHandle, uint32_t group, uint32_t Tvalue) {return CAEN_DGTZ_SetGroupFastTriggerThreshold(BoardHandle, group, Tvalue);}
-  int GetGroupFastTriggerThreshold(int BoardHandle, uint32_t group, uint32_t *Tvalue) {return CAEN_DGTZ_GetGroupFastTriggerThreshold(BoardHandle, group, Tvalue);}
-  int SetGroupFastTriggerDCOffset(int BoardHandle, uint32_t group, uint32_t DCvalue) {return SetGroupFastTriggerDCOffset(BoardHandle, group, DCvalue);}
-  int GetGroupFastTriggerDCOffset(int BoardHandle, uint32_t group, uint32_t *DCvalue) {return CAEN_DGTZ_GetGroupFastTriggerDCOffset(BoardHandle, group, DCvalue);}
-
-  int SetFastTriggerDigitizing(int BoardHandle, CAEN_DGTZ_EnaDis_t enable) {return CAEN_DGTZ_SetFastTriggerDigitizing(BoardHandle,  enable);}
-  int GetFastTriggerDigitizing(int BoardHandle, CAEN_DGTZ_EnaDis_t *enable) {return CAEN_DGTZ_GetFastTriggerDigitizing(BoardHandle, enable);}
-  int SetFastTriggerMode(int BoardHandle, CAEN_DGTZ_TriggerMode_t mode) {return CAEN_DGTZ_SetFastTriggerMode(BoardHandle, mode);}
-  int GetFastTriggerMode(int BoardHandle, CAEN_DGTZ_TriggerMode_t *mode) {return CAEN_DGTZ_GetFastTriggerMode(BoardHandle, mode);}
-
-  int LoadDRS4CorrectionData(int BoardHandle, CAEN_DGTZ_DRS4Frequency_t frequency) {return CAEN_DGTZ_LoadDRS4CorrectionData(BoardHandle, frequency);}
-
+  /*
+  int RearmInterrupt(int handle);
+  int SetDRS4SamplingFrequency(int handle, CAEN_DGTZ_DRS4Frequency_t frequency) ;
+  int GetDRS4SamplingFrequency(int handle, CAEN_DGTZ_DRS4Frequency_t *frequency) ;
+  int SetOutputSignalMode(int handle, CAEN_DGTZ_OutputSignalMode_t mode);
+  int GetOutputSignalMode(int handle, CAEN_DGTZ_OutputSignalMode_t *mode);
+  int SetGroupFastTriggerThreshold(int handle, uint32_t group, uint32_t Tvalue);
+  int GetGroupFastTriggerThreshold(int handle, uint32_t group, uint32_t *Tvalue);
+  int SetGroupFastTriggerDCOffset(int handle, uint32_t group, uint32_t DCvalue);
+  int GetGroupFastTriggerDCOffset(int handle, uint32_t group, uint32_t *DCvalue);
+  int SetFastTriggerDigitizing(int handle, CAEN_DGTZ_EnaDis_t enable);
+  int GetFastTriggerDigitizing(int handle, CAEN_DGTZ_EnaDis_t *enable);
+  int SetFastTriggerMode(int handle, CAEN_DGTZ_TriggerMode_t mode);
+  int GetFastTriggerMode(int handle, CAEN_DGTZ_TriggerMode_t *mode);
+  int LoadDRS4CorrectionData(int handle, CAEN_DGTZ_DRS4Frequency_t frequency);
+  */
 };
 
 #endif

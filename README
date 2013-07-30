@@ -1,0 +1,35 @@
+30 Jul 13
+README file for $ADAQ_REPO/lib
+
+This directory contains the following original sources:
+--> adaq/ : The ADAQ source (C++ code and libraries)
+--> caen/ : The CAEN firmware, drivers, and libraries
+
+
+This directory also contains directories that hold all of the required
+ADAQ and CAEN libraries and header files in a single location for
+convenience (during builds and so forth):
+--> i686/ : libraries required for i686 (32-bit) architectures
+--> x86_64/ : libraries required for x86_64 (64-bit) architectures
+--> include/ : header files 
+
+
+
+Detailed description of the CAEN directory 'caen/'
+-------------------------------------------------- 
+CAEN libraries required to build the any of the ADAQ codes This top
+level directory contains the original CAEN source code and li braries,
+as well as two directories that are marked "x86" and "x86_64", which
+contain the 32- and 64-bit libraries, respectively, required for
+building on the different architectures. The main purpose for
+including the libraries here is for explicit control of CAEN library
+versions and for portability to a number of machines (that may or may
+not have CAEN libraries installed). A brief description of each
+library can be found below
+
+Detailed description of the ADAQ directory 'adaq/'
+--------------------------------------------------
+The ADAQ library, which contains all the customized controls of the
+V1720 digitizer and V6534 high voltage boards. The libADAQ.so library
+is build from the ../src and ../include directory by the
+../Makefile. Please see those files for details

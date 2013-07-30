@@ -107,10 +107,10 @@ public:
 
   // Prevent overwriting restricted V1720 registers
   bool CheckRegisterForWriting(uint32_t);
-
+  
   // Check to see if the V1720 FPGA buffer is full
-  bool CheckBufferStatus();
-
+  int CheckBufferStatus(bool *);
+  
   // Store the integer reprsenting a CAEN digitizer
   int BoardType;
 

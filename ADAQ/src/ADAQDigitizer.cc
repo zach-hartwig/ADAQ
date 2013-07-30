@@ -265,7 +265,7 @@ uint32_t ADAQDigitizer::GetRegisterValue(uint32_t addr32)
 bool ADAQDigitizer::CheckRegisterForWriting(uint32_t addr32)
 { return true; }
 
-bool ADAQDigitizer::CheckBufferStatus()
+int ADAQDigitizer::CheckBufferStatus(bool *BufferStatus)
 {
   // V1720 Channel Status Register : 0x1n88 where 'n' == channel #
 
@@ -276,17 +276,17 @@ bool ADAQDigitizer::CheckBufferStatus()
   // bit[4] : Reserved
   // bit[5] : Buffer free error
 
+  int Status = 0;
+
+  // Channel register addresses and channel-to-channel increment
   uint32_t start = 0x1088;
   uint32_t offset = 0x0100;
-
-  bool BufferFull = false;
 
   for(int n=0; n<NumChannels; n++){
 
     uint32_t addr32 = start + offset*n;
     uint32_t data32 = 0;
     int Status = 0;
-
     // Skip channels that are not currently enabled
     Status = GetChannelEnableMask(&data32);
     if(!(data32 & (1 << n)))
@@ -297,7 +297,9 @@ bool ADAQDigitizer::CheckBufferStatus()
     // BufferFull flag to true
     Status = CAEN_DGTZ_ReadRegister(BoardHandle, addr32, &data32);
     if(data32 & (1 << 0))
-      BufferFull = true;
+      BufferStatus[n] = true;
+    else
+      BufferStatus[n] = false;
   }
-  return BufferFull;
+  return Status;
 }

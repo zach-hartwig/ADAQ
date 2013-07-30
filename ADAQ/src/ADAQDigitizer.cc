@@ -267,23 +267,37 @@ bool ADAQDigitizer::CheckRegisterForWriting(uint32_t addr32)
 
 bool ADAQDigitizer::CheckBufferStatus()
 {
-  // 0xEF04:
-  // bit[0] : 0 = no data ready, 1 = data ready
-  // bit[1] : 0 = buffer NOT full, 1 = buffer FULL
-  // bit[2] : 0 = bus error, 1 = NO bus error
+  // V1720 Channel Status Register : 0x1n88 where 'n' == channel #
 
-  uint32_t addr32 = 0xEF04;
-  uint32_t data32 = 0;
+  // bit[0] : 0 = memory not full; 1 = memory full
+  // bit[1] : 0 = memory not empty; 1 = memory empty
+  // bit[2] : 0 = DAC not busy; 1 = DAC busy
+  // bit[3] : Reserved
+  // bit[4] : Reserved
+  // bit[5] : Buffer free error
 
-  int Status = CAEN_DGTZ_ReadRegister(BoardHandle, addr32, &data32);
+  uint32_t start = 0x1088;
+  uint32_t offset = 0x0100;
 
-  // Bitwise mask to test if the buffer is full
-  uint32_t mask = 0x0010;
+  bool BufferFull = false;
 
-  // Apply the mask; the 1st bit is tested for 0/1 status
-  if((data32 & mask) == mask)
-    return true;
-  else
-    return false;
+  for(int n=0; n<NumChannels; n++){
+
+    uint32_t addr32 = start + offset*n;
+    uint32_t data32 = 0;
+    int Status = 0;
+
+    // Skip channels that are not currently enabled
+    Status = GetChannelEnableMask(&data32);
+    if(!(data32 & (1 << n)))
+      continue;
+    
+    // Check to see if the 0-th of each channel's status register bit
+    // is set; if any of the channel buffers are full then set the
+    // BufferFull flag to true
+    Status = CAEN_DGTZ_ReadRegister(BoardHandle, addr32, &data32);
+    if(data32 & (1 << 0))
+      BufferFull = true;
+  }
+  return BufferFull;
 }
-

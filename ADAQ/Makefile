@@ -62,7 +62,7 @@ CAENINCL=-I../include
 
 # Specify the "-fPIC" (Position Independent Code) flag for 64-bit
 # architecture
-ifeq ($(HOSTTYPE),x86_64)
+ifeq ($(ARCH),x86_64)
   CXXFLAGS+=-fPIC
 endif
 
@@ -156,7 +156,7 @@ $(SRC)/ADAQPythonWrapper.o : $(SRC)/ADAQPythonWrapper.cc $(HDRS) $(SRCS)
 .PHONY:
 clean:
 	@echo -e "\nRemoving ADAQ library object files ..."
-	@rm -f $(TARGET) $(PYTARGET) $(CXXOBJS) $(PYOBJS)
+	@rm -f $(CXXTARGET) $(PYTARGET) $(CXXOBJS) $(PYOBJS)
 	@echo -e ""
 
 # Install libs and headers to general directory

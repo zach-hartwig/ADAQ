@@ -67,8 +67,13 @@
 #define MAX_UINT8_CHANNEL_SIZE				8
 #define MAX_V1724DPP_CHANNEL_SIZE			8
 #define MAX_V1720DPP_CHANNEL_SIZE			8
+#define MAX_ZLE_CHANNEL_SIZE				8
 #define MAX_X742_CHANNEL_SIZE				9
 #define MAX_X742_GROUP_SIZE					4
+#define MAX_X743_CHANNELS_X_GROUP			2
+#define MAX_V1743_GROUP_SIZE				8
+#define MAX_DT5743_GROUP_SIZE				4
+#define MAX_V1723_CHANNEL_SIZE				16
 
 /******************************************************************************
 * Digitizer Registers Address Map 
@@ -88,6 +93,11 @@
 #define CAEN_DGTZ_GROUP_FASTTRG_THR_V1742_BASE_ADDRESS		0x10D4
 #define CAEN_DGTZ_GROUP_FASTTRG_DCOFFSET_V1742_BASE_ADDRESS	0x10DC
 #define CAEN_DGTZ_DRS4_FREQUENCY_REG						0x10D8
+#define CAEN_DGTZ_SAM_FREQUENCY_REG							0x1040
+#define CAEN_DGTZ_SAM_PRE_TRSH_REG							0x104B
+#define CAEN_DGTZ_SAM_BSL_TRSH_RED							0x1048
+#define CAEN_DGTZ_SAM_TRIGGER_REG_ADD						0x103B
+
 
 #define CAEN_DGTZ_BROAD_CH_CTRL_ADD						0x8000
 #define CAEN_DGTZ_BROAD_CH_CONFIGBIT_SET_ADD			0x8004
@@ -96,6 +106,15 @@
 #define CAEN_DGTZ_CUSTOM_SIZE_REG						0x8020
 #define CAEN_DGTZ_DPP_NUM_EVENTS_PER_AGGREGATE			0x8034
 #define CAEN_DGTZ_DRS4_FREQUENCY_REG_WRITE				0x80D8
+#define CAEN_DGTZ_SAM_FREQUENCY_REG_WRITE				0x8040
+#define CAEN_DGTZ_SAM_REG_ADD							0x8084
+#define CAEN_DGTZ_SAM_REG_VALUE							0x8028
+#define CAEN_DGTZ_SAM_DAC_SPI_DATA_ADD					0x8054
+#define CAEN_DGTZ_SAM_CTRL_ADD							0x8070
+#define CAEN_DGTZ_SAM_START_ACQ_ADD						0x8018
+#define CAEN_DGTZ_SAM_RESET_ACQ_ADD						0x805B
+#define CAEN_DGTZ_SAM_NB_OF_COLS_2_READ_ADD				0x8044
+#define CAEN_DGTZ_SAM_POST_TRIGGER_ADD					0x8030
 #define CAEN_DGTZ_ACQ_CONTROL_ADD						0x8100
 #define CAEN_DGTZ_ACQ_STATUS_ADD						0x8104
 #define CAEN_DGTZ_SW_TRIGGER_ADD						0x8108
@@ -249,6 +268,9 @@ typedef enum
     CAEN_DGTZ_DT5761		=24L,
 	CAEN_DGTZ_N6761			=25L,
 	CAEN_DGTZ_V1761			=26L,
+	CAEN_DGTZ_DT5743		=27L,
+	CAEN_DGTZ_N6743			=28L,
+	CAEN_DGTZ_V1743			=29L,
 } CAEN_DGTZ_BoardModel_t;
 
 typedef enum {
@@ -268,6 +290,7 @@ typedef enum {
     CAEN_DGTZ_XX742_FAMILY_CODE  = 6L, 
     CAEN_DGTZ_XX780_FAMILY_CODE  = 7L,
     CAEN_DGTZ_XX761_FAMILY_CODE  = 8L,
+    CAEN_DGTZ_XX743_FAMILY_CODE  = 9L,
 } CAEN_DGTZ_BoardFamilyCode_t;
 
 typedef enum CAEN_DGTZ_DPP_PARAMETER
@@ -490,10 +513,33 @@ typedef enum
  */
 typedef enum
 {
+    /************************************************************
+    *  WARNING WARNING WARNING WARNING WARNING WARNING WARNING  *
+    *  The following values are valid for the following DPP-CI  *
+    *  Firmwares:                                               *
+    *       x720 Boards: AMC_REL <= 130.20                      *
+    *  For newer firmwares, use the values marked with 'R22' in *
+    *  the name.                                                *
+    *  WARNING WARNING WARNING WARNING WARNING WARNING WARNING  *
+    ************************************************************/
 	CAEN_DGTZ_DPP_CI_DIGITALPROBE1_BlOutSafeBand	= 0L,
 	CAEN_DGTZ_DPP_CI_DIGITALPROBE1_BlTimeout		= 1L,
 	CAEN_DGTZ_DPP_CI_DIGITALPROBE1_CoincidenceMet	= 2L,
-	CAEN_DGTZ_DPP_CI_DIGITALPROBE1_Tvaw			= 3L,
+	CAEN_DGTZ_DPP_CI_DIGITALPROBE1_Tvaw			    = 3L,
+
+    /************************************************************
+    *  WARNING WARNING WARNING WARNING WARNING WARNING WARNING  *
+    *  The following values are valid for the following DPP-CI  *
+    *  Firmwares:                                               *
+    *       x720 Boards: AMC_REL >= 130.22                      *
+    *  For older firmwares, use the values above.               *
+    *  WARNING WARNING WARNING WARNING WARNING WARNING WARNING  *
+    ************************************************************/
+    CAEN_DGTZ_DPP_CI_DIGITALPROBE1_R22_ExtTrg       = 4L,
+    CAEN_DGTZ_DPP_CI_DIGITALPROBE1_R22_OverThr      = 5L,
+    CAEN_DGTZ_DPP_CI_DIGITALPROBE1_R22_TrigOut      = 6L,
+    CAEN_DGTZ_DPP_CI_DIGITALPROBE1_R22_CoincWin     = 7L,
+    CAEN_DGTZ_DPP_CI_DIGITALPROBE1_R22_Coincidence  = 9L,
 } CAEN_DGTZ_DPP_CI_DigitalProbe1_t;
 
 /*! 
@@ -502,10 +548,32 @@ typedef enum
  */
 typedef enum
 {
+    /************************************************************
+    *  WARNING WARNING WARNING WARNING WARNING WARNING WARNING  *
+    *  The following values are valid for the following DPP-CI  *
+    *  Firmwares:                                               *
+    *       x720 Boards: AMC_REL <= 130.20                      *
+    *  For newer firmwares, use the values marked with 'R22' in *
+    *  the name.                                                *
+    *  WARNING WARNING WARNING WARNING WARNING WARNING WARNING  *
+    ************************************************************/
 	CAEN_DGTZ_DPP_CI_DIGITALPROBE2_BlOutSafeBand	= 0L,
 	CAEN_DGTZ_DPP_CI_DIGITALPROBE2_BlTimeout		= 1L,
 	CAEN_DGTZ_DPP_CI_DIGITALPROBE2_CoincidenceMet	= 2L,
-	CAEN_DGTZ_DPP_CI_DIGITALPROBE2_Tvaw			= 3L,
+	CAEN_DGTZ_DPP_CI_DIGITALPROBE2_Tvaw			    = 3L,
+
+    /************************************************************
+    *  WARNING WARNING WARNING WARNING WARNING WARNING WARNING  *
+    *  The following values are valid for the following DPP-CI  *
+    *  Firmwares:                                               *
+    *       x720 Boards: AMC_REL >= 130.22                      *
+    *  For older firmwares, use the values above.               *
+    *  WARNING WARNING WARNING WARNING WARNING WARNING WARNING  *
+    ************************************************************/
+    CAEN_DGTZ_DPP_CI_DIGITALPROBE2_R22_OverThr      = 5L,
+    CAEN_DGTZ_DPP_CI_DIGITALPROBE2_R22_TrgVal       = 6L,
+    CAEN_DGTZ_DPP_CI_DIGITALPROBE2_R22_TrgHO        = 7L,
+    CAEN_DGTZ_DPP_CI_DIGITALPROBE2_R22_Coincidence  = 9L,
 } CAEN_DGTZ_DPP_CI_DigitalProbe2_t;
 
 /*! 
@@ -524,6 +592,17 @@ typedef enum
  */
 typedef enum
 {
+    /************************************************************
+    *  WARNING WARNING WARNING WARNING WARNING WARNING WARNING  *
+    *  The following values are valid for the following DPP-PSD *
+    *  Firmwares:                                               *
+    *       x720 Boards: AMC_REL <= 131.5                       *
+    *       x751 Boards: AMC_REL <= 132.5                       *
+    *  For newer firmwares, use the values marked with 'R6' in  *
+    *  the name.                                                *
+    *  WARNING WARNING WARNING WARNING WARNING WARNING WARNING  *
+    ************************************************************/
+    
     /* x720 Digital Probes Types */
 	CAEN_DGTZ_DPP_PSD_DIGITALPROBE1_Armed			= 0L,
 	CAEN_DGTZ_DPP_PSD_DIGITALPROBE1_Trigger			= 1L,
@@ -537,7 +616,24 @@ typedef enum
     /* x751 Digital Probes Types */
     CAEN_DGTZ_DPP_PSD_DIGITALPROBE1_OverThr		    = 8L,
     CAEN_DGTZ_DPP_PSD_DIGITALPROBE1_GateShort		= 9L,
-    CAEN_DGTZ_DPP_PSD_DIGITALPROBE1_None            = 10L
+    CAEN_DGTZ_DPP_PSD_DIGITALPROBE1_None            = 10L,
+
+    /************************************************************
+    *  WARNING WARNING WARNING WARNING WARNING WARNING WARNING  *
+    *  The following values are valid for the following DPP-PSD *
+    *  Firmwares:                                               *
+    *       x720 Boards: AMC_REL >= 131.6                       *
+    *       x751 Boards: AMC_REL >= 132.6                       *
+    *  For older firmwares, use the values above.               *
+    *  WARNING WARNING WARNING WARNING WARNING WARNING WARNING  *
+    ************************************************************/
+    CAEN_DGTZ_DPP_PSD_DIGITALPROBE1_R6_ExtTrg       = 11L, /* x720 only */
+    CAEN_DGTZ_DPP_PSD_DIGITALPROBE1_R6_OverThr      = 12L,
+    CAEN_DGTZ_DPP_PSD_DIGITALPROBE1_R6_TrigOut      = 13L,
+    CAEN_DGTZ_DPP_PSD_DIGITALPROBE1_R6_CoincWin     = 14L,
+    CAEN_DGTZ_DPP_PSD_DIGITALPROBE1_R6_PileUp       = 15L,
+    CAEN_DGTZ_DPP_PSD_DIGITALPROBE1_R6_Coincidence  = 16L,
+    CAEN_DGTZ_DPP_PSD_DIGITALPROBE1_R6_GateLong     = 17L, /* x751 only */ 
 } CAEN_DGTZ_DPP_PSD_DigitalProbe1_t;
 
 /*! 
@@ -546,6 +642,17 @@ typedef enum
  */
 typedef enum
 {
+    /************************************************************
+    *  WARNING WARNING WARNING WARNING WARNING WARNING WARNING  *
+    *  The following values are valid for the following DPP-PSD *
+    *  Firmwares:                                               *
+    *       x720 Boards: AMC_REL <= 131.5                       *
+    *       x751 Boards: AMC_REL <= 132.5                       *
+    *  For newer firmwares, use the values marked with 'R6' in  *
+    *  the name.                                                *
+    *  WARNING WARNING WARNING WARNING WARNING WARNING WARNING  *
+    ************************************************************/
+
     /* x720 Digital Probes Types */
 	CAEN_DGTZ_DPP_PSD_DIGITALPROBE2_Armed			= 0L,
 	CAEN_DGTZ_DPP_PSD_DIGITALPROBE2_Trigger			= 1L,
@@ -559,7 +666,23 @@ typedef enum
     /* x751 Digital Probes Types */
     CAEN_DGTZ_DPP_PSD_DIGITALPROBE2_GateShort		= 8L,
     CAEN_DGTZ_DPP_PSD_DIGITALPROBE2_GateLong		= 9L,
-    CAEN_DGTZ_DPP_PSD_DIGITALPROBE2_None            = 10L
+    CAEN_DGTZ_DPP_PSD_DIGITALPROBE2_None            = 10L,
+
+    /************************************************************
+    *  WARNING WARNING WARNING WARNING WARNING WARNING WARNING  *
+    *  The following values are valid for the following DPP-PSD *
+    *  Firmwares:                                               *
+    *       x720 Boards: AMC_REL >= 131.6                       *
+    *       x751 Boards: AMC_REL >= 132.6                       *
+    *  For older firmwares, use the values above.               *
+    *  WARNING WARNING WARNING WARNING WARNING WARNING WARNING  *
+    ************************************************************/
+    CAEN_DGTZ_DPP_PSD_DIGITALPROBE2_R6_GateShort    = 11L,
+    CAEN_DGTZ_DPP_PSD_DIGITALPROBE2_R6_OverThr      = 12L,
+    CAEN_DGTZ_DPP_PSD_DIGITALPROBE2_R6_TrgVal       = 13L,
+    CAEN_DGTZ_DPP_PSD_DIGITALPROBE2_R6_TrgHO        = 14L,
+    CAEN_DGTZ_DPP_PSD_DIGITALPROBE2_R6_PileUp       = 15L,
+    CAEN_DGTZ_DPP_PSD_DIGITALPROBE2_R6_Coincidence  = 16L,
 } CAEN_DGTZ_DPP_PSD_DigitalProbe2_t;
 
 /*! 
@@ -586,6 +709,12 @@ typedef enum {
 	_CAEN_DGTZ_DRS4_COUNT_  = 3L,
 } CAEN_DGTZ_DRS4Frequency_t;
 
+typedef enum {
+	CAEN_DGTZ_SAM_FULL_SPEED	 = 0L,
+	CAEN_DGTZ_SAM_HALF_SPEED	 = 1L,
+	CAEN_DGTZ_SAM_QUARTER_SPEED	 = 2L,
+	CAEN_DGTZ_SAM_EIGHTH_SPEED   = 3L,
+} CAEN_DGTZ_SAMFrequency_t;
 /*! 
  * \brief Defines the available synchronization modes to be set with CAEN_DGTZ_SetDPPRunSynchronizationMode
  */
@@ -641,6 +770,17 @@ typedef struct
 
 typedef struct 
 {
+	uint32_t				 ChSize;						 		  // the number of samples stored in DataChannel array  
+	float					 *DataChannel[MAX_X743_CHANNELS_X_GROUP];     // the array of ChSize samples
+	uint16_t				 TriggerFinePosition;
+	uint16_t				 TriggerCount;
+	uint16_t				 TimeCount;
+	uint8_t					 EventId;
+	uint16_t				 StartIndexCell;
+} CAEN_DGTZ_X743_GROUP_t;
+
+typedef struct 
+{
 	uint32_t			ChSize[MAX_UINT16_CHANNEL_SIZE]; // the number of samples stored in DataChannel array  
 	uint16_t			*DataChannel[MAX_UINT16_CHANNEL_SIZE]; // the array of ChSize samples
 } CAEN_DGTZ_UINT16_EVENT_t;
@@ -657,6 +797,11 @@ typedef struct
 	CAEN_DGTZ_X742_GROUP_t	DataGroup[MAX_X742_GROUP_SIZE]; // the array of ChSize samples
 } CAEN_DGTZ_X742_EVENT_t;
 
+typedef struct 
+{
+	uint8_t					GrPresent[MAX_V1743_GROUP_SIZE]; // If the group has data the value is 1 otherwise is 0  
+	CAEN_DGTZ_X743_GROUP_t	DataGroup[MAX_V1743_GROUP_SIZE]; // the array of ChSize samples
+} CAEN_DGTZ_X743_EVENT_t;
 
 /*! 
  * \brief Event type for DPP-PHA to be used within the <b>new readout API</b>
@@ -698,6 +843,23 @@ typedef struct
 } CAEN_DGTZ_DPP_CI_Event_t;
 
 /*! 
+ * \brief Event type for 751 ZLE to be used within the <b>new readout API</b>
+ */
+typedef struct 
+{
+    uint32_t timeTag;
+    uint32_t baseline;
+    uint32_t *Waveforms;
+} CAEN_DGTZ_751_ZLE_Event_t;
+
+
+typedef struct 
+{
+    uint32_t size;
+	float *Charge;
+} CAEN_DGTZ_DPP_X743_Event_t;
+
+/*! 
  * \brief Waveform type for DPP-PHA to be used within the <b>new readout API</b>
  */
 typedef struct 
@@ -730,6 +892,17 @@ typedef struct
 	uint8_t  *DTrace3;
     uint8_t  *DTrace4;
 } CAEN_DGTZ_DPP_PSD_Waveforms_t;
+
+
+/*! 
+ * \brief Waveform type for 751ZLE to be used within the <b>new readout API</b>
+ */
+typedef struct
+{
+    uint32_t Ns;
+    uint16_t *Trace1;
+    uint8_t *Discarded;
+} CAEN_DGTZ_751_ZLE_Waveforms_t;
 
 #define CAEN_DGTZ_DPP_CI_Waveforms_t CAEN_DGTZ_DPP_PSD_Waveforms_t /*!< \brief Waveform types for DPP-CI and DPP-PSD are the same, hence this define */
 
@@ -809,6 +982,7 @@ typedef struct
 typedef struct {
 	int blthr;
 	int bltmo;
+    int trgho;
 	int thr		[MAX_V1720DPP_CHANNEL_SIZE];
 	int selft	[MAX_V1720DPP_CHANNEL_SIZE];
 	int csens	[MAX_V1720DPP_CHANNEL_SIZE];
@@ -831,6 +1005,7 @@ typedef struct {
 typedef struct {
 	int blthr;
 	int bltmo;
+    int trgho;
 	int thr		[MAX_V1720DPP_CHANNEL_SIZE];
 	int selft	[MAX_V1720DPP_CHANNEL_SIZE];
     int csens	[MAX_V1720DPP_CHANNEL_SIZE];
@@ -842,6 +1017,28 @@ typedef struct {
 				[MAX_V1720DPP_CHANNEL_SIZE];
 } CAEN_DGTZ_DPP_CI_Params_t;
 
+typedef struct {
+	int NSampBck		[MAX_ZLE_CHANNEL_SIZE];
+	int NSampAhe		[MAX_ZLE_CHANNEL_SIZE];
+	int ZleUppThr		[MAX_ZLE_CHANNEL_SIZE];
+	int ZleUndThr		[MAX_ZLE_CHANNEL_SIZE];
+	int selNumSampBsl	[MAX_ZLE_CHANNEL_SIZE];
+	int bslThrshld		[MAX_ZLE_CHANNEL_SIZE];
+	int bslTimeOut		[MAX_ZLE_CHANNEL_SIZE];
+	int preTrgg;
+} CAEN_DGTZ_751_ZLE_Params_t;
+typedef struct {
+	int bslthr	[MAX_V1723_CHANNEL_SIZE];
+	int gate	[MAX_V1723_CHANNEL_SIZE];
+	int prethr	[MAX_V1723_CHANNEL_SIZE];
+} CAEN_DGTZ_DPP_X743_Params_t;
 
+
+typedef enum {
+	CAEN_DGTZ_SAM_CORRECTION_DISABLED		= 0,
+	CAEN_DGTZ_SAM_CORRECTION_PEDESTAL_ONLY	= 1,
+	CAEN_DGTZ_SAM_CORRECTION_INL			= 2,
+	CAEN_DGTZ_SAM_CORRECTION_ALL			= 3,
+} CAEN_DGTZ_SAM_CORRECTION_LEVEL_t;
 #endif
 

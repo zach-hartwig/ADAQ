@@ -485,7 +485,8 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetPostTriggerSize(int handle, uint32
 * \note		This function is only available to DPP enabled firmwares and only to DPP-PHA, DPP-PSD and DPP-CI
 *
 * \param 	[IN] handle  : digitizer handle
-* \param 	[IN] ch      : the channel to set the pre-trigger for
+* \param 	[IN] ch      : the channel to set the pre-trigger for. ch=-1 writes the value for all channels.
+                           DPP-CI only supports ch=-1 (different channels must have the same pre-trigger)
 * \param 	[IN] sample  : the pre-trigger size, in samples
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
@@ -1252,6 +1253,13 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetFastTriggerMode(int handle, CAEN_D
 CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_LoadDRS4CorrectionData(int handle, CAEN_DGTZ_DRS4Frequency_t frequency);
 CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_EnableDRS4Correction(int handle);
 CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_DisableDRS4Correction(int handle);
+CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_DecodeZLEWaveforms(int handle, void *event, void *waveforms);
+CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_FreeZLEWaveforms(int handle, void *waveforms);
+CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_MallocZLEWaveforms(int handle, void **waveforms, uint32_t *allocatedSize);
+CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_FreeZLEEvents(int handle, void **events);
+CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_MallocZLEEvents(int handle, void **events, uint32_t *allocatedSize);
+CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetZLEEvents(int handle, char *buffer, uint32_t buffsize, void **events, uint32_t* numEventsArray);
+CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetZLEParameters(int handle, uint32_t channelMask, void* params);
 
 #ifdef __cplusplus
 }

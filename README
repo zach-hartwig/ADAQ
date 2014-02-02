@@ -33,6 +33,23 @@ interface. The hierarchy can be envisaged as follows:
          -----------------
 
 
+The ADAQ distribution also contains "utility" classes that may be
+generally useful for any of the acquisition and analysis programs that
+utilize the ADAQ libraries. One advantage of the ADAQ library layer is
+that acquisition and analysis code in any language (provided it can
+access C, C++, or Python classes) and with any graphical interface can
+be written to utilize the ADAQ library. It is often the case that
+different codes will require access to a single class that transcends
+a single code. In this case, it is desirable that a single, easily
+maintainable, and self-consistent class is available for any code that
+requires it. For example, a data storage class used by an acquisition
+code may be required for an analysis code to access that data.
+
+At present, a number of C++ classes for data storage and graphical
+user interfaces are provided for the ROOT toolkit
+(http://root.cern.ch/drupal/)
+
+
 DIRECTORY STRUCTURE/DESCRIPTION
 -------------------------------
 
@@ -48,6 +65,9 @@ DIRECTORY STRUCTURE/DESCRIPTION
     --> x86_64 : 64-bit
 
 --> include/ : The main directory for all ADAQ and CAEN header files
+
+--> root/ : ROOT class definitions for general data storage and
+            graphical user interfaces
 
 
 ADAQ DIRECTORY

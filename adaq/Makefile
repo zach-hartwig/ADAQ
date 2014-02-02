@@ -1,6 +1,6 @@
 ######################################################################
 # name: Makefile
-# date: 17 Apr 13
+# date: 02 Feb 14
 # auth: Zach Hartwig
 #
 # desc: This GNUmakefile controls the building of the ADAQ C++ and
@@ -10,20 +10,20 @@
 #       Python shared object library ("libPyADAQ.so"), with the
 #       exception that "CXX" (full macro) specifies gcc as the
 #       compiler that will be used to build both. The target libraries
-#       will be placed in the "./lib/<architecture>/" directory, where
-#       <architecture> is either i686 (32-bit) or x86_64 (64-bit). The
-#       ADAQ Setup.sh bash script should automatically set the
-#       HOSTTYPE environmental variable via the 'uname -m' command.
+#       are built locally in "lib/<arch> during "make" and then copied
+#       to the "../lib/<arch> during "make install", where <arch> is
+#       either i686 (32-bit) or x86_64 (64-bit). The makefile should
+#       automatically determine the architecture using the 'uname -m'
+#       command.
 #
-#       There are essentially three dependencies required to build the
-#       ADAQ libraries:
+#       There are three main dependencies required:
 #       
-#       0. The CAEN libraries (included with the ADAQ libraries):
+#       0. The CAEN libraries (included in ../caen subdirectory)
 #          --> CAENDigitizer, CAENComm, CAENVME
 #          --> see http://www.caen.it/csite/ProductSupport.jsp
 #
 #       1. Boost.Python (a Boost library that must be compiled)
-#          --> see http://www.boost.org/doc/libs/1_53_0/libs/python/doc/
+#          --> see http://www.boost.org/doc/libs/1_55_0/libs/python/doc/
 #
 #       2. Python (requires development headers/libraries)
 #    
@@ -35,7 +35,7 @@
 ######################################
 
 # Sequential or parellel architecture
-ARCH=$(HOSTTYPE)
+ARCH=$(shell uname -m)
 
 # The directory that this Makefile lives in (convenient macro for
 # specifying full path names to various items)
@@ -56,7 +56,7 @@ CXXOBJS=$(SRC)/ADAQDigitizer.o $(SRC)/ADAQHighVoltage.o
 PYOBJS=$(SRC)/ADAQPythonWrapper.o
 
 # Set the CAEN library and include directories/flags
-CAENLIBDIR=-L$(ADAQHOME)/lib/$(HOSTTYPE)
+CAENLIBDIR=-L../lib/$(ARCH)
 CAENLIB=-lCAENVME -lCAENComm -lCAENDigitizer -lncurses -lc -lm
 CAENINCL=-I../include
 
@@ -160,11 +160,11 @@ clean:
 	@echo -e ""
 
 # Install libs and headers to general directory
-.PHONY:
 install:
-	@echo -e "\nInstalling ADAQ libraries in \$$ADAQHOME/lib/$(ARCH) ..."
-	@cp -v lib/$(ARCH)/* ../$(ARCH)
-	@echo -e "\nInstalling ADAQ headers in \$$ADAQHOME/include/ ..."
+	@echo -e "\nInstalling ADAQ libraries in ../lib/$(ARCH) ..."
+	@cp -v lib/$(ARCH)/* ../lib/$(ARCH)
+	@echo -e "\nInstalling ADAQ headers in ../include ..."
 	@cp -v include/* ../include
 	@echo -e ""
+
 

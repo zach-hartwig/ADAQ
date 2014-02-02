@@ -1,35 +1,84 @@
-30 Jul 13
-README file for $ADAQ_REPO/lib
+Last updated : 02 Feb 14
 
-This directory contains the following original sources:
---> adaq/ : The ADAQ source (C++ code and libraries)
+OVERVIEW
+--------
+
+The ADAQ (AIMS Data AcQuisition) library is a self-contained software
+layer that manages the interface between the CAEN data acquisition
+hardware and the AIMS acquisition and analysis codes. It provides the
+necessary CAEN libraries (CAENComm, CAENDigitizer, CAENVME) and then
+adds an enhanced sublayer of functionality on top to provide more
+powerful and straightforward control of the CAEN hardware. ADAQ
+provides users with C, C++, and Python interfaces for controlling the
+CAEN hardware; the Python methods are created via Boost.Python, which
+wraps the C++ methods to provide a seamless Python
+interface. The hierarchy can be envisaged as follows:
+
+     --------------------------
+     | Acquisition / Analysis |
+     --------------------------
+                 |
+                 V
+           ADAQ libraries
+       --------------------
+       | Enhanced methods |
+       |         |        |  
+       |         V        |  
+       |  CAEN libraries  |
+       --------------------
+                 |
+                 V
+         -----------------
+         | CAEN HARDWARE |
+         -----------------
+
+
+DIRECTORY STRUCTURE/DESCRIPTION
+-------------------------------
+
+--> adaq/ : The ADAQ source code for enhanced CAEN hardware methods
+
 --> caen/ : The CAEN firmware, drivers, and libraries
+    --> drivers/ : Linux drivers for the VME-USB connection
+    --> firmware/ : firmware for the V1718, V1720 VME boards
+    --> libraries/ : contains CAENComm, CAENDigitizer, and CAENVME libraries
+
+--> lib/ : The main library directory for ADAQ and CAEN libraries
+    --> i686/ : 32-bit 
+    --> x86_64 : 64-bit
+
+--> include/ : The main directory for all ADAQ and CAEN header files
 
 
-This directory also contains directories that hold all of the required
-ADAQ and CAEN libraries and header files in a single location for
-convenience (during builds and so forth):
---> i686/ : libraries required for i686 (32-bit) architectures
---> x86_64/ : libraries required for x86_64 (64-bit) architectures
---> include/ : header files 
+ADAQ DIRECTORY
+--------------
+
+The ADAQ library essentially provides all of the CAEN library methods
+to control the acquisition and power supply hardware along with a
+number of enhanced methods for more powerful and often more simpler
+interfaces that utilize the CAEN library methods. The enhanced methods
+can be found in the C++ ADAQDigitizer and ADAQHighVoltage classes.
+
+The ADAQPythonWrapper class uses Boost.Python to wrap the
+aforementioned C++ classes such that the user has the additional
+option of seamless Python interface without the need to rewrite any
+code. This has additional advantage of ensuring consistency between
+the C++ and Python interfaces.
+
+All of the above is compiled into two shared object libraries :
+"libADAQ.so" provides the C++ interface methods while "libPyDAQ.so"
+provides the Python inteface methods. A GNU makefile control the
+library building. 
 
 
+CAEN DIRECTORY
+--------------
 
-Detailed description of the CAEN directory 'caen/'
--------------------------------------------------- 
-CAEN libraries required to build the any of the ADAQ codes This top
-level directory contains the original CAEN source code and li braries,
-as well as two directories that are marked "x86" and "x86_64", which
-contain the 32- and 64-bit libraries, respectively, required for
-building on the different architectures. The main purpose for
-including the libraries here is for explicit control of CAEN library
-versions and for portability to a number of machines (that may or may
-not have CAEN libraries installed). A brief description of each
-library can be found below
+This directory contains all of the required CAEN drivers, firmware,
+and libraries required by the AIMS DAQ hardware. The most-up-date
+versions are available as well as many legacy versions for backwards
+compatibility. Including the libraries within the ADAQ distribution
+provides explicit control over versions and ensures easy portability
+between multiple machines without the need to download/install the
+CAEN libraries everytime.
 
-Detailed description of the ADAQ directory 'adaq/'
---------------------------------------------------
-The ADAQ library, which contains all the customized controls of the
-V1720 digitizer and V6534 high voltage boards. The libADAQ.so library
-is build from the ../src and ../include directory by the
-../Makefile. Please see those files for details

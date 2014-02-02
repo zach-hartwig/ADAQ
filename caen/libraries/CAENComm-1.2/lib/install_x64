@@ -1,0 +1,31 @@
+#!/bin/sh
+#=============================================================================
+#
+#             --- CAEN SpA - Computing Systems Division ---
+#
+#  Library installation script.
+#
+#
+#  July  2009 :   Created.
+#
+#=============================================================================
+if [ ! -f /usr/lib/libCAENVME.so ] 
+then
+	echo "*******************************************************************"
+	echo "* WARNING                                                         *"
+	echo "* The CAENComm library needs that the CAENVMELibrary              *"
+	echo "* is installed in your pc.                                        *"
+	echo "* It seems that you haven't install the CAENVMELibrary so please  *"
+	echo "* download it from the following link:                            *"
+	echo "*                                                                 *"
+	echo "* http://www.caen.it/nuclear/software_download.php                *"
+	echo "*                                                                 *"
+	echo "* install it and run this script again.                           *"
+	echo "*******************************************************************"
+	exit 0
+else
+  install x64/libCAENComm.so.1.2.0 /usr/lib
+  ln -sf /usr/lib/libCAENComm.so.1.2.0 /usr/lib/libCAENComm.so
+  /sbin/ldconfig
+  cp ../include/* /usr/include/
+fi

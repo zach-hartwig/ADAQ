@@ -1,0 +1,199 @@
+###############################################################################
+C.A.E.N. S.p.A.  -  Viareggio
+
+This file describes the revision history of the FPGA codes (firmware) for the 
+CAEN's VME Optical Controller V1718
+
+
+
+###############################################################################
+Motherboard of V1718/V2718
+File name : v1718vub_RevX.Y.rbf   (where X.Y is the revision number)
+###############################################################################
+
+NOTE: revisions before 0.4 are not traced since used only for the debug of
+the prototypes.
+
+
+Rev 0.4 (10/05/04)
+-------------------------------------------------------------------------------
+1) Bug fixed in Block Transfer cycles.
+NOTE: this version can be used with V1718 only (it doesn't work with the V2718)
+
+
+Rev 0.5 (28/05/04)
+-------------------------------------------------------------------------------
+1) Address increment on 32 bit (instead of 16) during Block Transfer
+   (when the FIFO_MODE is not set).
+NOTE: this version can be used with V1718 only (it doesn't work with the V2718)
+
+
+Rev 0.6 (26/07/04)
+-------------------------------------------------------------------------------
+1) This is the first release of the firmware that can handle the Optical Link of
+   the V2718; the same firmware can work with both versions of the Bridge (V1718
+   and V2718).
+2) The block transfer is optimized in speed.
+3) Firmware Upgrade is possible also with the jumper in Backup position (in the 
+   previous versions, firmware upgrade was possible only when the jumper was in
+   the STD position).
+4) The bug which caused wrong data transferred during large size BLT (>480K) 
+   cycles was fixed.
+5) The register with the interrupt mask for inhibiting the propagation of the 
+   interrupts from VME to PCI was added (only for 2718).
+6) CONET reset management: the PCI board A2818 can send a RESET command through
+   the Optical Link and this resets the data FIFOs and the state machines of the
+   VME master.
+
+
+Rev 0.7 (01/09/04)
+-------------------------------------------------------------------------------
+1) Bug (introduced in rev 0.6) which caused an error during the firmware
+   upgrade of the FPGA fixed.
+
+
+Rev 0.8 (27/09/04)
+-------------------------------------------------------------------------------
+1) Interrupt transfer from VME to PCI implemented at hardware level.
+2) Bug fixed: block transfer with large size (>256KB) caused communication error.
+3) Bug fixed: access in MBLT64 with blt size = 8 bytes (1 VME cycle) was not 
+   executed correctly.
+4) Bug fixed: during a BLT16, the crossing of the boundary (256 bytes) was done
+   releasing the AS two times (at address 254 and 256, plus multiples).
+5) The Sysres of the VME is activated from the push button on the Front Panel
+   only when the board is System Controller.
+
+
+Rev 0.9 (20/10/04)
+-------------------------------------------------------------------------------
+1) Data Transfer from V2718 to A2818 optimized: a 256KB SRAM is used in the A2818
+   to store the data coming from the V2718 while the PCI is not yet ready 
+   to read them (readout interrupt latency).
+   NOTE: this improvement takes effect if you have an A2818 with FW Rev. >= 0.4
+2) Bug fixed: BLT read with large size (bigger than 4MB)
+3) Response time in the DS/DTACK handshake reduced for BLT cycles.
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+The revision 0.9 and older are only compatible with the software release 1.2 
+and older. 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+Rev 0.10 (28/10/04)
+-------------------------------------------------------------------------------
+1) The Bridge to PC data transfer protocol for BLT has been changed in order to
+   optimize the packet dispatch in the PC memory.
+2) The leading edge of the AS has been delayed respect to the valid address on
+   the VME bus; now the delay is about 45 ns.
+3) Bug Fixed in V1718 when executing a BLT terminated by a BERR with a BLT size 
+   of 64*N-4 for USB 1.1 and 512*N-4 for USB 2.0 (with N = 1,2,3...).
+   This bug is not present in the V2718.
+
+Rev 0.11 (02/11/04)
+-------------------------------------------------------------------------------
+1) Changed the data transfer protocol for the internal register read cycle
+
+Rev 0.12 (14/01/05)
+-------------------------------------------------------------------------------
+1) Bug fixed: data loss during MBLT64 (depending on the transfer rate and 
+   BLT size).
+
+2) Optimized the slave mode: bigger RAM memory (32x16) and faster readout
+   (greater than 60MB/s in MBLT)
+
+Rev 0.13 (22/02/05)
+-------------------------------------------------------------------------------
+1) Bug fixed in the Interrupt Acknowledge in D08.
+
+Rev 0.14 (18/03/05)
+-------------------------------------------------------------------------------
+1) The timing of the IACKOUT signal in the Interrupt Acknowledge cycle has been
+   corrected (delayed of about 50ns after the DS0/DS1)
+
+
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+
+
+Rev 1.00 (20/05/05)
+-------------------------------------------------------------------------------
+1) Added support for Multi-Read and Multi-Write operations.
+
+2) Added byte swapping for Big Endian - Little Endian conversion
+
+
+Rev 2.00 (04/07/05)
+-------------------------------------------------------------------------------
+1) Fixed a bug in the BLT Write cycle. The State Machine that manages the BLT
+   cycle has been completely reviewed.
+
+2) Corrected the Byte Swapping (option introduced with the previous Rev 1.00)
+
+3) Assertion of /AS: now the master waits until the slave releases the DTACK 
+   before asserting the /AS for a new cycle.
+
+4) The FIFO mode option (that is a BLT cycle without address increment) is now
+   set by means of a parameter of the BLT cycle (and not by a bit of the Control 
+   Register), allowing different processes to set this option within a single
+   atomic command.
+
+Rev 2.01 (21/09/05)
+-------------------------------------------------------------------------------
+1) Added Optical Link LED driving signal for the 9U version (it must work with 
+   Rev 0.5 of the A2719CI)
+
+Rev 2.02 (05/12/06)
+-------------------------------------------------------------------------------
+1) Modified the releasing of the AS when a BLT cycle is closed with a BERR by 
+   the slave (now the master doesn't wait for the releasing of the BERR before
+   releasing the AS).
+
+Rev 2.03 (26/02/07)
+-------------------------------------------------------------------------------
+1) Disabled drivers of the SERCLK and SERDAT lines
+
+Rev 2.04 (21/06/07)
+-------------------------------------------------------------------------------
+1) Added the BLT access executed as a sequence of consecutive single R/W 
+   accesses. To enable this mode, it has been added the bit 10 of the 
+   VME_CTRL register. 
+
+Rev 2.05 (28/08/07)
+-------------------------------------------------------------------------------
+1) Added a global reset of the V1718 when the USB port is enumerating (this 
+   occurs when the USB cable is reconnected or the driver is reloaded).
+
+Rev 2.06 (15/01/08)
+-------------------------------------------------------------------------------
+1) Disabled the drivers of the MTM bus (the MTM bus is connected to the FPGA 
+   but for the moment the firmware doesn't provide the access to it)
+
+Rev 2.07 (22/05/08)
+-------------------------------------------------------------------------------
+1) Fixed bug (introduced with the Rev 2.05) in the board reset from the front
+   panel: the V1718 occasionally hangs (no USB communication) after a push
+   button reset.
+
+Rev 2.08 (24/04/09)
+-------------------------------------------------------------------------------
+1) The "fake BLT" feature introduced with the Rev. 2.04 can be enabled using
+   a special opcode (6); it is not necessary (but still possible) to set the 
+   relevant bit in the VME_CTRL reg.
+
+Rev 2.09 (18/05/09)
+-------------------------------------------------------------------------------
+1) SYSRES no longer activated after the USB port is enumerated (USB cable 
+   reconnected).
+   
+   Rev 2.10 (12/01/12)
+-------------------------------------------------------------------------------
+1) Fixed bug causing some problems in VME interrupt handling
+
+Rev 2.11 & 2.12 (N.A.)
+-------------------------------------------------------------------------------
+Versions not documented
+
+Rev 2.13 (30/08/13)
+-------------------------------------------------------------------------------
+1) Fixed bug causing problems in multi-master access to the VME bus

@@ -1,0 +1,134 @@
+  -----------------------------------------------------------------------------
+
+                   --- CAEN SpA - Computing Systems Division --- 
+
+  -----------------------------------------------------------------------------
+
+  CAEN USB Driver Release Notes
+
+  -----------------------------------------------------------------------------
+
+  Rel. 1.4  - January 	2014
+  Rel. 1.3  - July 	2013
+  Rel. 1.2  - Jun 	2013
+  Rel. 1.1  - Jan 	2013
+  Rel. 1.0  - Dec	2012
+  Rel. 0.9  - Dec 	2011
+  Rel. 0.8  - May 	2011
+  Rel. 0.7  - January   2009
+  Rel. 0.6  - July      2008
+  Rel. 0.5  - March     2007
+  Rel. 0.4  - September 2006
+  Rel. 0.3  - May       2006
+  Rel. 0.2  - January   2006
+  Rel. 0.1  - August    2005
+
+
+  -----------------------------------------------------------------------------
+
+
+  Description
+  -----------
+
+  This document is updated for every official release of the CAEN USB Driver for V1718 
+  and NIM/Desktop Digitizers. It contains various information specific to this software 
+  which can not be found in the Module User's Manual, available together with the software 
+  on the CAEN web site: http://www.caen.it.
+
+
+ System Requirements
+ -------------------
+
+  - CAEN USB Card: V1718 VME-USB2.0 Bridge, DT5720-N6720/24/40/42/51/61 Digitizers or N957
+  - Linux kernel 2.6/3.6 and GNU C/C++ compiler
+
+   What's New in Rel. 1.4
+  --------------------------
+  - add support for N957 Multi Channel Analyzers  
+  - replaced dbg() function with printk() to avoid compilation error on recent linux version
+
+   What's New in Rel. 1.3
+  --------------------------
+  - add support for DT55xx HV Desktop Power Supply
+  
+   What's New in Rel. 1.2
+  --------------------------
+  - implemented two new IOCTL commands to restart hardware (DT) from standard/backup flash memory
+
+   What's New in Rel. 1.1
+  --------------------------
+  - Removed back compatibility with kernel 2.4
+  - add support for the dynamic USB minor allocation
+ 
+  What's New in Rel. 1.0
+  --------------------------
+  - Porting: support kernel up to 3.1.5
+
+  What's New in Rel. 0.9
+  --------------------------
+  - Porting: support kernel up to 2.6.38
+
+  What's New in Rel. 0.8
+  --------------------------
+  - Precise identification of the devices
+
+  What's New in Rel. 0.7
+  --------------------------
+  - BugFix: signal handling on read function 
+
+  What's New in Rel. 0.6
+  --------------------------
+   - Added recovery from stall and overrun condition
+
+  What's New in Rel. 0.5
+  --------------------------
+
+   New Features and Important Notes
+   --------------------------------
+   
+   - Port to 2.6.18 kernel: dev_fs no more supported
+  
+  What's New in Rel. 0.4
+  --------------------------
+
+   New Features and Important Notes
+   --------------------------------
+
+   - Port to 2.6.15 kernel: struct usb_driver::owner field is no more supported
+   - Port to 64-bit architectures : no changes (tested on 2.6.15-1.2054_FC5 SMP x86_64)
+   - Unlocked ioctl() method alleviates system performacne problems ( Linux Version>= 2.6.11)
+   - BugFix: disconnect_v1718 tried to down the same lock twice ( Linux Version >= 2.5.0 )
+
+  What's New in Rel. 0.3
+  --------------------------
+
+   New Features and Important Notes
+   --------------------------------
+
+   - Porting to 2.6.15 kernel: usb_class_driver::mode field is no more supported
+
+  What's New in Rel. 0.2
+  --------------------------
+
+   New Features and Important Notes
+   --------------------------------
+
+   - Porting to 2.6 kernel
+   - V1718_IOCTL_REV: get driver revision           
+ 
+  What's New in Rel. 0.1
+  --------------------------
+
+   New Features and Important Notes
+   --------------------------------
+
+   - First release.
+
+
+  How to get support
+  ------------------
+
+  Our Software Support Group is available for questions, support and any other 
+  software related issue concerning CAEN Power Supplies; for software support
+  visit the page www.caen.it/computing/support.php.
+

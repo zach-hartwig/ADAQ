@@ -1,0 +1,78 @@
+  -----------------------------------------------------------------------------
+
+                   --- CAEN SpA - Computing Systems Division --- 
+
+  -----------------------------------------------------------------------------
+
+  CAENComm Library Release Notes
+
+  -----------------------------------------------------------------------------
+  Rel. 1.2   - Dec	 	 2013
+  Rel. 1.1   - May	 	 2012
+  Rel. 1.02  - July 	 2010
+  Rel. 1.01  - March 	 2010
+  Rel. 1.0   - July      2009
+  -----------------------------------------------------------------------------
+
+
+  Description
+  -----------
+
+  This document is updated for every official release of the CAENComm Library
+  and it contains various information specific to this software which can not be
+  found in the User's Manual, available together with the software or on the CAEN
+  web site: http://www.caen.it.
+
+
+ System Requirements
+ -------------------
+
+  - Linux kernel 2.4 or 2.6 and GNU C/C++ compiler
+  - CAENVMELib library version 2.12 or above.
+  
+  What's New in Rel. 1.2
+  --------------------------
+  
+   - add CAENComm_VMELIB_handle in GetInfo
+   - modified CAEN_Comm_ConnectionType removing PCI/PCIE options replacing with OpticalLink. 
+  
+  What's New in Rel. 1.1
+  --------------------------
+  
+   - FIXED BUG on OpenDevice.
+  
+  What's New in Rel. 1.02
+  --------------------------
+  
+   - FIXED BUG on VMEIRQWait.
+
+  What's New in Rel. 1.01
+  --------------------------
+  
+   - FIXED BUG on OpenDevice with CAENComm_USB connection.
+        
+  
+  What's New in Rel. 1.0
+  --------------------------
+
+   New Features and Important Notes
+   --------------------------------
+
+   - First release.
+
+ 
+  Determining Your Software Release
+  ---------------------------------
+
+  To determine the complete software release of the CAENComm Library
+  installed in your machine, you must write a program and use the
+  CAENComm_SWRelease API function.
+
+
+  How to get support
+  ------------------
+
+  Our Software Support Group is available for questions, support and any other 
+  software related issue concerning CAEN Power Supplies; for software support
+  visit the page www.caen.it/computing/support.php.
+

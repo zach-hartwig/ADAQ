@@ -102,3 +102,19 @@ provides explicit control over versions and ensures easy portability
 between multiple machines without the need to download/install the
 CAEN libraries everytime.
 
+
+-- Brief descriptions of the CAEN libraries --
+
+The following are the most up-to-date CAEN libraries as of 03 Feb
+14. Previous versions are contained within the caen/archive/ directory
+for backwards compatibility
+
+--CAENComm-1.2.0 : header files (includes) and library functions for
+                   general communication with CAEN VME devices
+  
+--CAENVMELib-2.30.2 : header files (includes) and library functions for
+                      general operating system (OS) to VME communication
+                      via one of several possible links (USB, optical,etc). 
+
+--CAENDigitizer-2.3.2 : header files (includes) and library functions for
+                        general communication with the CAEN digitizer modules

@@ -1,0 +1,50 @@
+date: 26 Feb 14
+auth: Zach Hartwig
+
+This is a short guide to installing the CAENUpgrader tool provided by
+CAEN to update/modify the VME firmware for CAEN boards (V1718, V1720,
+etc). It shows how to install when the CAEN libraries are _not_
+installed on the system in /usr/local, as well as how to fix a bug in
+the current version (amateurs). The following assumes that the user is
+installing _from_ the ADAQ repository.
+
+Note that the bug as already been fixed in the version contained in
+the repo, but the whole binary may required rebuilding on different
+machines (x86 vs. x86_64 for example).
+
+This applies to CAENUpgrader version : 1.4.1
+
+0. Run configure utility with the following arguments to specify the
+   _local_ location of the header and library files in the ADAQ repo.
+
+   $ ./configure --prefix=/home/hartwig/aims/ADAQ/caen/software/CAENUpgrader-1.4.1 \
+                 --exec-prefix=/home/hartwig/aims/ADAQ/caen/software/CAENUpgrader-1.4.1 \
+		 CFLAGS=-I/home/hartwig/aims/ADAQ/include \
+                 CPPFLAGS=-I/home/hartwig/aims/ADAQ/include \
+		 LDFLAGS=-L/home/hartwig/aims/ADAQ/lib/x86_64
+
+1. The file cvUpgrade/src/cvupgrade.c has a fucking bug in it. Line
+   680 looks for the type 'CAENComm_PCI_OpticalLink', which is simply
+   an enum value equal that should be equal to 1. This type name
+   existed in previous CAENComm versions (e.g. 1.02) but has been
+   removed in the most up-to-date version (1.2.0). The type has been
+   changed to 'CAENComm_OpticalLink' in version 1.2.0. Fucking A. Fix
+   this in the source code:
+
+   $ emacs -nw cvUpgrade/src/cvupgrade.c
+   
+   Change 'CAENComm_PCI_OpticalLink' to 'CAENComm_OpticalLink'
+
+
+2. Build and locally install the source. Note, their fucking Makefile
+   does _not_ allow true local installation but requires sudo access
+   to /etc for some unknown reason that I don't have time to fix. Fuck.
+
+   $ make
+   $ sudo make install
+
+
+3. To run
+
+   $ ./bin/CAENUpgraderGUI
+

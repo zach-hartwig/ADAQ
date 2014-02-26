@@ -44,7 +44,15 @@ This applies to CAENUpgrader version : 1.4.1
    $ sudo make install
 
 
-3. To run
+3. CAENUpgraderGUI requires knowledge of the other build
+   executables. Therefore, temporarily add the bin/ directory
+   to the path:
 
-   $ ./bin/CAENUpgraderGUI
+   $ cd bin/
+   $ export PATH=$PWD:$PATH
+
+
+3. To run:
+
+   $ CAENUpgraderGUI
 

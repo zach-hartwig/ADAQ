@@ -373,13 +373,13 @@ public:
   //////////////////////
   // Zero suppression //
   //////////////////////
-  int SetZeroSuppressionMode(CAEN_DGTZ_ZS_Mode_t mode) {return CAEN_DGTZ_SetZeroSuppressionMode(BoardHandle, mode);}
-  int GetZeroSuppressionMode(CAEN_DGTZ_ZS_Mode_t *mode) {return CAEN_DGTZ_GetZeroSuppressionMode(BoardHandle, mode);}
+  int SetZeroSuppressionMode(uint32_t mode) {return CAEN_DGTZ_SetZeroSuppressionMode(BoardHandle, (CAEN_DGTZ_ZS_Mode_t)mode);}
+  int GetZeroSuppressionMode(uint32_t *mode) {return CAEN_DGTZ_GetZeroSuppressionMode(BoardHandle, (CAEN_DGTZ_ZS_Mode_t *)mode);}
   
-  int SetChannelZSParams(uint32_t channel, CAEN_DGTZ_ThresholdWeight_t weight, int32_t  threshold, int32_t nsamp)
-  {return CAEN_DGTZ_SetChannelZSParams(BoardHandle, channel, weight, threshold, nsamp);}
-  int GetChannelZSParams(uint32_t channel, CAEN_DGTZ_ThresholdWeight_t *weight, int32_t  *threshold, int32_t *nsamp)
-  {return CAEN_DGTZ_GetChannelZSParams(BoardHandle, channel, weight, threshold, nsamp);}
+  int SetChannelZSParams(uint32_t channel, uint32_t weight, int32_t  threshold, int32_t nsamp)
+  {return CAEN_DGTZ_SetChannelZSParams(BoardHandle, channel, (CAEN_DGTZ_ThresholdWeight_t)weight, threshold, nsamp);}
+  int GetChannelZSParams(uint32_t channel, uint32_t *weight, int32_t  *threshold, int32_t *nsamp)
+  {return CAEN_DGTZ_GetChannelZSParams(BoardHandle, channel, (CAEN_DGTZ_ThresholdWeight_t *)weight, threshold, nsamp);}
 
 
   //////////////////////////////////////

@@ -52,13 +52,15 @@ ADAQINCL=-I$(INCL)
 # Identify the C++ source and object files
 SRC=$(DIR)/src
 SRCS=$(wildcard $(SRC)/*.cc)
-CXXOBJS=$(SRC)/ADAQDigitizer.o $(SRC)/ADAQHighVoltage.o 
+CXXOBJS=$(SRC)/ADAQDigitizer.o $(SRC)/ADAQHighVoltage.o $(SRC)/ADAQBridge.o
 PYOBJS=$(SRC)/ADAQPythonWrapper.o
 
-# Set the CAEN library and include directories/flags
+# Set the CAEN library, include/lib flags. Note that 'LINUX'
+# preprocessor macro must be set to correctly handle CAENVMElib
 CAENLIBDIR=-L../lib/$(ARCH)
 CAENLIB=-lCAENVME -lCAENComm -lCAENDigitizer -lncurses -lc -lm
 CAENINCL=-I../include
+CXXFLAGS+=-DLINUX
 
 # Specify the "-fPIC" (Position Independent Code) flag for 64-bit
 # architecture
@@ -128,6 +130,11 @@ $(SRC)/ADAQDigitizer.o : $(SRC)/ADAQDigitizer.cc $(INCL)/ADAQDigitizer.hh
 
 # Build the ADAQHighVoltage object from source
 $(SRC)/ADAQHighVoltage.o : $(SRC)/ADAQHighVoltage.cc $(INCL)/ADAQHighVoltage.hh
+	@echo -e "\n---> Building $@ ..."
+	$(CXX) $(CXXFLAGS) $(ADAQINCL) $(CAENLIBDIR) $(CAENLIB) $(CAENINCL) -c -o $@ $<
+
+# Build the ADAQBridge object from source
+$(SRC)/ADAQBridge.o : $(SRC)/ADAQBridge.cc $(INCL)/ADAQBridge.hh
 	@echo -e "\n---> Building $@ ..."
 	$(CXX) $(CXXFLAGS) $(ADAQINCL) $(CAENLIBDIR) $(CAENLIB) $(CAENINCL) -c -o $@ $<
 

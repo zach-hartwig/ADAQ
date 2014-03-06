@@ -66,20 +66,35 @@ ADAQBridge::~ADAQBridge()
 {;}
 
 
-int ADAQBridge::OpenLink(uint32_t BrdAddr)
+int ADAQBridge::OpenLink(uint32_t V1720Handle, uint32_t V1720LinkEstablished)
 {
   int Status = -42;
-  /*
+
+  // Need to check to ensure V1720 is open
+  if(!V1720LinkEstablished){
+    cout << "\nADAQBridge : Error opening link! A link must be first established with the V1720 board!\n"
+	 << endl;
+    return Status;
+  }
+
   // If the link is not currently valid then establish one!
-  if(!LinkEstablished)
-    Status = CAENComm_OpenDevice(CAENComm_USB, 0, 0, 0, &BoardHandle);
+  if(!LinkEstablished){
+
+    // A link to the V1718 is technically established automatically
+    // when a VME connections is established (through the V1720, for
+    // example). Access to the board is _not_ provided by a hex VME
+    // address nor the CAENComm_OpenDevice() function. Rather, the
+    // handle to the V1718 must be retrieved in a slightly round-
+    // about fashion via the CAENCOMM_Info function via the V1720
+    // handle rather than directly into the V1718 board
+    Status = CAENComm_Info(V1720Handle, CAENComm_VMELIB_handle, &BoardHandle);
+  }
   else
     if(Verbose)
       cout << "\nADAQBridge: Error opening link! Link is already open!\n"
 	   << endl;
 
   uint32_t data;
-
   
   // Set the LinkEstablished bool to indicate that a valid link nto
   // the V1718 has been established and output if Verbose set
@@ -87,8 +102,6 @@ int ADAQBridge::OpenLink(uint32_t BrdAddr)
     LinkEstablished = true;
     if(Verbose)
       cout << "\nADAQBridge : Link successfully established!\n"
-	   <<   "                  --> V1718 base address: 0x" 
-	   << setw(8) << setfill('0') << hex << 0x00000000 << "\n"
 	   <<   "                  --> V1718 handle: " << BoardHandle
 	   << endl;
   }
@@ -96,7 +109,7 @@ int ADAQBridge::OpenLink(uint32_t BrdAddr)
     if(Verbose and !LinkEstablished)
       cout << "\nADAQBridge : Error opening link! Error code: " << Status << "\n"
 	   << endl;
-  */
+  
   // Return success/failure 
   return Status;
 }
@@ -127,6 +140,62 @@ int ADAQBridge::CloseLink()
   */
   return Status;
 }
+
+
+int ADAQBridge::SetPulserSettings(PulserSettings *PS)
+{
+  int Status  = -42;
+
+  Status = CAENVME_SetPulserConf(BoardHandle,
+				 (CVPulserSelect)PS->PulserToSet,
+				 PS->Period,
+				 PS->Width,
+				 (CVTimeUnits)PS->TimeUnit,
+				 PS->PulseNumber,
+				 (CVIOSources)PS->StartSource,
+				 (CVIOSources)PS->StopSource);
+
+  return Status;
+}
+
+
+int ADAQBridge::SetPulserOutputSettings(PulserOutputSettings *POS)
+{
+  int Status = -42;
+
+  Status = CAENVME_SetOutputConf(BoardHandle,
+				 (CVOutputSelect)POS->OutputLine,
+				 (CVIOPolarity)POS->OutputPolarity,
+				 (CVLEDPolarity)POS->LEDPolarity,
+				 (CVIOSources)POS->Source);
+
+  return Status;
+}
+
+
+int ADAQBridge::StartPulser(uint32_t PulserToStart)
+{
+  int Status = -42;
+  
+  Status = CAENVME_StartPulser(BoardHandle,
+			       (CVPulserSelect)PulserToStart);
+
+  return Status;
+}
+
+
+int ADAQBridge::StopPulser(uint32_t PulserToStop)
+{
+  int Status = -42;
+
+  Status = CAENVME_StopPulser(BoardHandle,
+			      (CVPulserSelect)PulserToStop);
+
+  return Status;
+}
+
+
+
 
 
 // Method to set a value to an individual register of the V6534

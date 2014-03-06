@@ -37,6 +37,24 @@ using namespace std;
 // Boost 
 #include <boost/cstdint.hpp>
 
+struct PulserSettings{
+  int PulserToSet;
+  int Period;
+  int Width;
+  int TimeUnit;
+  int PulseNumber;
+  int StartSource;
+  int StopSource;
+};
+
+struct PulserOutputSettings{
+  int OutputLine;
+  int OutputPolarity;
+  int LEDPolarity;
+  int Source;
+};
+
+
 class ADAQBridge
 {
 
@@ -45,8 +63,14 @@ public:
   ~ADAQBridge();
 
   // Open/close VME link to V1718 board
-  int OpenLink(uint32_t);
+  int OpenLink(uint32_t, uint32_t);
   int CloseLink();  
+
+  int SetPulserSettings(PulserSettings *);
+  int SetPulserOutputSettings(PulserOutputSettings *);
+
+  int StartPulser(uint32_t);
+  int StopPulser(uint32_t);
 
   // Set/get verbose value
   void SetVerbose(bool v) {Verbose = v;}
@@ -60,8 +84,8 @@ public:
   bool CheckRegisterForWriting(uint32_t);
 
 private:
-  // Integer handle for easy access to V6534
-  int BoardHandle;
+  // Integer handle for easy access to V1718
+  long BoardHandle;
 
   // Integer representing result of CAENComm/CAENVME call
   int CommandStatus;

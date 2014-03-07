@@ -54,7 +54,7 @@ ADAQBridge::ADAQBridge()
   // The board handle
   BoardHandle(-1),
 
-  // Bool to determine VME connection state to V6534
+  // Bool to determine VME connection state to V1718
   LinkEstablished(false),
 
   // Bool to determine if output printed to cout
@@ -117,11 +117,13 @@ int ADAQBridge::OpenLink(uint32_t V1720Handle, uint32_t V1720LinkEstablished)
 
 int ADAQBridge::CloseLink()
 {
-  // If the link is presently established then close it!
+  // There is not really a true VME link to the V1718 board when it is
+  // placed in slot 0 (The VME controller slot), i.e. when it
+  // functions as the VME/USB bridge. So we'll just pretend...
   int Status = -42;
-  /*
+
   if(LinkEstablished)
-    Status = CAENComm_CloseDevice(BoardHandle);
+    Status = 0;
   else
     if(Verbose)
       cout << "\nADAQBridge : Error closing link! Link is already closed!\n"
@@ -133,11 +135,7 @@ int ADAQBridge::CloseLink()
       cout << "\nADAQBridge : Link successfully closed!\n"
 		<< endl;
   }
-  else
-    if(Verbose and LinkEstablished)
-      cout << "\nADAQBridge : Error closing link! Error code: " << Status << "\n"
-		<< endl;
-  */
+
   return Status;
 }
 
@@ -173,6 +171,7 @@ int ADAQBridge::SetPulserOutputSettings(PulserOutputSettings *POS)
 }
 
 
+// Method to start Pulser A or B
 int ADAQBridge::StartPulser(uint32_t PulserToStart)
 {
   int Status = -42;
@@ -184,6 +183,7 @@ int ADAQBridge::StartPulser(uint32_t PulserToStart)
 }
 
 
+// Method to stop Pulser A or B
 int ADAQBridge::StopPulser(uint32_t PulserToStop)
 {
   int Status = -42;
@@ -195,26 +195,25 @@ int ADAQBridge::StopPulser(uint32_t PulserToStop)
 }
 
 
-
-
-
-// Method to set a value to an individual register of the V6534
+// Method to set a value to an individual register of the V1718. Note
+// that V1718 register access is through CAENVME not CAENComm library
 int ADAQBridge::SetRegisterValue(uint32_t addr32, uint32_t data32)
 {
   // Ensure that each register proposed for writing is a register that
-  // is valid for user writing to prevent screwing up V6534 firmware
+  // is valid for user writing to prevent screwing up V1718 firmware
   if(CheckRegisterForWriting(addr32))
-    return CAENComm_Write32(BoardHandle, addr32, data32); 
+    return CAENVME_WriteRegister(BoardHandle, (CVRegisters)addr32, data32); 
   else
     return -1;
 }
 
 
 // Method to get a value stored at an individual register of the V1718
+// Note that V1718 register access is through CAENVME not CAENComm library
 int ADAQBridge::GetRegisterValue(uint32_t addr32, uint32_t *data32)
-{ return CAENComm_Read32(BoardHandle, addr32, data32); }
+{ return CAENVME_ReadRegister(BoardHandle, (CVRegisters)addr32, data32); }
 
 
-// Method to check validity of V6534 register for writing
+// Method to check validity of V1718 register for writing
 bool ADAQBridge::CheckRegisterForWriting(uint32_t addr32)
 { return true; }

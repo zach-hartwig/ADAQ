@@ -72,7 +72,7 @@ int ADAQBridge::OpenLink(uint32_t V1720Handle, uint32_t V1720LinkEstablished)
 
   // Need to check to ensure V1720 is open
   if(!V1720LinkEstablished){
-    cout << "\nADAQBridge : Error opening link! A link must be first established with the V1720 board!\n"
+    cout << "ADAQBridge : Error opening link! A link must be first established with the V1720 board!\n"
 	 << endl;
     return Status;
   }
@@ -91,7 +91,7 @@ int ADAQBridge::OpenLink(uint32_t V1720Handle, uint32_t V1720LinkEstablished)
   }
   else
     if(Verbose)
-      cout << "\nADAQBridge: Error opening link! Link is already open!\n"
+      cout << "ADAQBridge: Error opening link! Link is already open!\n"
 	   << endl;
 
   uint32_t data;
@@ -101,13 +101,13 @@ int ADAQBridge::OpenLink(uint32_t V1720Handle, uint32_t V1720LinkEstablished)
   if(Status==0){
     LinkEstablished = true;
     if(Verbose)
-      cout << "\nADAQBridge : Link successfully established!\n"
-	   <<   "                  --> V1718 handle: " << BoardHandle
+      cout << "ADAQBridge : Link successfully established!\n"
+	   <<   "                  --> V1718 handle: " << BoardHandle << "\n"
 	   << endl;
   }
   else
     if(Verbose and !LinkEstablished)
-      cout << "\nADAQBridge : Error opening link! Error code: " << Status << "\n"
+      cout << "ADAQBridge : Error opening link! Error code: " << Status << "\n"
 	   << endl;
   
   // Return success/failure 
@@ -126,13 +126,13 @@ int ADAQBridge::CloseLink()
     Status = 0;
   else
     if(Verbose)
-      cout << "\nADAQBridge : Error closing link! Link is already closed!\n"
+      cout << "ADAQBridge : Error closing link! Link is already closed!\n"
 		<< endl;
   
   if(Status==0){
     LinkEstablished = false;
     if(Verbose)
-      cout << "\nADAQBridge : Link successfully closed!\n"
+      cout << "ADAQBridge : Link successfully closed!\n"
 		<< endl;
   }
 

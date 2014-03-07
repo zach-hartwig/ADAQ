@@ -103,13 +103,13 @@ int ADAQDigitizer::OpenLink(uint32_t BrdAddr)
 				     &BoardHandle);
   else
     if(Verbose)
-      std::cout << "\nADAQDigitizer : Error opening link! Link is already open!"
+      std::cout << "ADAQDigitizer : Error opening link! Link is already open!"
 		<< std::endl;
   
   if(Status==0){
     LinkEstablished = true;
     if(Verbose){
-      std::cout << "\nADAQDigitizer : Link successfully established!\n"
+      std::cout << "ADAQDigitizer : Link successfully established!\n"
 		<<   "                --> V1720 base address: 0x" 
 		<< std::setw(8) << std::setfill('0') << std::hex << BoardAddress << "\n"
 		<<   "                --> V1720 handle: " << BoardHandle
@@ -130,7 +130,7 @@ int ADAQDigitizer::OpenLink(uint32_t BrdAddr)
   }
   else
     if(Verbose and !LinkEstablished)
-      std::cout << "\nADAQDigitizer : Error opening link: Error code: " << Status << "\n"
+      std::cout << "ADAQDigitizer : Error opening link: Error code: " << Status << "\n"
 		<< std::endl;
   
   return Status;
@@ -144,18 +144,18 @@ int ADAQDigitizer::CloseLink()
     Status = CAEN_DGTZ_CloseDigitizer(BoardHandle);
   else
     if(Verbose)
-      std::cout << "\nADAQDigitizer : Error closing link! Link is already closed!\n"
+      std::cout << "ADAQDigitizer : Error closing link! Link is already closed!\n"
 		<< std::endl;
 
   if(Status==0){
     LinkEstablished = false;
     if(Verbose)
-      std::cout << "\nADAQDigitizer : Link successfully closed!\n"
+      std::cout << "ADAQDigitizer : Link successfully closed!\n"
 		<< std::endl;
   }
   else
     if(Verbose and LinkEstablished)
-      std::cout << "\nADAQDigitizer : Error closing link! Error code: " << Status << "\n"
+      std::cout << "ADAQDigitizer : Error closing link! Error code: " << Status << "\n"
 		<< std::endl;
 
   return Status;
@@ -211,7 +211,7 @@ int ADAQDigitizer::EnableExternalTrigger(std::string SignalLogic)
     FrontPanelIOControlValue |= 1<<0;
   else
     if(Verbose)
-      std::cout << "\nADAQDigitizer : Error! Unsupported external trigger logic ("
+      std::cout << "ADAQDigitizer : Error! Unsupported external trigger logic ("
 		<< SignalLogic << ") was specified!" << "\n"
 		<<   "                Select 'NIM' or 'TTL'!\n"
 		<< std::endl;

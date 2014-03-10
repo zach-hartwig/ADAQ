@@ -102,7 +102,7 @@ int ADAQBridge::OpenLink(uint32_t V1720Handle, uint32_t V1720LinkEstablished)
     LinkEstablished = true;
     if(Verbose)
       cout << "ADAQBridge : Link successfully established!\n"
-	   <<   "                  --> V1718 handle: " << BoardHandle << "\n"
+	   <<   "           --> V1718 handle: " << BoardHandle << "\n"
 	   << endl;
   }
   else

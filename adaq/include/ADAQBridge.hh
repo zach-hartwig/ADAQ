@@ -1,23 +1,22 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 // name: ADAQBridge.hh
-// date: 18 MAY 12
+// date: 10 Mar 14
 // auth: Zach Hartwig
 //
 // desc: The ADAQBridge class facilitates communication with the V1718
-//       USB/VME bridge board with VME communications via the CAENComm
-//       and CAENVME libraries. The purpose of ADAQBridge is to
-//       obscure the nitty-gritty-details of interfacing with the
-//       V1718 board and present the user with a relatively simple set
-//       of methods and variables that can be easibly used in his/her
-//       ADAQ projects by instantiating a single ADAQBridge
-//       class. Technically, this class should probably be made into a
-//       Meyer's singleton for completeness' sake, but the present
-//       code should be sufficient for anticipated applications and
-//       userbase.
+//       USB/VME bridge board via the CAENComm and CAENVME
+//       libraries. The purpose of ADAQBridge is to obscure the
+//       nitty-gritty-details of interfacing with the V1718 board and
+//       present the user with a relatively simple set of methods and
+//       variables that can be easibly used in his/her ADAQ projects
+//       by instantiating a single ADAQBridge class. Technically, this
+//       class should probably be made into a Meyer's singleton for
+//       completeness' sake, but the present code should be sufficient
+//       for anticipated applications and userbase.
 //        
-//       At present, the ADAQBridge class is compiled into two
-//       shared object libraries: libADAQ.so (C++) and libPyADAQ.so
+//       At present, the ADAQBridge class is compiled into two shared
+//       object libraries: libADAQ.so (C++) and libPyADAQ.so
 //       (Python). C++ and Python ADAQ projects can then link against
 //       these libraries to obtain the provided functionality. The
 //       purpose is to ensure that a single version of the ADAQ

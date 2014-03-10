@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 // name: ADAQBridge.cc
-// date: 27 Feb 14
+// date: 10 Mar 14
 // auth: Zach Hartwig
 //
 // desc: The ADAQBridge class facilitates communication with the V1718
-//       high voltage board with VME communications via the CAENComm
-//       and CAENVME libraries. The purpose of ADAQBridge is to
-//       obscure the nitty-gritty-details of interfacing with the
-//       V1718 board and present the user with a relatively simple set
-//       of methods and variables that can be easibly used in his/her
-//       ADAQ projects by instantiating a single ADAQBridge "manager"
+//       VME/USB communication board via the CAENComm and CAENVME
+//       libraries. The purpose of ADAQBridge is to obscure the
+//       nitty-gritty-details of interfacing with the V1718 board and
+//       present the user with a relatively simple set of methods and
+//       variables that can be easibly used in his/her ADAQ projects
+//       by instantiating a single ADAQBridge "manager"
 //       class. Technically, this class should probably be made into a
 //       Meyer's singleton for completeness' sake, but the present
 //       code should be sufficient for anticipated applications and

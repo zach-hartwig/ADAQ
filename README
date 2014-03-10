@@ -1,4 +1,4 @@
-Last updated : 02 Feb 14
+Last updated : 10 Mar 14
 
 OVERVIEW
 --------
@@ -7,12 +7,12 @@ The ADAQ (AIMS Data AcQuisition) library is a self-contained software
 layer that manages the interface between the CAEN data acquisition
 hardware and the AIMS acquisition and analysis codes. It provides the
 necessary CAEN libraries (CAENComm, CAENDigitizer, CAENVME) and then
-adds an enhanced sublayer of functionality on top to provide more
+adds an enhanced sublaye r of functionality on top to provide more
 powerful and straightforward control of the CAEN hardware. ADAQ
 provides users with C, C++, and Python interfaces for controlling the
 CAEN hardware; the Python methods are created via Boost.Python, which
-wraps the C++ methods to provide a seamless Python
-interface. The hierarchy can be envisaged as follows:
+wraps the C++ methods to provide a seamless Python interface. The
+hierarchy can be envisioned as follows:
 
      --------------------------
      | Acquisition / Analysis |
@@ -77,7 +77,8 @@ The ADAQ library essentially provides all of the CAEN library methods
 to control the acquisition and power supply hardware along with a
 number of enhanced methods for more powerful and often more simpler
 interfaces that utilize the CAEN library methods. The enhanced methods
-can be found in the C++ ADAQDigitizer and ADAQHighVoltage classes.
+can be found in the C++ ADAQBridge (V1718 control), ADAQDigitizer
+(V1720 control) and ADAQHighVoltage (V6534 control) classes.
 
 The ADAQPythonWrapper class uses Boost.Python to wrap the
 aforementioned C++ classes such that the user has the additional
@@ -105,9 +106,9 @@ CAEN libraries everytime.
 
 -- Brief descriptions of the CAEN libraries --
 
-The following are the most up-to-date CAEN libraries as of 03 Feb
-14. Previous versions are contained within the caen/archive/ directory
-for backwards compatibility
+The following are the most up-to-date CAEN libraries as of 10 Feb 14.
+Previous versions are contained within the caen/archive/ directory for
+backwards compatibility
 
 --CAENComm-1.2.0 : header files (includes) and library functions for
                    general communication with CAEN VME devices
@@ -118,3 +119,33 @@ for backwards compatibility
 
 --CAENDigitizer-2.3.2 : header files (includes) and library functions for
                         general communication with the CAEN digitizer modules
+
+
+VERSION NUMBER EXPLANATION
+--------------------------
+
+The ADAQ library is assigned a 3 digit version number number in the
+format X.Y.Z. The purpose is to uniquely identify "production
+versions" of the library for use in ADAQ-based projects. This provides
+consistency with user code, the ability to roll-back version numbers
+to provide backwards compatibility and legacy version builds, and
+"stamping" of the version number on presentations, memos, analysis,
+papers, etc, for full reproducibility of the results if need be.
+Version numbers attempt to adhere as closely as possible the following
+conventions:
+
+ADAQ Library Version : X.Y.Z
+ 
+ X = Major revision: Large changes are made to the code, including
+     substantial changes to the internal code or layout that require
+     that could break user projects. Import "production level"
+     features are released and sanctioned for official use.
+      
+ Y = Minor revision: Significant but less impacting changes to the
+     code, new "beta" features for testing, important bug fixes that
+     are found to affect usability or performance of the library.
+
+ Z = Bug fixes / comments: These updates are intented to fix
+     non-catostrophic bugs, update code comments, implement minor
+     improvements or new features that enhance usability. No new
+     features are allowed to be introduced only updated.

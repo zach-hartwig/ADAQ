@@ -199,7 +199,15 @@ int ADAQHighVoltage::SetToSafeState()
 
   if(Verbose)
     cout << "ADAQHighVoltage : Setting the V6534 to 'safe' mode! Channels will have voltages\n"
+<<<<<<< HEAD
 	 << "                  and currents set to 0 and then powered off ...";
+=======
+<<<<<<< HEAD
+	 << "                  and currents set to 0 and then powered off ...";
+=======
+	 << "                  and currents set to 0 and then powered off ... \n";
+>>>>>>> 0c3534c16aff51243de90fd078851c9dd29b4a74
+>>>>>>> a92bb70fcafab757772852484534da8265fcc860
   
   for(int ch=0; ch<NumChannels; ch++){
     SetVoltage(ch, 0);

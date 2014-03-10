@@ -7,9 +7,13 @@
 # desc: Bash script for installing the ADAQ libraries and headers into
 #       the publicly accessible directory /usr/local/adaq. This is
 #       done in order to make ADAQ accessible system-wide for
-#       non-developers to use ADAQ in their own projects
+#       non-developers to use ADAQ in their own projects. Note that
+#       only Git-tagged production versions are allowed for
+#       installation. The tagged version is checked out to it's own
+#       transient branch, where it is built and installed, before the
+#       branch is removed.
 #
-# 2run: sudo -E ./install.sh 
+# 2run: ./install.sh <Git.Tag.ID>
 
 if [ ! "$#" == "1" ]; then
     echo -e "\nInstall script error! Only a single cmd line arg is allowed from the user:"

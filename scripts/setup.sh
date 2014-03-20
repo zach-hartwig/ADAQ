@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # name: setup.sh
-# date: 02 Feb 14
+# date: 20 Mar 14
 # auth: Zach Hartwig
 #
 # desc: Setup Bash script for the ADAQ libraries. The script sets up
@@ -22,6 +22,12 @@ if [ ! "$#" -eq 1 ]; then
     echo -e   "       'dev' to setup developer environment in local Git checkout directory\n"
 fi
 
+
+if [ -z "$ROOTSYS" ]; then
+    echo -e "ADAQ : Note that while not explicitly required to use the ADAQ libraries,\n"
+    echo -e "       setting up ROOT in your environment is required to run several of\n"
+    echo -e "       the AIMS tools that use ADAQ!\n"
+fi
 
 if [ "$1" ==  'usr' ]; then
     export ADAQUSER=user

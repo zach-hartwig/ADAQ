@@ -1,0 +1,34 @@
+#!/bin/sh
+#=============================================================================
+#
+#             --- CAEN SpA - Computing Systems Division ---
+#
+#  Library installation script.
+#
+#
+#  August 2010 :   Created.
+#
+#=============================================================================
+if [ ! -f /usr/lib/libCAENComm.so ] 
+then
+	echo "*******************************************************************"
+	echo "* WARNING                                                         *"
+	echo "* The CAENDigitizer library needs that the CAENComm               *"
+	echo "* is installed in your pc.                                        *"
+	echo "* It seems that you haven't install the CAENComm so please        *"
+	echo "* download it from the following link:                            *"
+	echo "*                                                                 *"
+	echo "* http://www.caen.it/nuclear/software_download.php                *"
+	echo "*                                                                 *"
+	echo "* install it and run this script again.                           *"
+	echo "*******************************************************************"
+	exit 0
+else
+	LIBPATH="lib/i686"
+	LIBNAME="libCAENDigitizer.so.2.4.6"
+	DESTDIR="/usr/lib"
+	install "$LIBPATH/$LIBNAME" "$DESTDIR"
+	ln -sf "$DESTDIR/$LIBNAME" "$DESTDIR/libCAENDigitizer.so"
+	/sbin/ldconfig
+	cp include/* /usr/include/
+fi

@@ -66,7 +66,35 @@ ADAQBridge::~ADAQBridge()
 {;}
 
 
-int ADAQBridge::OpenLink(uint32_t V1720Handle, uint32_t V1720LinkEstablished)
+int ADAQBridge::OpenLinkDirectly()
+{
+  int Status = -42;
+  
+  if(!LinkEstablished){
+    Status = CAENVME_Init(cvV1718, 0, 0, &BoardHandle);
+  }
+  else
+    if(Verbose)
+      cout << "ADAQBridge: Error opening direct USB link! Link is already open!\n"
+	   << endl;
+
+  if(Status==0){
+    LinkEstablished = true;
+    if(Verbose)
+      cout << "ADAQBridge : Direct USB link successfully established!\n"
+	   << "             --> V1718 handle: " << BoardHandle << "\n"
+	   << endl;
+  }
+  else
+    if(Verbose and !LinkEstablished)
+      cout << "ADAQBridge : Error opening link! Error code: " << Status << "\n"
+	   << endl;
+
+  return Status;
+}
+
+
+int ADAQBridge::OpenLinkViaDigitizer(uint32_t V1720Handle, uint32_t V1720LinkEstablished)
 {
   int Status = -42;
 
@@ -91,17 +119,15 @@ int ADAQBridge::OpenLink(uint32_t V1720Handle, uint32_t V1720LinkEstablished)
   }
   else
     if(Verbose)
-      cout << "ADAQBridge: Error opening link! Link is already open!\n"
+      cout << "ADAQBridge: Error opening link through V1720 digitizer! Link is already open!\n"
 	   << endl;
 
-  uint32_t data;
-  
   // Set the LinkEstablished bool to indicate that a valid link nto
   // the V1718 has been established and output if Verbose set
   if(Status==0){
     LinkEstablished = true;
     if(Verbose)
-      cout << "ADAQBridge : Link successfully established!\n"
+      cout << "ADAQBridge : Link successfully established through V1720 digitizer!\n"
 	   <<   "           --> V1718 handle: " << BoardHandle << "\n"
 	   << endl;
   }

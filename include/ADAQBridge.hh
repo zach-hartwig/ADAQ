@@ -62,7 +62,8 @@ public:
   ~ADAQBridge();
 
   // Open/close VME link to V1718 board
-  int OpenLink(uint32_t, uint32_t);
+  int OpenLinkDirectly();
+  int OpenLinkViaDigitizer(uint32_t, uint32_t);
   int CloseLink();  
 
   int SetPulserSettings(PulserSettings *);
@@ -84,7 +85,8 @@ public:
 
 private:
   // Integer handle for easy access to V1718
-  long BoardHandle;
+  //long BoardHandle;
+  int32_t BoardHandle;
 
   // Integer representing result of CAENComm/CAENVME call
   int CommandStatus;

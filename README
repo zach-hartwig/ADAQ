@@ -69,6 +69,11 @@ DIRECTORY STRUCTURE/DESCRIPTION
 --> root/ : ROOT class definitions for general data storage and
             graphical user interfaces
 
+--> scripts/ : Bash scripts for installation and setup of ADAQ
+
+--> templates/ : Directory containing various acquisition / readout templates
+                 for copying->rapid prototype of testing and production codes
+
 
 ADAQ DIRECTORY
 --------------

@@ -303,3 +303,61 @@ int ADAQDigitizer::CheckBufferStatus(bool *BufferStatus)
   }
   return Status;
 }
+
+
+int ADAQDigitizer::SetZSMode(string ZSMode)
+{
+  int Status = 0;
+  
+  if(ZSMode == "None")
+    Status = SetZeroSuppressionMode(CAEN_DGTZ_ZS_NO);
+  else if(ZSMode == "ZLE")
+    Status = SetZeroSuppressionMode(CAEN_DGTZ_ZS_ZLE);
+  else
+    Status = -42;
+  
+  return Status;
+}
+
+
+int ADAQDigitizer::SetZLEChannelSettings(uint32_t Channel, uint32_t Threshold,
+					 uint32_t NBackward, uint32_t NForward,
+					 bool PosLogic)
+{
+  
+  
+  
+}
+
+  
+int ADAQDigitizer::SetTriggerEdge(int Channel, string TriggerEdge)
+{
+  int Status = 0;
+  
+  if(TriggerEdge == "Positive")
+    Status = SetTriggerPolarity(Channel, CAEN_DGTZ_TriggerOnRisingEdge);
+  else if(TriggerEdge == "Negative")
+    Status = SetTriggerPolarity(Channel, CAEN_DGTZ_TriggerOnFallingEdge);
+  else
+    Status = -42;
+  
+  return Status;
+
+}
+
+
+int ADAQDigitizer::SetTriggerCoincidence(bool Enable, int Level)
+{
+  if(Enable){
+    
+    uint32_t TriggerSourceEnableMask = 0;
+
+    uint32_t TriggerCoincidenceLevel_BitShifted = Level << 24;
+
+    GetRegisterValue(0x810C,&TriggerSourceEnableMask);
+    
+    TriggerSourceEnableMask = TriggerSourceEnableMask | TriggerCoincidenceLevel_BitShifted;
+    
+    SetRegisterValue(0x810C,TriggerSourceEnableMask);
+  }
+}

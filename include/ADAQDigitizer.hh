@@ -116,6 +116,29 @@ public:
   
   // Check to see if the V1720 FPGA buffer is full
   int CheckBufferStatus(bool *);
+
+
+  
+
+
+
+  int SetZSMode(string);
+
+  int SetZLEChannelSettings(uint32_t, uint32_t, uint32_t, uint32_t, bool);
+
+  int SetTriggerEdge(int, string);
+
+  int SetTriggerCoincidence(bool, int);
+
+
+
+
+
+
+
+
+
+
   
   // Store the integer reprsenting a CAEN digitizer
   int BoardType;

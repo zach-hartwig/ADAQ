@@ -333,10 +333,10 @@ int ADAQDigitizer::SetZLEChannelSettings(uint32_t Channel, uint32_t Threshold,
 int ADAQDigitizer::SetTriggerEdge(int Channel, string TriggerEdge)
 {
   int Status = 0;
-  
-  if(TriggerEdge == "Positive")
+
+  if(TriggerEdge == "Rising")
     Status = SetTriggerPolarity(Channel, CAEN_DGTZ_TriggerOnRisingEdge);
-  else if(TriggerEdge == "Negative")
+  else if(TriggerEdge == "Falling")
     Status = SetTriggerPolarity(Channel, CAEN_DGTZ_TriggerOnFallingEdge);
   else
     Status = -42;

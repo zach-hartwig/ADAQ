@@ -113,16 +113,18 @@ CAEN libraries everytime.
 
 The following are the most up-to-date CAEN libraries as of 10 Feb 14.
 Previous versions are contained within the caen/archive/ directory for
-backwards compatibility
+backwards compatibility. Note that I rename the top-level CAEN library
+directories to conform to a standard since CAEN apparently believes
+random naming and version numbering is somehow fucking useful.
 
 --CAENComm-1.2.0 : header files (includes) and library functions for
                    general communication with CAEN VME devices
   
---CAENVMELib-2.30.2 : header files (includes) and library functions for
+--CAENVMELib-2.41.0 : header files (includes) and library functions for
                       general operating system (OS) to VME communication
                       via one of several possible links (USB, optical,etc). 
 
---CAENDigitizer-2.3.2 : header files (includes) and library functions for
+--CAENDigitizer-2.6.0 : header files (includes) and library functions for
                         general communication with the CAEN digitizer modules
 
 

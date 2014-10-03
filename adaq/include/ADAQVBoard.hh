@@ -14,13 +14,23 @@
 // Boost 
 #include <boost/cstdint.hpp>
 
+enum ZBoardType{
+  zV1720 = 0,
+  zV1724 = 1,
+  zDT5720 = 2
+};
+
 
 class ADAQVBoard
 {
   
 public:
-  ADAQVBoard();
-  ~ADAQVBoard();
+  ADAQVBoard(ZBoardType T, int ID, uint32_t A){
+    BoardType = T;
+    BoardID = ID;
+    BoardAddress = A;
+  };
+  ~ADAQVBoard(){};
 
   //////////////////////
   // Abstract methods //
@@ -33,6 +43,7 @@ public:
   virtual int SetRegisterValue(uint32_t, uint32_t) = 0;
   virtual int GetRegisterValue(uint32_t, uint32_t *) = 0;
   virtual bool CheckRegisterForWriting(uint32_t) = 0;
+  virtual void Hello() = 0;
 
   /////////////////////
   // Set/get methods //
@@ -48,6 +59,14 @@ public:
   void SetBoardHandle(int BH) {BoardHandle = BH;}
   int GetBoardHandle() {return BoardHandle;}
 
+  // A unique user-specified ID for the board
+  void SetBoardID(int BID) {BoardID = BID;}
+  int GetBoardID() {return BoardID;}
+
+  // An ADAQ specific VME/desktop unit identifier
+  void SetBoardType(ZBoardType BT) {BoardType = BT;}
+  ZBoardType GetBoardType() {return BoardType;}
+
   // Bool for PC - VME board/desktop digitizer connection
   void SetLinkEstablished(bool LE) {LinkEstablished = LE;}
   bool GetLinkEstablished() {return LinkEstablished;}
@@ -56,9 +75,11 @@ public:
   void SetVerbose(bool V) {Verbose = V;}
   bool GetVerbose() {return Verbose;}
 
-private:
-  int BoardType, BoardHandle;
+protected:
+  ZBoardType BoardType;
+  int BoardID;
   uint32_t BoardAddress;
+  int BoardHandle;
   bool LinkEstablished, Verbose;
 };
 

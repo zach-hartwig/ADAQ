@@ -1,29 +1,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 // name: ADAQDigitizer.cc
-// date: 18 MAY 12
+// date: 02 Oct 14
 // auth: Zach Hartwig
-
-// desc: The ADAQHighVoltage class facilitiates communication with the
-//       V1720 digitizer board with VME communications via the
-//       CAENComm and CAENVME libraries. The purpose of
-//       ADAQHighVoltage is to obscure the nitty-gritty-details of
-//       interfacing with the V1720 board and present the user with a
-//       relatively simple set of methods and variables that can be
-//       easibly used in his/her ADAQ projects by instantiating a
-//       single ADAQDigitizer "manager" class. Technically, this class
-//       should probably be made into a Meyer's singleton for
-//       completeness' sake, but the present code should be sufficient
-//       for anticipated applications and userbase.
-//        
-//       At present, the ADAQDigitizer class is compiled into two
-//       shared object libraries: libADAQ.so (C++) and libPyADAQ.so
-//       (Python). C++ and Python ADAQ projects can then link against
-//       these libraries to obtain the provided functionality. The
-//       purpose is to ensure that a single version of the ADAQ
-//       libraries exist since they are now used in multiple C++
-//       projects, multiple ROOT analysis projects, and new Python
-//       projects for interfacing ADAQ with MDSplus data system.
+//
+// desc: 
+//
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -42,44 +24,41 @@ extern "C" {
 #include "ADAQDigitizer.hh"
 
 
-ADAQDigitizer::ADAQDigitizer()
-  : 
-  // CAEN digitizer type
-  BoardType(-1),
+ADAQDigitizer::ADAQDigitizer(ZBoardType Type, int ID, uint32_t Address)
+  : ADAQVBoard(Type, ID, Address),
+
+    // The V1720 board address and handle
+  //    BoardHandle(-1),
   
-  // The V1720 board address and handle
-  BoardAddress(-1), BoardHandle(-1),
-  
-  // int stores return value of CAEN library call (arbitrarily
-  // initialized to -42 to differentiate from CAEN values. See
-  // "CAENDigitizerType.h" for possible return values
-  CommandStatus(-42),
-  
-  // Bool to determine state of VME connection to V1720
-  LinkEstablished(false),
-
-  // Bool to determine if messages to std::cout
-  Verbose(false),
-
-  // The number of channels on the V1720
-  NumChannels(8), 
-
-  // The number of bits on the V1720 (2**12 = 4096)
-  NumBits(4096),
-
-  // The minimum and maximum bit
-  MinBit(0), MaxBit(4095),
-
-  // The number of nanoseconds per sample [1. / 250 MS/s]
-  NanosecondsPerSample(4), 
-  
-  // The number of millivolts per bit is the dynamic input range (2
-  // volts) divided by total number of bits (2**12 == 4096)
-  MillivoltsPerBit(2000.0/4096),
-
-  // Initialize the pointers used during the data acquisition process
-  // to readout the digitized waveforms from the V1720 to the PC
-  Buffer_Py(NULL), EventPointer_Py(NULL), EventWaveform_Py(NULL)
+    // int stores return value of CAEN library call (arbitrarily
+    // initialized to -42 to differentiate from CAEN values. See
+    // "CAENDigitizerType.h" for possible return values
+    CommandStatus(-42),
+    
+    // Bool to determine state of VME connection to V1720
+    //    LinkEstablished(false),
+    
+    //    Verbose(false),
+    
+    // The number of channels on the V1720
+    NumChannels(8), 
+    
+    // The number of bits on the V1720 (2**12 = 4096)
+    NumBits(4096),
+    
+    // The minimum and maximum bit
+    MinBit(0), MaxBit(4095),
+    
+    // The number of nanoseconds per sample [1. / 250 MS/s]
+    NanosecondsPerSample(4), 
+    
+    // The number of millivolts per bit is the dynamic input range (2
+    // volts) divided by total number of bits (2**12 == 4096)
+    MillivoltsPerBit(2000.0/4096),
+    
+    // Initialize the pointers used during the data acquisition process
+    // to readout the digitized waveforms from the V1720 to the PC
+    Buffer_Py(NULL), EventPointer_Py(NULL), EventWaveform_Py(NULL)
 {;}
 
 
@@ -89,6 +68,9 @@ ADAQDigitizer::~ADAQDigitizer()
 
 int ADAQDigitizer::OpenLink(uint32_t BrdAddr)
 {
+  cout << LinkEstablished << endl;
+
+
   // Set the V1720 32-bit hex board address, which must correspond to
   // the settings on the physical potentiometers on the V1720 board
   BoardAddress = BrdAddr;
@@ -187,7 +169,7 @@ int ADAQDigitizer::Initialize()
   CAEN_DGTZ_ReadRegister(BoardHandle, CAEN_DGTZ_BOARD_INFO_ADD, &d32);
   
   // Store the digitizer board type (bits 0-7 of d32)
-  BoardType = d32 & 0xff; 
+  //BoardType = d32 & 0xff; 
   
   // Store the number of memory blocks; V1720 == 2
   MemoryBlock = (d32 >> 8) & 0xff;

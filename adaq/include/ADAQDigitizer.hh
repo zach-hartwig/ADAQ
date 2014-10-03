@@ -44,8 +44,10 @@ extern "C"{
 #include "CAENDigitizer.h"
 }
 
+#include "ADAQVBoard.hh"
 
-class ADAQDigitizer
+
+class ADAQDigitizer : public ADAQVBoard
 {
 
 public:

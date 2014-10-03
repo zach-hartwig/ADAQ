@@ -37,19 +37,28 @@
 #    
 ######################################################################
 
+#***************************#
 #**** MACRO DEFINITIONS ****#
+#***************************#
 
 # Specify compilers and basic flags
-CC = clang
-CXX = clang++
-CXXFLAGS = -ferror-limit=5 -w
+CXX = g++
+
+# WARNING: At present (02 Oct 14) building the ADAQ libraries with
+# LLVM/clang compilers (kernel 3.14.19-100.fc19.x86_64) succeeds but
+# ADAQAcquisition will seg. fault. upon attempt to connect to VME
+# system. I do not understand this at the moment (nor do I have time
+# to pursue the solution), but I suspect it has something to do with
+# incorrect inclusion of the CAEN libraries within libADAQ.so.
+# CXX = clang++ 
+# CXXFLAGS = -ferror-limit=5 -w
 
 # Obtain CPU architecture: 32-bit ("i686") or 64-bit ("x86_64")
 ARCH=$(shell uname -m)
 
 # Specify the "-fPIC" flag for 64-bit architecture
 ifeq ($(ARCH),x86_64)
-  CXXFLAGS+=-fPIC
+  CXXFLAGS += -fPIC
 endif
 
 # Specify the directories
@@ -110,68 +119,55 @@ else
   BOOSTLIB= -lboost_python
 endif
 
-###################
-# Begin the build #
-###################
-
 # Targets are C++ and Python shared object libraries
-CXXTARGET=$(LIBDIR)/libADAQ.so
-PYTARGET=$(LIBDIR)/libPyADAQ.so
+CXXTARGET=$(BUILDDIR)/libADAQ.so
+PYTARGET=$(BUILDDIR)/libPyADAQ.so
 
-all: $(CXXTARGET) # $(PYTARGET)
+all: $(CXXTARGET) $(PYTARGET)
 
 
-##################################
-# Build C++ shared object libary #
-##################################
+#***************#
+#**** RULES ****#
+#***************#
 
-# Build the C++ libADAQ.so shared library
+
+#******************************#
+# Build C++ shared object libary 
+
 $(CXXTARGET) : $(OBJS)
 	@echo -e "\nBuilding $@ ..."
-	$(CXX) $(CXXFLAGS) -g -shared $^ -o $@ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -g -shared $^ -o $@
 	@echo -e "\n$@ build is complete!\n"
 
 $(BUILDDIR)/%.o : $(SRCDIR)/%.cc $(INCLS)
 	@echo -e "\nBuilding object file '$@' ..."
 	$(CXX) $(CXXFLAGS) -g -c -o $@ $<
 
-#####################################
-# Build Python shared object libary #
-#####################################
 
-# Build the libPyADAQ.so shared library
-# $(PYTARGET) : $(OBJS)
-# 	@echo -e "\n---> Building $@ ..."
-# 	$(CXX) $(PYFLAGS) $(BOOSTLIB) $(PYLIB) $(CAENLIBDIR) $(CAENLIB) -o $@ $<
-# 	@echo -e "\n---> Finished building $@!\n"
+#*********************************#
+# Build Python shared object libary
 
-# # Build the ADAQPythonWrapper object from source
-# $(SRC)/ADAQPythonWrapper.o : $(SRC)/ADAQPythonWrapper.cc $(HDRS) $(SRCS)
-# 	@echo -e "\n--->Building $@ ..."
-# 	$(CXX) $(BOOSTINCL) $(ADAQINCL) $(PYINCL) $(PYFLAGS) $(CAENINCL) -o $@ -c $<
+$(PYTARGET) : $(OBJS)
+	@echo -e "\nBuilding $@ ..."
+	$(CXX) $(PYFLAGS) $(BOOSTLIB) $(PYLIB) $(CAENLIBDIR) $(CAENLIB) -o $@ $<
+	@echo -e "\n---> Finished building $@!\n"
 
+$(BUILDDIR)/ADAQPythonWrapper.o : $(SRC)/ADAQPythonWrapper.pcc $(INCLS)
+	@echo -e "\nBuilding object file '$@' ..."
+	$(CXX) $(BOOSTINCL) $(ADAQINCL) $(PYINCL) $(PYFLAGS) $(CAENINCL) -o $@ -c $<
 
-#########
-# Phony #
-#########
 
 # General cleanup
 .PHONY:
 clean:
 	@echo -e "\nCleaning up the build files and libraries ..."
-	@rm -f $(CXXTARGET) $(PYTARGET) $(OBJS)
+	@rm -f $(BUILDDIR)/*
 	@echo -e ""
 
 # Install libs and headers to general directory
 install:
 	@echo -e "\nInstalling ADAQ libraries in ../lib/$(ARCH) ..."
-	@cp -v $(LIBDIR)/* ../lib/$(ARCH)
+	@cp -v $(CXXTARGET) $(PYTARGET) ../lib/$(ARCH)
 	@echo -e "\nInstalling ADAQ headers in ../include ..."
 	@cp -v include/* ../include
 	@echo -e ""
-
-
-test:
-	@echo $(OBJS)
-
-

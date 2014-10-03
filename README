@@ -1,18 +1,18 @@
-Last updated : 10 Mar 14
+Last updated : 02 Oct 14
 
 OVERVIEW
 --------
 
 The ADAQ (AIMS Data AcQuisition) library is a self-contained software
 layer that manages the interface between the CAEN data acquisition
-hardware and the AIMS acquisition and analysis codes. It provides the
-necessary CAEN libraries (CAENComm, CAENDigitizer, CAENVME) and then
-adds an enhanced sublaye r of functionality on top to provide more
-powerful and straightforward control of the CAEN hardware. ADAQ
-provides users with C, C++, and Python interfaces for controlling the
-CAEN hardware; the Python methods are created via Boost.Python, which
-wraps the C++ methods to provide a seamless Python interface. The
-hierarchy can be envisioned as follows:
+hardware and the AIMS acquisition and analysis codes. It automaticall
+provides the necessary CAEN libraries (CAENComm, CAENDigitizer,
+CAENVME) and then adds an enhanced layer of functionality on top to
+provide more powerful and straightforward control of the CAEN
+hardware. ADAQ provides users with C, C++, and Python interfaces for
+controlling the CAEN hardware; the Python methods are created via
+Boost.Python, which wraps the C++ methods to provide a seamless Python
+interface. The hierarchy can be envisioned as follows:
 
      --------------------------
      | Acquisition / Analysis |
@@ -53,23 +53,34 @@ user interfaces are provided for the ROOT toolkit
 DIRECTORY STRUCTURE/DESCRIPTION
 -------------------------------
 
---> adaq/ : The ADAQ source code for enhanced CAEN hardware methods
+--> adaq/ : The ADAQ source code
 
---> caen/ : The CAEN firmware, drivers, and libraries
-    --> drivers/ : Linux drivers for the VME-USB connection
-    --> firmware/ : firmware for the V1718, V1720 VME boards
-    --> libraries/ : contains CAENComm, CAENDigitizer, and CAENVME libraries
+--> caen/ : All CAEN items required for ADAQ
+    --> libs/ : most up-to-date libraries (CAEMComm, CAENDigitizer, CAENVMELib)
+    --> include/ : most up-to-date headers files for above libraries
+    --> ref/ : includes all original CAEN sources, manual, notes, etc
+        --> drivers/ : Linux drivers for the VME-USB connection
+        --> firmware/ : firmware for the V1718, V1720 VME boards
+        --> libraries/ : contains CAENComm, CAENDigitizer, and CAENVME libraries
+	--> manuals/ : presently useful CAEN manuals
+	--> notes/ : useful notes
+	--> software/ : CAEN-distributed binary software (e.g. CAENUpgrader tool)
 
---> lib/ : The main library directory for ADAQ and CAEN libraries
-    --> i686/ : 32-bit 
-    --> x86_64 : 64-bit
+--> lib/ : The main library for ADAQ and CAEN libraries; users of the ADAQ libraries
+           should link against the appropriate architecture libraries contained here
+	   when building their own application
+    --> i686/ : 32-bit libraries
+    --> x86_64 : 64-bit libraries
 
---> include/ : The main directory for all ADAQ and CAEN header files
+--> include/ : The main directory for ADAQ and CAEN header files; users of the ADAQ
+               libraries should include this header directory when buildilng their
+	       own application
 
---> root/ : ROOT class definitions for general data storage and
-            graphical user interfaces
+--> root/ : ROOT class definitions for general data storage and graphical user 
+            interfaces. User's should include these headers when building their own
+	    application if they wish to use them
 
---> scripts/ : Bash scripts for installation and setup of ADAQ
+--> scripts/ : Bash scripts for installation and setup of ADAQ 
 
 --> templates/ : Directory containing various acquisition / readout templates
                  for copying->rapid prototype of testing and production codes
@@ -100,9 +111,18 @@ library building.
 CAEN DIRECTORY
 --------------
 
-This directory contains all of the required CAEN drivers, firmware,
-and libraries required by the AIMS DAQ hardware. The most-up-date
-versions are available as well as many legacy versions for backwards
+This directory contains everything CAEN in order to build ADAQ and
+subsequently use ADAQ and CAEN headers and libraries in a user's own
+application. The $ADAQREPO/caen/lib/{i686,x86_64} directory collects
+the most up-to-date CAEN libraries in a single location; the
+$ADAQREPO/caen/include directory collects the most up-to-date CAEN
+headers in a single location. Thus, the CAEN libs and headers DO NOT
+need to be installed on the system (which requires root access) but
+can simply be included/linked-to in these locations from a user's
+build system. In addition, all of the original CAEN libraries - as
+well as presently used firmware, software, manuals, and other items -
+are contained in the $ADAQREPO/caen/ref directory; legacy versions of
+the firmware and libraries can be found here for backwards
 compatibility. Including the libraries within the ADAQ distribution
 provides explicit control over versions and ensures easy portability
 between multiple machines without the need to download/install the

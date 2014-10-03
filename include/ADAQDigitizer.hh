@@ -130,15 +130,7 @@ public:
 
   int SetTriggerCoincidence(bool, int);
 
-
-
-
-
-
-
-
-
-
+  int GetNumFPGAEvents(uint32_t *);
   
   // Store the integer reprsenting a CAEN digitizer
   int BoardType;

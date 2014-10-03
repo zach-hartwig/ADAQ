@@ -1,14 +1,16 @@
 ######################################################################
+#
 # name: Makefile
-# date: 02 Feb 14
+# date: 02 Oct 14
 # auth: Zach Hartwig
+# mail: hartwig@psfc.mit.edu
 #
 # desc: This GNUmakefile controls the building of the ADAQ C++ and
 #       Python shared object libraries. Macros prefix "CXX" refers to
 #       those used to build the ADAQ C++ shared object library
 #       ("libADAQ.so") and "PY" refers to those used to build the ADAQ
 #       Python shared object library ("libPyADAQ.so"), with the
-#       exception that "CXX" (full macro) specifies gcc as the
+#       exception that "CXX" (full macro) specifies clang as the
 #       compiler that will be used to build both. The target libraries
 #       are built locally in "lib/<arch> during "make" and then copied
 #       to the "../lib/<arch> during "make install", where <arch> is
@@ -16,57 +18,63 @@
 #       automatically determine the architecture using the 'uname -m'
 #       command.
 #
-#       There are three main dependencies required:
-#       
-#       0. The CAEN libraries (included in ../caen subdirectory)
-#          --> CAENDigitizer, CAENComm, CAENVME
-#          --> see http://www.caen.it/csite/ProductSupport.jsp
+# dpnd: The ADAQ libraries have three main dependencies:
+#       -- The CAEN Libraries (most recent version):
+#          -> CAENDigitizer (v.2.6.0)
+#          -> CAENVMELib (v2.41.0)
+#          -> CAENComm (v1.2.0)
+#       -- Python (headers and libraries)
+#       -- Boost.Python (compiled library)
 #
-#       1. Boost.Python (a Boost library that must be compiled)
-#          --> see http://www.boost.org/doc/libs/1_55_0/libs/python/doc/
+# 2run: To build both C++ and Python libraries:
+#       $ make
+# 
+#       To install ADAQ libraries in $ADAQREPO/lib:
+#       $ make install
 #
-#       2. Python (requires development headers/libraries)
+#       To clean up build files and delete local libraries:
+#       $ make clean
 #    
 ######################################################################
 
+#**** MACRO DEFINITIONS ****#
 
-######################################
-# Define all necessary build options #
-######################################
+# Specify compilers and basic flags
+CC = clang
+CXX = clang++
+CXXFLAGS = -ferror-limit=5 -w
 
-# Sequential or parellel architecture
+# Obtain CPU architecture: 32-bit ("i686") or 64-bit ("x86_64")
 ARCH=$(shell uname -m)
 
-# The directory that this Makefile lives in (convenient macro for
-# specifying full path names to various items)
-DIR=$(PWD)
-
-# Specify gcc as the compiler with debug flags
-CXX=g++ -g
-
-# Add the directory with ADAQ and CAEN header files to compiler flag
-INCL=$(DIR)/include
-HDRS=$(wildcard $(INCL)/*)
-ADAQINCL=-I$(INCL)
-
-# Identify the C++ source and object files
-SRC=$(DIR)/src
-SRCS=$(wildcard $(SRC)/*.cc)
-CXXOBJS=$(SRC)/ADAQDigitizer.o $(SRC)/ADAQHighVoltage.o $(SRC)/ADAQBridge.o
-PYOBJS=$(SRC)/ADAQPythonWrapper.o
-
-# Set the CAEN library, include/lib flags. Note that 'LINUX'
-# preprocessor macro must be set to correctly handle CAENVMElib
-CAENLIBDIR=-L../lib/$(ARCH)
-CAENLIB=-lCAENVME -lCAENComm -lCAENDigitizer -lncurses -lc -lm
-CAENINCL=-I../include
-CXXFLAGS+=-DLINUX
-
-# Specify the "-fPIC" (Position Independent Code) flag for 64-bit
-# architecture
+# Specify the "-fPIC" flag for 64-bit architecture
 ifeq ($(ARCH),x86_64)
   CXXFLAGS+=-fPIC
 endif
+
+# Specify the directories
+BUILDDIR = build
+INCLDIR = include
+LIBDIR = lib/$(ARCH)
+SRCDIR = src
+
+# Specify all the header files
+INCLS = $(wildcard $(INCLDIR)*.hh)
+
+# Specify all object files (to be built in the build/ directory)
+SRCS = $(wildcard $(SRCDIR)/*.cc)
+TMP = $(patsubst %.cc,%.o,$(SRCS))
+OBJS = $(subst src/,build/,$(TMP))
+
+# Specify the CAEN libraries (included with ADAQ source)
+CAENLIBDIR = -L../lib/$(ARCH)
+CAENLIBS = -lCAENVME -lCAENComm -lCAENDigitizer -lncurses -lc -lm
+LDFLAGS = $(CAENLIBDIR) $(CAENLIBS)
+
+# Specify the CAEN header files (included with ADAQ source) and Linux flag
+CAENINCLDIR = -I../include
+CAENFLAGS = -DLINUX
+CXXFLAGS += $(CAENINCLDIR) $(CAENFLAGS)
 
 # Determine the major and minor revision number of Python and use them
 # to dynamically set the correct include directory for Python headers
@@ -78,11 +86,11 @@ PY_VERSION_MINOR := $(word 2,${PY_VERSION_FULL})
 # Set the Python include dir in compiler flag
 PYINCL = -I/usr/include/python$(PY_VERSION_MAJOR).$(PY_VERSION_MINOR)
 
-# Set the Pyton library dir and required libs in compiler flag
+# Set the Phyton library dir and required libs in compiler flag
 PYLIB = -L/usr/lib64/python$(PY_VERSION_MAJOR).$(PY_VERSION_MINOR)/config \
 	-lpython$(PY_VERSION_MAJOR).$(PY_VERSION_MINOR)
 
-# Set the compiler flags for building the ADAQ Python libraries
+# Set the Python compiler flags
 PYFLAGS = -fPIC -shared -Wl,--export-dynamic
 
 # Set the location of the C++ Boost libraries. If Boost has been
@@ -107,52 +115,40 @@ endif
 ###################
 
 # Targets are C++ and Python shared object libraries
-CXXTARGET=$(DIR)/lib/$(ARCH)/libADAQ.so
-PYTARGET=$(DIR)/lib/$(ARCH)/libPyADAQ.so
+CXXTARGET=$(LIBDIR)/libADAQ.so
+PYTARGET=$(LIBDIR)/libPyADAQ.so
 
-all: $(CXXTARGET) $(PYTARGET)
+all: $(CXXTARGET) # $(PYTARGET)
 
 
 ##################################
 # Build C++ shared object libary #
 ##################################
 
-# Build libADAQ.so shared library
-$(CXXTARGET) : $(CXXOBJS)
-	@echo -e "\n---> Building the dynamic library $@ ..."
-	@g++ -shared $^ -o $@
-	@echo -e "\nFinished building $@!\n"
+# Build the C++ libADAQ.so shared library
+$(CXXTARGET) : $(OBJS)
+	@echo -e "\nBuilding $@ ..."
+	$(CXX) $(CXXFLAGS) -g -shared $^ -o $@ $(LDFLAGS)
+	@echo -e "\n$@ build is complete!\n"
 
-# Build the ADAQDigitizer object from source
-$(SRC)/ADAQDigitizer.o : $(SRC)/ADAQDigitizer.cc $(INCL)/ADAQDigitizer.hh
-	@echo -e "\n---> Building $@ ..."
-	$(CXX) $(CXXFLAGS) $(ADAQINCL) $(CAENLIBDIR) $(CAENLIB) $(CAENINCL) -c -o $@ $<
-
-# Build the ADAQHighVoltage object from source
-$(SRC)/ADAQHighVoltage.o : $(SRC)/ADAQHighVoltage.cc $(INCL)/ADAQHighVoltage.hh
-	@echo -e "\n---> Building $@ ..."
-	$(CXX) $(CXXFLAGS) $(ADAQINCL) $(CAENLIBDIR) $(CAENLIB) $(CAENINCL) -c -o $@ $<
-
-# Build the ADAQBridge object from source
-$(SRC)/ADAQBridge.o : $(SRC)/ADAQBridge.cc $(INCL)/ADAQBridge.hh
-	@echo -e "\n---> Building $@ ..."
-	$(CXX) $(CXXFLAGS) $(ADAQINCL) $(CAENLIBDIR) $(CAENLIB) $(CAENINCL) -c -o $@ $<
-
+$(BUILDDIR)/%.o : $(SRCDIR)/%.cc $(INCLS)
+	@echo -e "\nBuilding object file '$@' ..."
+	$(CXX) $(CXXFLAGS) -g -c -o $@ $<
 
 #####################################
 # Build Python shared object libary #
 #####################################
 
 # Build the libPyADAQ.so shared library
-$(PYTARGET) : $(PYOBJS)
-	@echo -e "\n---> Building $@ ..."
-	$(CXX) $(PYFLAGS) $(BOOSTLIB) $(PYLIB) $(CAENLIBDIR) $(CAENLIB) -o $@ $<
-	@echo -e "\n---> Finished building $@!\n"
+# $(PYTARGET) : $(OBJS)
+# 	@echo -e "\n---> Building $@ ..."
+# 	$(CXX) $(PYFLAGS) $(BOOSTLIB) $(PYLIB) $(CAENLIBDIR) $(CAENLIB) -o $@ $<
+# 	@echo -e "\n---> Finished building $@!\n"
 
-# Build the ADAQPythonWrapper object from source
-$(SRC)/ADAQPythonWrapper.o : $(SRC)/ADAQPythonWrapper.cc $(HDRS) $(SRCS)
-	@echo -e "\n--->Building $@ ..."
-	$(CXX) $(BOOSTINCL) $(ADAQINCL) $(PYINCL) $(PYFLAGS) $(CAENINCL) -o $@ -c $<
+# # Build the ADAQPythonWrapper object from source
+# $(SRC)/ADAQPythonWrapper.o : $(SRC)/ADAQPythonWrapper.cc $(HDRS) $(SRCS)
+# 	@echo -e "\n--->Building $@ ..."
+# 	$(CXX) $(BOOSTINCL) $(ADAQINCL) $(PYINCL) $(PYFLAGS) $(CAENINCL) -o $@ -c $<
 
 
 #########
@@ -162,16 +158,20 @@ $(SRC)/ADAQPythonWrapper.o : $(SRC)/ADAQPythonWrapper.cc $(HDRS) $(SRCS)
 # General cleanup
 .PHONY:
 clean:
-	@echo -e "\nRemoving ADAQ library object files ..."
-	@rm -f $(CXXTARGET) $(PYTARGET) $(CXXOBJS) $(PYOBJS)
+	@echo -e "\nCleaning up the build files and libraries ..."
+	@rm -f $(CXXTARGET) $(PYTARGET) $(OBJS)
 	@echo -e ""
 
 # Install libs and headers to general directory
 install:
 	@echo -e "\nInstalling ADAQ libraries in ../lib/$(ARCH) ..."
-	@cp -v lib/$(ARCH)/* ../lib/$(ARCH)
+	@cp -v $(LIBDIR)/* ../lib/$(ARCH)
 	@echo -e "\nInstalling ADAQ headers in ../include ..."
 	@cp -v include/* ../include
 	@echo -e ""
+
+
+test:
+	@echo $(OBJS)
 
 

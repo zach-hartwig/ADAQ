@@ -265,6 +265,9 @@ uint32_t ADAQDigitizer::GetRegisterValue(uint32_t addr32)
 bool ADAQDigitizer::CheckRegisterForWriting(uint32_t addr32)
 { return true; }
 
+int ADAQDigitizer::GetNumFPGAEvents(uint32_t *data32)
+{ return GetRegisterValue(0x812c, data32); }
+
 int ADAQDigitizer::CheckBufferStatus(bool *BufferStatus)
 {
   // V1720 Channel Status Register : 0x1n88 where 'n' == channel #

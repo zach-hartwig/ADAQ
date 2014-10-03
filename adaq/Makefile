@@ -67,7 +67,10 @@ INCLDIR = include
 LIBDIR = lib/$(ARCH)
 SRCDIR = src
 
-# Specify all the header files
+# Add ADAQ headers to compiler include path
+CXXFLAGS += -I$(INCLDIR)/
+
+# Specify all the ADAQ header files
 INCLS = $(wildcard $(INCLDIR)*.hh)
 
 # Specify all object files (to be built in the build/ directory)
@@ -76,12 +79,12 @@ TMP = $(patsubst %.cc,%.o,$(SRCS))
 OBJS = $(subst src/,build/,$(TMP))
 
 # Specify the CAEN libraries (included with ADAQ source)
-CAENLIBDIR = -L../lib/$(ARCH)
+CAENLIBDIR = -L../caen/lib/$(ARCH)
 CAENLIBS = -lCAENVME -lCAENComm -lCAENDigitizer -lncurses -lc -lm
 LDFLAGS = $(CAENLIBDIR) $(CAENLIBS)
 
 # Specify the CAEN header files (included with ADAQ source) and Linux flag
-CAENINCLDIR = -I../include
+CAENINCLDIR = -I../caen/include
 CAENFLAGS = -DLINUX
 CXXFLAGS += $(CAENINCLDIR) $(CAENFLAGS)
 

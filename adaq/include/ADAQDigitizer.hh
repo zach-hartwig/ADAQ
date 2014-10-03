@@ -117,12 +117,6 @@ public:
   // Check to see if the V1720 FPGA buffer is full
   int CheckBufferStatus(bool *);
 
-  int GetNumFPGAEvents(uint32_t *);
-
-  
-
-
-
   int SetZSMode(string);
 
   int SetZLEChannelSettings(uint32_t, uint32_t, uint32_t, uint32_t, bool);

@@ -364,7 +364,3 @@ int ADAQDigitizer::SetTriggerCoincidence(bool Enable, int Level)
     SetRegisterValue(0x810C,TriggerSourceEnableMask);
   }
 }
-
-
-int ADAQDigitizer::GetNumFPGAEvents(uint32_t *data32)
-{ return GetRegisterValue(0x812c, data32); }

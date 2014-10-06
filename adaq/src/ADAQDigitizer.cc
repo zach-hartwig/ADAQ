@@ -63,16 +63,16 @@ int ADAQDigitizer::OpenLink()
       CAEN_DGTZ_GetInfo(BoardHandle, &BoardInformation);
 
       std::cout << "ADAQDigitizer : Link successfully established!\n"
-		<< "--> Board type: " << BoardInformation.ModelName << "\n"
+		<< "--> Board     : " << BoardInformation.ModelName << "\n"
 		<< "--> Channels  : " << BoardInformation.Channels << "\n"
 		<< "--> AMC FW    : " << BoardInformation.ROC_FirmwareRel << "\n"
 		<< "--> ROC FW    : " << BoardInformation.AMC_FirmwareRel << "\n"
 		<< "--> ADC bits  : " << BoardInformation.ADC_NBits << "\n"
 		<< "--> Serial #  : " << BoardInformation.SerialNumber << "\n"
 		<< "\n"
-		<< "--> Base address : 0x" << std::setw(8) << std::setfill('0') << BoardAddress << "\n"
-		<< "--> Board ID     : " << BoardID << "\n"
-		<< "--> Board handle : " << BoardHandle << "\n"
+		<< "--> Board address : 0x" << std::setw(8) << std::setfill('0') << BoardAddress << "\n"
+		<< "--> Board ID      : " << BoardID << "\n"
+		<< "--> Board handle  : " << BoardHandle << "\n"
 		<< std::endl;
       
       NumChannels = BoardInformation.Channels;

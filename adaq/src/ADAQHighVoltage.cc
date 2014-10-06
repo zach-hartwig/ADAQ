@@ -1,39 +1,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 // name: ADAQHighVoltage.cc
-// date: 26 JUN 12
+// date: 06 Oct 14
 // auth: Zach Hartwig
+// mail: hartwig@psfc.mit.edu
 //
-// desc: The ADAQHighVoltage class facilitates communication with the
-//       V6534 high voltage board with VME communications via the
-//       CAENComm and CAENVME libraries. The purpose of
-//       ADAQHighVoltage is to obscure the nitty-gritty-details of
-//       interfacing with the V6534 board and present the user with a
-//       relatively simple set of methods and variables that can be
-//       easibly used in his/her ADAQ projects by instantiating a
-//       single ADAQHighVoltage "manager" class. Technically, this
-//       class should probably be made into a Meyer's singleton for
-//       completeness' sake, but the present code should be sufficient
-//       for anticipated applications and userbase.
-//        
-//       At present, the ADAQHighVoltage class is compiled into two
-//       shared object libraries: libADAQ.so (C++) and libPyADAQ.so
-//       (Python). C++ and Python ADAQ projects can then link against
-//       these libraries to obtain the provided functionality. The
-//       purpose is to ensure that a single version of the ADAQ
-//       libraries exist since they are now used in multiple C++
-//       projects, multiple ROOT analysis projects, and new Python
-//       projects for interfacing ADAQ with MDSplus data system.
-//
-//        
-//       At present, the ADAQHighVoltage class is compiled into two
-//       shared object libraries: libADAQ.so (C++) and libPyADAQ.so
-//       (Python). C++ and Python ADAQ projects can then link against
-//       these libraries to obtain the provided functionality. The
-//       purpose is to ensure that a single version of the ADAQ
-//       libraries exist since they are now used in multiple C++
-//       projects, multiple ROOT analysis projects, and new Python
-//       projects for interfacing ADAQ with MDSplus data system
+// desc: 
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -48,7 +20,6 @@ using namespace std;
 // Boost
 #include <boost/assign/std/vector.hpp>
 using namespace boost::assign;
-
 
 // CAEN
 extern "C" {
@@ -85,121 +56,163 @@ namespace{
 }
 
 
-ADAQHighVoltage::ADAQHighVoltage()
-  :
-  // The board address and handle 
-  BoardAddress(-1), BoardHandle(-1),
+ADAQHighVoltage::ADAQHighVoltage(ZBoardType Type, int ID, uint32_t Address)
+  : ADAQVBoard(Type, ID, Address),
+    NumChannels(0), MaxVoltage(0), MaxCurrent(0),
 
-  // Bool to determine VME connection state to V6534
-  LinkEstablished(false),
-
-  // Bool to determine if output printed to cout
-  Verbose(false),
-
-  // The number of high voltage channels
-  NumChannels(6), 
-
-  // Maximum voltage supported by the V6534 board 
-  MaxVoltage(6000), // [V]
-  
-  // Maximum current supported by the V6534 board 
-  MaxCurrent(1000), // [uA]
-
-  // The desired channel voltage (in volts) must be set in the
-  // registers as (V[volts]*10). Define a conversion value.
-  volts2input(10),
-
-  // The desired channel current (in microamps) must be set in the
-  // registers as (I[microamps]*50). Define a conversion value.
-  microamps2input(50)
+    // The desired channel voltage (in volts) must be set in the
+    // registers as (V[volts]*10). Define a conversion value.
+    volts2input(10),
+    
+    // The desired channel current (in microamps) must be set in the
+    // registers as (I[microamps]*50). Define a conversion value.
+    microamps2input(50)
 {
+  if(BoardType == zV6533M or BoardType == zV6533N or BoardType == zV6533P){
+    NumChannels = 6;
+    MinChannel = 0;
+    MaxChannel = 5;
+    MaxVoltage = 4000; // [V]
+    MaxCurrent = 3000; // [uA]
+
+    switch(BoardType){
+    case zV6533M:
+      ChannelPolarity += -1, -1, -1, 1, 1, 1;
+      break;
+
+    case zV6533N:
+      ChannelPolarity += -1, -1, -1, -1, -1, -1;
+      break;
+
+    case zV6533P:
+      ChannelPolarity += 1, 1, 1, 1, 1, 1;
+      break;
+    }
+  }
+
+  if(BoardType == zV6534M or BoardType == zV6534N or BoardType == zV6534P){
+    NumChannels = 6;
+    MinChannel = 0;
+    MaxChannel = 5;
+    MaxVoltage = 6000; // [V]
+    MaxCurrent = 1000; // [uA]
+
+    switch(BoardType){
+    case zV6534M:
+      ChannelPolarity += -1, -1, -1, 1, 1, 1;
+      break;
+
+    case zV6534N:
+      ChannelPolarity += -1, -1, -1, -1, -1, -1;
+      break;
+
+    case zV6534P:
+      ChannelPolarity += 1, 1, 1, 1, 1, 1;
+      break;
+    }
+  }
+
   // Set the voltage, current, and power status for all HV
   // channels. By default, all voltage/current is initialized to a
   // value of zero and the channels are all turned off
-  ChannelSetVoltage += 0, 0, 0, 0, 0, 0;
-  ChannelSetCurrent += 0, 0, 0, 0, 0, 0;
-  ChannelPowerState += POWEROFF, POWEROFF, POWEROFF, POWEROFF, POWEROFF, POWEROFF;
+  for(int ch=0; ch<NumChannels; ch++){
+    ChannelSetVoltage.push_back(0);
+    ChannelSetCurrent.push_back(0);
+    ChannelPowerState.push_back(POWEROFF);
+  }
 }
-
+  
 
 ADAQHighVoltage::~ADAQHighVoltage()
 {;}
 
 
-int ADAQHighVoltage::OpenLink(uint32_t BrdAddr)
+int ADAQHighVoltage::OpenLink()
 {
-  // Set the V6534 32-bit hex board address, which must correspond to
-  // the settings on the physical potentiometers on the V6534 board
-  BoardAddress = BrdAddr;
-  
-  // If the link is not currently valid then establish one!
-  int Status = -42;
-  if(!LinkEstablished)
-    Status = CAENComm_OpenDevice(CAENComm_USB, 0, 0, BoardAddress, &BoardHandle);
-  else
+  CommandStatus = -42;
+ 
+  if(LinkEstablished){
     if(Verbose)
-      cout << "ADAQHighVoltage: Error opening link! Link is already open!\n"
+      cout << "ADAQHighVoltage: Error opening link! Link is already open!"
 	   << endl;
+  }
+  else{
+    CommandStatus = CAENComm_OpenDevice(CAENComm_USB, 
+					0, 
+					0, 
+					BoardAddress, 
+					&BoardHandle);
+  }
   
-  // Set the LinkEstablished bool to indicate that a valid link nto
-  // the V6534 has been established and output if Verbose set
-  if(Status==0){
+  if(CommandStatus == CAENComm_Success){
+
     LinkEstablished = true;
-    if(Verbose)
+
+    if(Verbose){
       cout << "ADAQHighVoltage : Link successfully established!\n"
-	   <<   "                  --> V6534 base address: 0x" 
-	   << setw(8) << setfill('0') << hex << BoardAddress << "\n"
-	   <<   "                  --> V6534 handle: " << BoardHandle << "\n"
+	   << "--> Board     :"
+	   << "--> Channels  :"
+	   << "--> VMax [V]  :"
+	   << "--> IMax [uA] :"
+	   << "--> Polarity  : [";
+
+      for(int ch=0; ch<NumChannels; ch++){
+	cout << ChannelPolarity[ch] << flush;
+	if(ch < 5)
+	  cout << ", " << flush;
+	else
+	  cout << "]" << endl;
+      }
+
+      cout << "\n"
+	   << "--> Board address : 0x" << setw(8) << setfill('0') << hex << BoardAddress << "\n"
+	   << "--> Board ID      : " << BoardID << "\n"
+	   << "--> Board handle  : " << BoardHandle << "\n"
 	   << endl;
+    }
   }
   else
     if(Verbose and !LinkEstablished)
-      cout << "ADAQHighVoltage : Error opening link! Error code: " << Status << "\n"
+      cout << "ADAQHighVoltage : Error opening link! Error code: " << CommandStatus << "\n"
 	   << endl;
   
-  // Return success/failure 
-  return Status;
+  return CommandStatus;
 }
 
 
 int ADAQHighVoltage::CloseLink()
 {
-  // If the link is presently established then close it!
-  int Status = -42;
+  CommandStatus = -42;
+
   if(LinkEstablished)
-    Status = CAENComm_CloseDevice(BoardHandle);
+    CommandStatus = CAENComm_CloseDevice(BoardHandle);
   else
     if(Verbose)
       cout << "ADAQHighVoltage : Error closing link! Link is already closed!\n"
 	   << endl;
   
-  if(Status==0){
+  if(CommandStatus == CAENComm_Success){
+
     LinkEstablished = false;
+
     if(Verbose)
       cout << "ADAQHighVoltage : Link successfully closed!\n"
 	   << endl;
   }
   else
     if(Verbose and LinkEstablished)
-      cout << "ADAQHighVoltage : Error closing link! Error code: " << Status << "\n"
+      cout << "ADAQHighVoltage : Error closing link! Error code: " << CommandStatus << "\n"
 	   << endl;
-
-  return Status;
+  
+  return CommandStatus;
 }
 
 
 int ADAQHighVoltage::SetToSafeState()
 {
-  // Set the V6534 board to "safe" state ie, set all channels'
-  // voltages and currents to 0 and turn all channels off. This
-  // function is useful for initialization at the instantiation of an
-  // object of type ADAQHighVoltage as well as at shutdown to ensure
-  // that the V6534 board is not only safe but ready to have it's VME
-  // link disconnected.
-
   if(Verbose)
-    cout << "ADAQHighVoltage : Setting the V6534 to 'safe' mode! Channels will have voltages\n"
-	 << "                  and currents set to 0 and then powered off ...";
+    cout << "ADAQHighVoltage : Setting the HV board to 'safe' mode! All channels will have\n"
+	 << "                  voltages and currents set to 0 and then powered off ...";
   
   for(int ch=0; ch<NumChannels; ch++){
     SetVoltage(ch, 0);
@@ -226,9 +239,9 @@ bool ADAQHighVoltage::CheckChannelSteadyState(int Channel)
     // Compare the "active" voltage at the present moment to the "set"
     // voltage (value of voltage desired by the user and stored in the
     // ADAQHighVoltage member data). Return "true" if the "active"
-    // voltage is within +/- 10 volts of the "set" voltage
-    if(GetVoltage(Channel) < ChannelSetVoltage[Channel]+10 and
-       GetVoltage(Channel) > ChannelSetVoltage[Channel]-10)
+    // voltage is within +/- 5 volts of the "set" voltage
+    if(GetVoltage(Channel) < ChannelSetVoltage[Channel]+5 and
+       GetVoltage(Channel) > ChannelSetVoltage[Channel]-5)
       return true;
     else
       return false;
@@ -241,7 +254,7 @@ int ADAQHighVoltage::PrintStatus()
   if(!Verbose)
     return 0;
   
-  cout <<  "ADAQHighVoltage : V6534 board status:\n" << endl;
+  cout <<  "ADAQHighVoltage : High voltage board status:\n" << endl;
   
   // Iterate through each channel...
   for(int ch=0; ch<NumChannels; ch++){
@@ -275,9 +288,9 @@ int ADAQHighVoltage::PrintStatus()
   uint16_t BoardStatus;
   CAENComm_Read16(BoardHandle, STATUS, &BoardStatus);
   if(BoardStatus==0)
-    cout << "     V6534 board status OK!\n" << endl;
+    cout << "     Board status OK!\n" << endl;
   else
-    cout << "     V6534 board status ERROR! Register(0x0058) = 0x" 
+    cout << "     Board status ERROR! Register(0x0058) = 0x" 
 	 << setw(8) << setfill('0') << hex << BoardStatus << "\n"
 	 << endl;
   return 0;
@@ -287,7 +300,7 @@ int ADAQHighVoltage::PrintStatus()
 // Method to set individual channel's voltage
 int ADAQHighVoltage::SetVoltage(int Channel, uint16_t VoltageSet)
 { 
-  if(Channel>5 or Channel<0){
+  if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error setting HV Voltage! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
@@ -326,7 +339,7 @@ int ADAQHighVoltage::GetVoltage(int Channel, uint16_t *VoltageGet)
 //       ZSH (18 MAY 12)
 uint16_t ADAQHighVoltage::GetVoltage(int Channel)
 {
-  if(Channel>5 || Channel<0){
+  if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error getting HV Voltage! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
@@ -344,7 +357,7 @@ uint16_t ADAQHighVoltage::GetVoltage(int Channel)
 // Method to set individual channel's max current
 int ADAQHighVoltage::SetCurrent(int Channel, uint16_t CurrentSet)
 {
-  if(Channel>5 || Channel<0){
+  if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error setting HV current! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
@@ -361,7 +374,7 @@ int ADAQHighVoltage::SetCurrent(int Channel, uint16_t CurrentSet)
 // Method to get individual channel's drawn current
 int ADAQHighVoltage::GetCurrent(int Channel, uint16_t *CurrentGet)
 {
-  if(Channel>5 || Channel<0){
+  if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error getting HV current! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
@@ -383,7 +396,7 @@ int ADAQHighVoltage::GetCurrent(int Channel, uint16_t *CurrentGet)
 //       ZSH (18 MAY 12)
 uint16_t ADAQHighVoltage::GetCurrent(int Channel)
 {
-  if(Channel>5 || Channel<0){
+  if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error getting HV current! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
@@ -401,7 +414,7 @@ uint16_t ADAQHighVoltage::GetCurrent(int Channel)
 // Method to set individual channel's power state to "ON"
 int ADAQHighVoltage::SetPowerOn(int Channel)
 {
-  if(Channel>5 || Channel<0){
+  if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error setting HV power on! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
@@ -417,7 +430,7 @@ int ADAQHighVoltage::SetPowerOn(int Channel)
 // Method to set individual channel's power state to "OFF"
 int ADAQHighVoltage::SetPowerOff(int Channel)
 {
-  if(Channel>5 || Channel<0){
+  if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error setting HV power off! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
@@ -433,7 +446,7 @@ int ADAQHighVoltage::SetPowerOff(int Channel)
 // Method to get individual channel's power state
 int ADAQHighVoltage::GetPowerState(int Channel, uint16_t *powerGet)
 {
-  if(Channel>5 || Channel<0){
+  if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error getting HV power status! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
@@ -452,7 +465,7 @@ int ADAQHighVoltage::GetPowerState(int Channel, uint16_t *powerGet)
 //       ZSH (18 MAY 12)
 uint16_t ADAQHighVoltage::GetPowerState(int Channel)
 {
-  if(Channel>5 || Channel<0){
+  if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error getting HV power status! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
@@ -469,7 +482,7 @@ uint16_t ADAQHighVoltage::GetPowerState(int Channel)
 // Method to get individual channel's polarity (+ or -)
 int ADAQHighVoltage::GetPolarity(int Channel, uint16_t *polarityGet)
 {
-  if(Channel>5 || Channel<0){
+  if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error getting HV Channel polarity! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
@@ -488,7 +501,7 @@ int ADAQHighVoltage::GetPolarity(int Channel, uint16_t *polarityGet)
 //       ZSH (18 MAY 12)
 uint16_t ADAQHighVoltage::GetPolarity(int Channel)
 {
-  if(Channel>5 || Channel<0){
+  if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error getting HV Channel polarity! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
@@ -505,7 +518,7 @@ uint16_t ADAQHighVoltage::GetPolarity(int Channel)
 // Method to get individual channel's operating temperature
 int ADAQHighVoltage::GetTemperature(int Channel, uint16_t *temperatureGet)
 {
-  if(Channel>5 || Channel<0){
+  if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error getting HV Channel temperature! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
@@ -524,7 +537,7 @@ int ADAQHighVoltage::GetTemperature(int Channel, uint16_t *temperatureGet)
 //       ZSH (18 MAY 12)
 uint16_t ADAQHighVoltage::GetTemperature(int Channel)
 {
-  if(Channel>5 || Channel<0){
+  if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error getting HV Channel temperature! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
@@ -553,20 +566,6 @@ int ADAQHighVoltage::SetRegisterValue(uint32_t addr32, uint16_t val16)
 // Method to get a value stored at an individual register of the V6534
 int ADAQHighVoltage::GetRegisterValue(uint32_t addr32, uint16_t *val16)
 { return CAENComm_Read16(BoardHandle, addr32, val16); }
-
-
-// Method to get a value stored at an individual register of the V6534
-//
-// NOTE: ADAQ is migrating to member functions that *return* the "get"
-//       value rather than setting the "get" value by reference. This
-//       is mainly for modernity and compatability with Boost.Python
-//       ZSH (18 MAY 12)
-uint16_t ADAQHighVoltage::GetRegisterValue(uint32_t addr32)
-{
-  uint16_t data16;
-  CommandStatus = CAENComm_Read16(BoardHandle, addr32, &data16);
-  return data16;
-}
 
 
 // Method to check validity of V6534 register for writing

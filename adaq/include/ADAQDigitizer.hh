@@ -3,6 +3,7 @@
 // name: ADAQDigitizer.hh 
 // date: 02 Oct 14
 // auth: Zach Hartwig
+// mail: hartwig@psfc.mit.edu
 //
 // desc: 
 //

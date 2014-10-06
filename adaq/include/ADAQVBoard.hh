@@ -15,9 +15,23 @@
 #include <boost/cstdint.hpp>
 
 enum ZBoardType{
-  zV1720 = 0,
-  zV1724 = 1,
-  zDT5720 = 2
+
+  // VME-USB boards
+  zV1718,
+
+  // Digitizer boards
+  zV1720,
+  zV1724,
+  zDT5720,
+
+  // High voltage boards
+  zV6533M,
+  zV6533N,
+  zV6533P,
+
+  zV6534M,
+  zV6534N,
+  zV6534P
 };
 
 

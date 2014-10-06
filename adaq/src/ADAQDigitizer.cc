@@ -12,6 +12,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cstdlib>
+#include <cmath>
 #include <unistd.h>
 
 // CAEN
@@ -42,7 +43,7 @@ int ADAQDigitizer::OpenLink()
   
   if(LinkEstablished){
     if(Verbose)
-      std::cout << "ADAQDigitizer : Error opening link! Link is already open!"
+      std::cout << "ADAQDigitizer[" << BoardID << "] : Error opening link! Link is already open!"
 		<< std::endl;
   }
   else{
@@ -54,36 +55,36 @@ int ADAQDigitizer::OpenLink()
   }
   
   if(CommandStatus == CAEN_DGTZ_Success){
-
+    
     LinkEstablished = true;
-
+    
     if(Verbose){
-
+      
       CAEN_DGTZ_BoardInfo_t BoardInformation;
       CAEN_DGTZ_GetInfo(BoardHandle, &BoardInformation);
+      
+      std::cout << "ADAQDigitizer[" << BoardID << "] : Link successfully established!\n"
+		<< "--> Type     : " << BoardInformation.ModelName << "\n"
+		<< "--> Address  : 0x" << std::setw(8) << std::setfill('0') << std::hex << BoardAddress << "\n"
+		<< "--> User ID  : " << std::dec << BoardID << "\n"
+		<< "--> Handle   : " << BoardHandle << "\n"
+		<< "--> Channels : " << BoardInformation.Channels << "\n"
+		<< "--> AMC FW   : " << BoardInformation.ROC_FirmwareRel << "\n"
+		<< "--> ROC FW   : " << BoardInformation.AMC_FirmwareRel << "\n"
+		<< "--> ADC bits : " << BoardInformation.ADC_NBits << "\n"
+		<< "--> Serial # : " << BoardInformation.SerialNumber << "\n"
 
-      std::cout << "ADAQDigitizer : Link successfully established!\n"
-		<< "--> Board     : " << BoardInformation.ModelName << "\n"
-		<< "--> Channels  : " << BoardInformation.Channels << "\n"
-		<< "--> AMC FW    : " << BoardInformation.ROC_FirmwareRel << "\n"
-		<< "--> ROC FW    : " << BoardInformation.AMC_FirmwareRel << "\n"
-		<< "--> ADC bits  : " << BoardInformation.ADC_NBits << "\n"
-		<< "--> Serial #  : " << BoardInformation.SerialNumber << "\n"
-		<< "\n"
-		<< "--> Board address : 0x" << std::setw(8) << std::setfill('0') << BoardAddress << "\n"
-		<< "--> Board ID      : " << BoardID << "\n"
-		<< "--> Board handle  : " << BoardHandle << "\n"
 		<< std::endl;
       
       NumChannels = BoardInformation.Channels;
       NumADCBits = BoardInformation.ADC_NBits;
       MinADCBit = 0;
-      MaxADCBit = NumADCBits - 1;
+      MaxADCBit = pow(2, NumADCBits);
     }
   }
   else
     if(Verbose and !LinkEstablished)
-      std::cout << "ADAQDigitizer : Error opening link! Returned error code: " << CommandStatus << "\n"
+      std::cout << "ADAQDigitizer[" << BoardID << "] : Error opening link! Returned error code: " << CommandStatus << "\n"
 		<< std::endl;
   
   return CommandStatus;
@@ -98,7 +99,7 @@ int ADAQDigitizer::CloseLink()
     CommandStatus = CAEN_DGTZ_CloseDigitizer(BoardHandle);
   else
     if(Verbose)
-      std::cout << "ADAQDigitizer : Error closing link! Link is already closed!\n"
+      std::cout << "ADAQDigitizer[" << BoardID << "] : Error closing link! Link is already closed!\n"
 		<< std::endl;
   
   if(CommandStatus == CAEN_DGTZ_Success){
@@ -106,12 +107,12 @@ int ADAQDigitizer::CloseLink()
     LinkEstablished = false;
 
     if(Verbose)
-      std::cout << "ADAQDigitizer : Link successfully closed!\n"
+      std::cout << "ADAQDigitizer[" << BoardID << "] : Link successfully closed!\n"
 		<< std::endl;
   }
   else
     if(Verbose and LinkEstablished)
-      std::cout << "ADAQDigitizer : Error closing link! Error code: " << CommandStatus << "\n"
+      std::cout << "ADAQDigitizer[" << BoardID << "] : Error closing link! Error code: " << CommandStatus << "\n"
 		<< std::endl;
   
   return CommandStatus;
@@ -162,7 +163,7 @@ bool ADAQDigitizer::CheckRegisterForWriting(uint32_t Addr32)
 // Triggering methods //
 ////////////////////////
 
-int ADAQDigitizer::EnableAutoTrigger(uint32_t ChannelEnableMask)
+int ADAQDigitizer:: EnableAutoTrigger(uint32_t ChannelEnableMask)
 { return SetChannelSelfTrigger(CAEN_DGTZ_TRGMODE_ACQ_ONLY, ChannelEnableMask); }
 
 
@@ -170,7 +171,7 @@ int ADAQDigitizer::DisableAutoTrigger(uint32_t ChannelEnableMask)
 { return SetChannelSelfTrigger(CAEN_DGTZ_TRGMODE_DISABLED, ChannelEnableMask); }
 
 
-int ADAQDigitizer::EnableExternalTrigger(std::string SignalLogic)
+int ADAQDigitizer:: EnableExternalTrigger(std::string SignalLogic)
 {
   CommandStatus = SetExtTriggerInputMode(CAEN_DGTZ_TRGMODE_ACQ_AND_EXTOUT);
   
@@ -187,7 +188,7 @@ int ADAQDigitizer::EnableExternalTrigger(std::string SignalLogic)
     FrontPanelIOControlValue |= 1<<0;
   else
     if(Verbose)
-      std::cout << "ADAQDigitizer : Error! Unsupported external trigger logic ("
+      std::cout << "ADAQDigitizer[" << BoardID << "] : Error! Unsupported external trigger logic ("
 		<< SignalLogic << ") was specified!" << "\n"
 		<< "                Select 'NIM' or 'TTL'!\n"
 		<< std::endl;
@@ -204,7 +205,7 @@ int ADAQDigitizer::DisableExternalTrigger()
 }
 
 
-int ADAQDigitizer::EnableSWTrigger()
+int ADAQDigitizer:: EnableSWTrigger()
 { 
   CommandStatus = SetSWTriggerMode(CAEN_DGTZ_TRGMODE_ACQ_ONLY);
   return CommandStatus;
@@ -230,7 +231,7 @@ int ADAQDigitizer::SetTriggerEdge(int Channel, string TriggerEdge)
 				       CAEN_DGTZ_TriggerOnFallingEdge);
   else
     if(Verbose)
-      std::cout << "ADAQDigitizer : Error! Unsupported trigger edge type ("
+      std::cout << "ADAQDigitizer[" << BoardID << "] : Error! Unsupported trigger edge type ("
 		<< TriggerEdge << ") was specified!\n"
 		<< "               Select 'Rising' or 'Falling'\n"
 		<< std::endl;
@@ -273,7 +274,7 @@ int ADAQDigitizer::SetAcquisitionMode(string AcqMode)
     CommandStatus = SetAcquisitionMode(CAEN_DGTZ_S_IN_CONTROLLED);
   else
     if(Verbose)
-      std::cout << "ADAQDigitizer : Error! Unsupported acquisition mode ("
+      std::cout << "ADAQDigitizer[" << BoardID << "] : Error! Unsupported acquisition mode ("
 		<< AcqMode << ") was specified!\n"
 		<< "                Select 'Software' or 'SIn'.\n"
 		<< std::endl;
@@ -292,7 +293,7 @@ int ADAQDigitizer::SetZSMode(string ZSMode)
     CommandStatus = SetZeroSuppressionMode(CAEN_DGTZ_ZS_ZLE);
   else
     if(Verbose)
-      std::cout << "ADAQDigitizer : Error! Unsupported zero suppression mode ("
+      std::cout << "ADAQDigitizer[" << BoardID << "] : Error! Unsupported zero suppression mode ("
 		<< ZSMode << ") was specified!\n"
 		<< "                Select 'None' or 'ZLE'.\n"
 		<< std::endl;

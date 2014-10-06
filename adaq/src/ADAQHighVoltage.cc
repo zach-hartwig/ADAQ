@@ -35,7 +35,7 @@ using namespace V6534Registers;
 ADAQHighVoltage::ADAQHighVoltage(ZBoardType Type, int ID, uint32_t Address)
   : ADAQVBoard(Type, ID, Address),
     NumChannels(0), MaxVoltage(0), MaxCurrent(0),
-
+    
     // The desired channel voltage (in volts) must be set in the
     // registers as (V[volts]*10). Define a conversion value.
     volts2input(10),
@@ -182,6 +182,10 @@ int ADAQHighVoltage::CloseLink()
   
   return CommandStatus;
 }
+
+
+int ADAQHighVoltage::Initialize()
+{;}
 
 
 int ADAQHighVoltage::SetRegisterValue(uint32_t Addr32, uint16_t Data16)

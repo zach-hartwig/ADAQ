@@ -25,11 +25,11 @@ using namespace std;
 
 class ADAQHighVoltage : public ADAQVBoard
 {
-
+  
 public:
   ADAQHighVoltage(ZBoardType, int, uint32_t);
   ~ADAQHighVoltage();
-
+  
   /////////////////////////////////////////////////
   // Mandatory implementation of virtual methods //
   /////////////////////////////////////////////////

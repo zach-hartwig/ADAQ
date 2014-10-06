@@ -61,8 +61,8 @@ public:
   virtual int OpenLink() = 0;
   virtual int CloseLink() = 0;
   virtual int Initialize() = 0;
-  virtual int SetRegisterValue(uint32_t, uint32_t) = 0;
-  virtual int GetRegisterValue(uint32_t, uint32_t *) = 0;
+  // virtual int SetRegisterValue(uint32_t, uint32_t) = 0;
+  // virtual int GetRegisterValue(uint32_t, uint32_t *) = 0;
   virtual bool CheckRegisterForWriting(uint32_t) = 0;
 
   /////////////////////

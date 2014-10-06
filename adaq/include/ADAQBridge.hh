@@ -1,28 +1,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 // name: ADAQBridge.hh
-// date: 10 Mar 14
+// date: 06 Oct 14
 // auth: Zach Hartwig
+// mail: hartwig@psfc.mit.edu
 //
-// desc: The ADAQBridge class facilitates communication with the V1718
-//       USB/VME bridge board via the CAENComm and CAENVME
-//       libraries. The purpose of ADAQBridge is to obscure the
-//       nitty-gritty-details of interfacing with the V1718 board and
-//       present the user with a relatively simple set of methods and
-//       variables that can be easibly used in his/her ADAQ projects
-//       by instantiating a single ADAQBridge class. Technically, this
-//       class should probably be made into a Meyer's singleton for
-//       completeness' sake, but the present code should be sufficient
-//       for anticipated applications and userbase.
-//        
-//       At present, the ADAQBridge class is compiled into two shared
-//       object libraries: libADAQ.so (C++) and libPyADAQ.so
-//       (Python). C++ and Python ADAQ projects can then link against
-//       these libraries to obtain the provided functionality. The
-//       purpose is to ensure that a single version of the ADAQ
-//       libraries exist since they are now used in multiple C++
-//       projects, multiple ROOT analysis projects, and new Python
-//       projects for interfacing ADAQ with MDSplus data system
+// desc: 
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -31,10 +14,14 @@
 
 // C++
 #include <vector>
+#include <string>
 using namespace std;
 
 // Boost 
 #include <boost/cstdint.hpp>
+
+// ADAQ
+#include "ADAQVBoard.hh"
 
 struct PulserSettings{
   int PulserToSet;
@@ -54,17 +41,31 @@ struct PulserOutputSettings{
 };
 
 
-class ADAQBridge
+class ADAQBridge : public ADAQVBoard
 {
-
+  
 public:
-  ADAQBridge();
+  ADAQBridge(ZBoardType, int, uint32_t Address = 0x00000000);
   ~ADAQBridge();
-
-  // Open/close VME link to V1718 board
-  int OpenLinkDirectly();
-  int OpenLinkViaDigitizer(uint32_t, uint32_t);
+  
+  ///////////////////////////////////////////////
+  // Mandatory implemention of virtual methods //
+  ///////////////////////////////////////////////
+  
+  int OpenLink();
   int CloseLink();  
+  int Initialize();
+  int SetRegisterValue(uint32_t, uint32_t);
+  int GetRegisterValue(uint32_t, uint32_t *);
+  bool CheckRegisterForWriting(uint32_t);
+
+  
+  /////////////////////////////////////
+  // Enhanced VME/USB bridge methods //
+  /////////////////////////////////////
+
+  int OpenLinkDirectly();
+  int OpenLinkViaDigitizer(uint32_t, bool);
 
   int SetPulserSettings(PulserSettings *);
   int SetPulserOutputSettings(PulserOutputSettings *);
@@ -72,30 +73,9 @@ public:
   int StartPulser(uint32_t);
   int StopPulser(uint32_t);
 
-  // Set/get verbose value
-  void SetVerbose(bool v) {Verbose = v;}
-  bool GetVerbose() {return Verbose;}
-
-  // Set/get V6534 register values
-  int SetRegisterValue(uint32_t, uint32_t);
-  int GetRegisterValue(uint32_t, uint32_t *);
-
-  // Check to ensure restricted registers are not overwritten
-  bool CheckRegisterForWriting(uint32_t);
-
 private:
-  // Integer handle for easy access to V1718
-  //long BoardHandle;
-  int32_t BoardHandle;
+  string BoardName, ConnectionName;
 
-  // Integer representing result of CAENComm/CAENVME call
-  int CommandStatus;
-  
-  // Bool determining state of VME link to V6534
-  bool LinkEstablished;
-
-  // Bool determing if information goes to stdout
-  bool Verbose;
 };
 
 #endif

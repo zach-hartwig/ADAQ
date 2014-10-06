@@ -89,7 +89,7 @@ public:
   int GetMaxCurrent() {return MaxCurrent;}
   
   // HV channel IDs
-  enum {Channel0, Channel1, Channel2, Channel3, Channel4, Channel5};
+  // enum {Channel0, Channel1, Channel2, Channel3, Channel4, Channel5};
 
 private:
   int NumChannels, MinChannel, MaxChannel;

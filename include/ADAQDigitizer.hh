@@ -1,29 +1,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 // name: ADAQDigitizer.hh 
-// date: 18 Feb 14
+// date: 02 Oct 14
 // auth: Zach Hartwig
+// mail: hartwig@psfc.mit.edu
 //
-// desc: The ADAQDigitizer class facilitiates communication with the
-//       CAEN V1720 digitizer board ia VME communications via the
-//       CAENComm, CAENDigitizer,and CAENVME libraries. Its purpose is
-//       to obscure the nitty-gritty-details of interfacing with the
-//       V1720 board and present the user with a relatively simple set
-//       of methods and variables (both C++ and Python via
-//       Boost.Python) that can be easibly used in his/her ADAQ
-//       projects by instantiating a single ADAQDigitizer "manager"
-//       class. Technically, this class should probably be made into a
-//       Meyer's singleton for completeness' sake, but the present
-//       code should be sufficient for anticipated applications and
-//       userbase.
-//        
-//       At present, the ADAQDigitizer class is compiled into two
-//       shared object libraries: libADAQ.so (C++) and libPyADAQ.so
-//       (Python). C++ and Python ADAQ projects can then link against
-//       these libraries to obtain the provided functionality. The
-//       purpose is to ensure that a single version of the ADAQ
-//       libraries exist since they are now used in multiple C++,
-//       ROOT, and Python acquisition/analysis projects.
+// desc: 
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -36,131 +18,81 @@
 #include <iostream>
 using namespace std;
 
-// Boost libraries provide explicit integer types
+// Boost
 #include <boost/cstdint.hpp>
 
-// CAEN digitizer libraries
+// CAEN
 extern "C"{
 #include "CAENDigitizer.h"
 }
 
+// ADAQ
+#include "ADAQVBoard.hh"
 
-class ADAQDigitizer
+
+class ADAQDigitizer : public ADAQVBoard
 {
 
 public:
-  ADAQDigitizer();
+  ADAQDigitizer(ZBoardType, int, uint32_t);
   ~ADAQDigitizer();
 
-  ////////////////////////////////////
-  // Enhanced ADAQDigitizer methods //
-  ////////////////////////////////////
-
-  // Open/close the VME link to the V1720 board
-  int OpenLink(uint32_t);
+  ////////////////////////////////////////////////
+  // Mandatory implemention of virtual methods //
+  ////////////////////////////////////////////////
+  
+  int OpenLink();
   int CloseLink();
-
-  // Initialize the V1720 board 
   int Initialize();
+  int SetRegisterValue(uint32_t, uint32_t);
+  int GetRegisterValue(uint32_t, uint32_t *);
+  bool CheckRegisterForWriting(uint32_t);
+
+  ///////////////////////////////////////
+  // Enhanced digitizer control methods//
+  //////////////////////////////////////
+
+  // Trigger control
+
+  // Enable/disable channel self-triggering ("auto" triggering)
+  int EnableAutoTrigger(uint32_t);
+  int DisableAutoTrigger(uint32_t);
 
   // Enable/disable external triggering via NIM/TTL signals
   int EnableExternalTrigger(string SignalLogic="NIM");
   int DisableExternalTrigger();
-  
-  // Enable/disable channel self-triggering ("auto" triggering)
-  int EnableAutoTrigger(uint32_t);
-  int DisableAutoTrigger(uint32_t);
 
   // Enable/disable triggering via software ("SW") commands
   int EnableSWTrigger();
   int DisableSWTrigger();
 
-  // Set the acquisition mode
-  int SetSWAcquisitionMode();
-  int SetSInAcquisitionMode();
-  
-  // Set/get V1720 32-bit VME address
-  void SetBoardAddress(uint32_t BrdAddr) {BoardAddress = BrdAddr;}
-  int GetBoardAddress() {return BoardAddress;}
-
-  // Get the integer for easy access to V1720 
-  int GetBoardHandle() {return BoardHandle;}
-
-  // Set/get whether information delivered to stdout
-  void SetVerbose(bool V) {Verbose = V;}
-  bool GetVerbose() {return Verbose;}
-
-  // Get the number of V1720 digitizer channels (8)
-  int GetNumChannels() {return NumChannels;}
-
-  // Get the total number of bits (4096)
-  int GetNumBits() {return NumBits;}
-
-  // Get the smallest (0) and largest (4095) bit values
-  int GetMinBit() {return MinBit;}
-  int GetMaxBit() {return MaxBit;}
-
-  // Get the number of nanoseconds per sample (4ns/sample)
-  int GetNanosecondsPerSample() {return NanosecondsPerSample;}
-
-  // Get the number of millivolts per bit (~0.48828125 mV/bit)
-  int GetMillivoltsPerBit() {return MillivoltsPerBit;}
-
-  // Set/get V1720 register values
-  int SetRegisterValue(uint32_t, uint32_t);
-  int GetRegisterValue(uint32_t, uint32_t *);
-  uint32_t GetRegisterValue(uint32_t);
-
-  // Prevent overwriting restricted V1720 registers
-  bool CheckRegisterForWriting(uint32_t);
-  
-  // Check to see if the V1720 FPGA buffer is full
-  int CheckBufferStatus(bool *);
-
-  int SetZSMode(string);
-
-  int SetZLEChannelSettings(uint32_t, uint32_t, uint32_t, uint32_t, bool);
-
   int SetTriggerEdge(int, string);
-
   int SetTriggerCoincidence(bool, int);
 
+  // Acquisition control
+
+  int SetAcquisitionMode(string);
+  int SetZSMode(string);
+  int SetZLEChannelSettings(uint32_t, uint32_t, uint32_t, uint32_t, bool);
+  
+  // Readout
+
+  int CheckBufferStatus(bool *);
   int GetNumFPGAEvents(uint32_t *);
+
   
-  // Store the integer reprsenting a CAEN digitizer
-  int BoardType;
+  /////////////////////////////////////////
+  // Get methods for private member data //
+  /////////////////////////////////////////
 
-  // Store the VME digitizer board's VME address
-  uint32_t BoardAddress;
-
-  // An integer for easy access to the V1720
-  int BoardHandle;
-
-  int MemoryBlock;
-
-  // int representing result of CAENDigitizer/CAENComm/CAENVME call
-  int CommandStatus;
+  int GetNumChannels() {return NumChannels;}
+  int GetNumADCBits() {return NumADCBits;}
+  int GetMinADCBit() {return MinADCBit;}
+  int GetMaxADCBit() {return MaxADCBit;}
   
-  // Bool representing status of VME link to V1720
-  bool LinkEstablished;
-
-  // Bool representing wether information to stdout
-  bool Verbose;
-
-  // Number of digitizer channels
-  const int NumChannels;
-
-  // Number of bits
-  const int NumBits;
-
-  // Min/Max bit
-  const int MinBit, MaxBit;
-
-  // Nanoseconds per sample
-  const int NanosecondsPerSample;
-
-  // Millivolts per bit
-  const double MillivoltsPerBit;
+private:
+  int NumChannels;
+  int NumADCBits, MinADCBit, MaxADCBit;
 
 
   ////////////////////////////////////////
@@ -303,7 +235,7 @@ public:
   //
   ////////////////////////////////////////////////////////////////////////////////////
 
-
+public:
   ////////////////////////////
   // CAEN Digitizer Wrappers//
   ////////////////////////////

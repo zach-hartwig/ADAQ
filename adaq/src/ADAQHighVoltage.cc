@@ -28,32 +28,8 @@ extern "C" {
 
 // ADAQ
 #include "ADAQHighVoltage.hh"
-
-// Create a namespace to hold the relevant addresses and some simple
-// register value of the V6534 board
-namespace{
-  
-  // V6534 global register addresses
-  uint32_t VMAX = 0x0050;
-  uint32_t IMAX = 0x0054;
-  uint32_t STATUS = 0x0058;
-  uint32_t FIRMREl = 0x005C;
-
-  // V6534 individual channel register addresses
-  // Register Addr.   CH0(-)    CH1(-)   CH2(-)   CH3(+)   CH4(+)   CH5(+)
-  uint32_t VSET[6] = {0x0080,  0x0100,  0x0180,  0x0200,  0x0280,  0x0300}; // Voltage set
-  uint32_t ISET[6] = {0x0084,  0x0104,  0x0184,  0x0204,  0x0284,  0x0304}; // Current set
-  uint32_t VMON[6] = {0x0088,  0x0108,  0x0188,  0x0208,  0x0288,  0x0308}; // Voltage monitor
-  uint32_t IMON[6] = {0x008c,  0x010c,  0x018c,  0x020c,  0x028c,  0x030c}; // Current monitor (max)
-  uint32_t   PW[6] = {0x0090,  0x0110,  0x0190,  0x0210,  0x0290,  0x0310}; // Power 
-  uint32_t  POL[6] = {0x00ac,  0x012c,  0x01ac,  0x022c,  0x02ac,  0x032c}; // Polarity
-  uint32_t TEMP[6] = {0x00b0,  0x0130,  0x01b0,  0x0230,  0x02b0,  0x0330}; // Temperature
-
-  // V6534 register values to control the power state (on/off) at
-  // registers "PW" specified above for each channel
-  uint16_t POWEROFF = 0x00;
-  uint16_t POWERON  = 0x01;
-}
+#include "ADAQHighVoltageRegisters.hh"
+using namespace V6534Registers;
 
 
 ADAQHighVoltage::ADAQHighVoltage(ZBoardType Type, int ID, uint32_t Address)
@@ -208,6 +184,52 @@ int ADAQHighVoltage::CloseLink()
 }
 
 
+int ADAQHighVoltage::SetRegisterValue(uint32_t Addr32, uint16_t Data16)
+{
+  CommandStatus = -42;
+  
+  // Ensure the user-specified register is OK to be written to
+  // (i.e. prevent overwriting critical registers)
+  if(CheckRegisterForWriting(Addr32))
+    CommandStatus =  CAENComm_Write16(BoardHandle, Addr32, Data16); 
+  
+  return CommandStatus;
+}
+
+
+int ADAQHighVoltage::GetRegisterValue(uint32_t Addr32, uint16_t *Data16)
+{ 
+  CommandStatus = CAENComm_Read16(BoardHandle, Addr32, Data16); 
+  return CommandStatus;
+}
+
+
+bool ADAQHighVoltage::CheckRegisterForWriting(uint32_t Addr32)
+{
+  // The following conditional checks to ensure that critical
+  // registers are not overwritten by the user. At present, these
+  // registers were taken from the V6534 specificiations. Return
+  // 'true' if proposed write address (Addr32) refers to an acceptable
+  // register for user writing; else return 'false'
+
+  if((Addr32 <= 0x004c) or
+     (Addr32 >= 0x0060 and Addr32 <=0x007c) or
+     (Addr32 >= 0x00b4 and Addr32 <=0x00fc) or
+     (Addr32 >= 0x0134 and Addr32 <=0x017c) or
+     (Addr32 >= 0x01b4 and Addr32 <=0x01fc) or
+     (Addr32 >= 0x0234 and Addr32 <=0x017c) or
+     (Addr32 >= 0x01b4 and Addr32 <=0x02fc) or
+     (Addr32 >= 0x0334 and Addr32 <=0x037c)){
+    if(Verbose)
+      cout << "ADAQHighVoltage : Error writing value to protected address!\n"
+	   << endl;
+    return false;
+  }
+  else
+    return true;
+}
+
+
 int ADAQHighVoltage::SetToSafeState()
 {
   if(Verbose)
@@ -267,7 +289,7 @@ int ADAQHighVoltage::PrintStatus()
 
     // Set an appopriate +/- char for each channel
     char sign;
-    (Polarity==0) ? sign='-' : sign='+';
+    (Polarity == 0) ? sign='-' : sign='+';
 
     // Output each channel's parameters, being certain to convert the
     // V6534 input units for voltage and current ([V]*10 and [uA]*50)
@@ -275,11 +297,11 @@ int ADAQHighVoltage::PrintStatus()
     cout << "     CH[" << ch << "] voltage : " << sign << dec << (Voltage/volts2input) << " V\n"
 	 << "     CH[" << ch << "] current : " << dec <<(ChannelSetCurrent[ch]/microamps2input) << " uA\n";
     
-    if(PowerState==POWEROFF)
+    if(PowerState == POWEROFF)
       cout << "     CH[" << ch << "] power : OFF\n"
 	   << "     CH[" << ch << "] advice : No worries!\n"
 	   << endl;
-    else if(PowerState==POWERON)
+    else if(PowerState == POWERON)
       cout << "     CH[" << ch << "] power :  ON\n"
 	   << "     CH[" << ch << "] advice : Achtung! Hochspannung!\n"
 	   << endl;
@@ -297,53 +319,56 @@ int ADAQHighVoltage::PrintStatus()
 }
 
 
-// Method to set individual channel's voltage
+/////////////////////
+// Set/get methods //
+/////////////////////
+
+// Method to set individual channel voltage
 int ADAQHighVoltage::SetVoltage(int Channel, uint16_t VoltageSet)
-{ 
+{
+  CommandStatus = -42;
+ 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error setting HV Voltage! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
-    return -1;
   }
   else{
     ChannelSetVoltage[Channel] = VoltageSet;
     VoltageSet*=volts2input;
-    return CAENComm_Write16(BoardHandle, VSET[Channel], VoltageSet);
+    CommandStatus = CAENComm_Write16(BoardHandle, VSET[Channel], VoltageSet);
   }
+  return CommandStatus;
 }
 
 
-// Method to get individual channel's operating voltage
+// Method to get individual channel operating voltage
 int ADAQHighVoltage::GetVoltage(int Channel, uint16_t *VoltageGet)
 {
-  if(Channel>5 || Channel<0){
-    if(Verbose)
-      cout << "ADAQHighVoltage : Error getting HV Voltage! Channel out of range (0 <= ch <= 5)\n"
-	   << endl;
-    return -1;
-  }
-  else{
-    int ret = CAENComm_Read16(BoardHandle, VMON[Channel], VoltageGet);
-    (*VoltageGet/=volts2input);
-    return ret;
-  }
-}
-
-
-// Method to get individual channel's operating voltage. 
-//
-// NOTE: ADAQ is migrating to member functions that *return* the "get"
-//       value rather than setting the "get" value by reference. This
-//       is mainly for modernity and compatability with Boost.Python
-//       ZSH (18 MAY 12)
-uint16_t ADAQHighVoltage::GetVoltage(int Channel)
-{
+  CommandStatus = -42;
+  
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error getting HV Voltage! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
-    return -1;
+  }
+  else{
+    CommandStatus = CAENComm_Read16(BoardHandle, VMON[Channel], VoltageGet);
+    (*VoltageGet/=volts2input);
+  }
+  return CommandStatus;
+}
+
+
+// Method to get individual channel operating voltage. 
+uint16_t ADAQHighVoltage::GetVoltage(int Channel)
+{
+  CommandStatus = -42;
+
+  if(Channel>MaxChannel or Channel<MinChannel){
+    if(Verbose)
+      cout << "ADAQHighVoltage : Error getting HV Voltage! Channel out of range (0 <= ch <= 5)\n"
+	   << endl;
   }
   else{
     uint16_t VoltageGet;
@@ -354,53 +379,52 @@ uint16_t ADAQHighVoltage::GetVoltage(int Channel)
 }
 
 
-// Method to set individual channel's max current
+// Method to set individual channel max current
 int ADAQHighVoltage::SetCurrent(int Channel, uint16_t CurrentSet)
 {
+  CommandStatus = -42;
+
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error setting HV current! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
-    return -1;
   }
   else{
     ChannelSetCurrent[Channel] = CurrentSet;
     CurrentSet*=microamps2input;
-    return CAENComm_Write16(BoardHandle, ISET[Channel], CurrentSet);
+    CommandStatus = CAENComm_Write16(BoardHandle, ISET[Channel], CurrentSet);
   }
+  return CommandStatus;
 }
 
 
-// Method to get individual channel's drawn current
+// Method to get individual channel drawn current
 int ADAQHighVoltage::GetCurrent(int Channel, uint16_t *CurrentGet)
 {
+  CommandStatus = -42;
+
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error getting HV current! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
-    return -1;
   }
   else{
-    int ret = CAENComm_Read16(BoardHandle, IMON[Channel], CurrentGet);
+    CommandStatus = CAENComm_Read16(BoardHandle, IMON[Channel], CurrentGet);
     (*CurrentGet)/=microamps2input;
-    return ret;
   }
+  return CommandStatus;
 }
 
 
-// NEW Method to get individual channel's drawn current
-//
-// NOTE: ADAQ is migrating to member functions that *return* the "get"
-//       value rather than setting the "get" value by reference. This
-//       is mainly for modernity and compatability with Boost.Python
-//       ZSH (18 MAY 12)
+// Method to get individual channel drawn current
 uint16_t ADAQHighVoltage::GetCurrent(int Channel)
 {
+  CommandStatus = -42;
+
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error getting HV current! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
-    return -1;
   }
   else{
     uint16_t CurrentGet;
@@ -411,9 +435,11 @@ uint16_t ADAQHighVoltage::GetCurrent(int Channel)
 }
 
 
-// Method to set individual channel's power state to "ON"
+// Method to set individual channel power state to "ON"
 int ADAQHighVoltage::SetPowerOn(int Channel)
 {
+  CommandStatus = -42;
+
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error setting HV power on! Channel out of range (0 <= ch <= 5)\n"
@@ -422,54 +448,56 @@ int ADAQHighVoltage::SetPowerOn(int Channel)
   }
   else{
     ChannelPowerState[Channel] = POWERON;
-    return CAENComm_Write16(BoardHandle, PW[Channel], POWERON);
+    CommandStatus = CAENComm_Write16(BoardHandle, PW[Channel], POWERON);
   }
+  return CommandStatus;
 }
 
 
-// Method to set individual channel's power state to "OFF"
+// Method to set individual channel power state to "OFF"
 int ADAQHighVoltage::SetPowerOff(int Channel)
 {
+  CommandStatus = -42;
+
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error setting HV power off! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
-    return -1;
   }
   else{
     ChannelPowerState[Channel] = POWEROFF;
-    return CAENComm_Write16(BoardHandle, PW[Channel], POWEROFF);
+    CommandStatus = CAENComm_Write16(BoardHandle, PW[Channel], POWEROFF);
   }
+  return CommandStatus;
 }
 
 
-// Method to get individual channel's power state
+// Method to get individual channel power state
 int ADAQHighVoltage::GetPowerState(int Channel, uint16_t *powerGet)
 {
+  CommandStatus = -42;
+  
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error getting HV power status! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
-    return -1;
   }
   else
-    return CAENComm_Read16(BoardHandle, PW[Channel], powerGet);
+    CommandStatus = CAENComm_Read16(BoardHandle, PW[Channel], powerGet);
+  
+  return CommandStatus;
 }
    
  
-// NEW Method to get individual channel's power state
-//
-// NOTE: ADAQ is migrating to member functions that *return* the "get"
-//       value rather than setting the "get" value by reference. This
-//       is mainly for modernity and compatability with Boost.Python
-//       ZSH (18 MAY 12)
+// Method to get individual channel power state
 uint16_t ADAQHighVoltage::GetPowerState(int Channel)
 {
+  CommandStatus = -42;
+
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error getting HV power status! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
-    return -1;
   }
   else{
     uint16_t PowerGet;
@@ -479,33 +507,32 @@ uint16_t ADAQHighVoltage::GetPowerState(int Channel)
 }
 
 
-// Method to get individual channel's polarity (+ or -)
+// Method to get individual channel polarity (+ or -)
 int ADAQHighVoltage::GetPolarity(int Channel, uint16_t *polarityGet)
 {
+  CommandStatus = -42;
+
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error getting HV Channel polarity! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
-    return -1;
   }
   else
-    return CAENComm_Read16(BoardHandle, POL[Channel], polarityGet);
+    CommandStatus = CAENComm_Read16(BoardHandle, POL[Channel], polarityGet);
+  
+  return CommandStatus;
 }
 
 
-// NEW Method to get individual channel's polarity (+ or -)
-//
-// NOTE: ADAQ is migrating to member functions that *return* the "get"
-//       value rather than setting the "get" value by reference. This
-//       is mainly for modernity and compatability with Boost.Python
-//       ZSH (18 MAY 12)
+// Method to get individual channel polarity (+ or -)
 uint16_t ADAQHighVoltage::GetPolarity(int Channel)
 {
+  CommandStatus = -42;
+
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error getting HV Channel polarity! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
-    return -1;
   }
   else{
     uint16_t PolarityGet;
@@ -515,33 +542,32 @@ uint16_t ADAQHighVoltage::GetPolarity(int Channel)
 }
 
 
-// Method to get individual channel's operating temperature
+// Method to get individual channel operating temperature
 int ADAQHighVoltage::GetTemperature(int Channel, uint16_t *temperatureGet)
 {
+  CommandStatus = -42;
+
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error getting HV Channel temperature! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
-    return -1;
   }
   else
-    return CAENComm_Read16(BoardHandle, TEMP[Channel], temperatureGet);
+    CommandStatus = CAENComm_Read16(BoardHandle, TEMP[Channel], temperatureGet);
+  
+  return CommandStatus;
 }
 
 
-// Method to get individual channel's operating temperature
-//
-// NOTE: ADAQ is migrating to member functions that *return* the "get"
-//       value rather than setting the "get" value by reference. This
-//       is mainly for modernity and compatability with Boost.Python
-//       ZSH (18 MAY 12)
+// Method to get individual channel operating temperature
 uint16_t ADAQHighVoltage::GetTemperature(int Channel)
 {
+  CommandStatus = -42;
+
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage : Error getting HV Channel temperature! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
-    return -1;
   }
   else{
     uint16_t TemperatureGet;
@@ -550,45 +576,3 @@ uint16_t ADAQHighVoltage::GetTemperature(int Channel)
   }
 }
 
-
-// Method to set a value to an individual register of the V6534
-int ADAQHighVoltage::SetRegisterValue(uint32_t addr32, uint16_t val16)
-{
-  // Ensure that each register proposed for writing is a register that
-  // is valid for user writing to prevent screwing up V6534 firmware
-  if(CheckRegisterForWriting(addr32))
-    return CAENComm_Write16(BoardHandle, addr32, val16); 
-  else
-    return -1;
-}
-
-
-// Method to get a value stored at an individual register of the V6534
-int ADAQHighVoltage::GetRegisterValue(uint32_t addr32, uint16_t *val16)
-{ return CAENComm_Read16(BoardHandle, addr32, val16); }
-
-
-// Method to check validity of V6534 register for writing
-bool ADAQHighVoltage::CheckRegisterForWriting(uint32_t addr32)
-{
-  // Check to ensure that the V6534 reserved registers are not
-  // accidentally overwritten. Return 'true' if proposed write address
-  // (addr32) refers to an acceptable register for user writing; else
-  // return 'false'
-
-  if((addr32 <= 0x004c) or
-     (addr32 >= 0x0060 and addr32 <=0x007c) or
-     (addr32 >= 0x00b4 and addr32 <=0x00fc) or
-     (addr32 >= 0x0134 and addr32 <=0x017c) or
-     (addr32 >= 0x01b4 and addr32 <=0x01fc) or
-     (addr32 >= 0x0234 and addr32 <=0x017c) or
-     (addr32 >= 0x01b4 and addr32 <=0x02fc) or
-     (addr32 >= 0x0334 and addr32 <=0x037c)){
-    if(Verbose)
-      cout << "ADAQHighVoltage : Error writing value to protected address!\n"
-	   << endl;
-    return false;
-  }
-  else
-    return true;
-}

@@ -6,7 +6,6 @@
 //
 // desc: 
 //
-//
 ///////////////////////////////////////////////////////////////////////////////
 
 // C++
@@ -26,121 +25,96 @@ extern "C" {
 
 ADAQDigitizer::ADAQDigitizer(ZBoardType Type, int ID, uint32_t Address)
   : ADAQVBoard(Type, ID, Address),
-
-    // The V1720 board address and handle
-  //    BoardHandle(-1),
-  
-    // int stores return value of CAEN library call (arbitrarily
-    // initialized to -42 to differentiate from CAEN values. See
-    // "CAENDigitizerType.h" for possible return values
-    CommandStatus(-42),
-    
-    // Bool to determine state of VME connection to V1720
-    //    LinkEstablished(false),
-    
-    //    Verbose(false),
-    
-    // The number of channels on the V1720
-    NumChannels(8), 
-    
-    // The number of bits on the V1720 (2**12 = 4096)
-    NumBits(4096),
-    
-    // The minimum and maximum bit
-    MinBit(0), MaxBit(4095),
-    
-    // The number of nanoseconds per sample [1. / 250 MS/s]
-    NanosecondsPerSample(4), 
-    
-    // The number of millivolts per bit is the dynamic input range (2
-    // volts) divided by total number of bits (2**12 == 4096)
-    MillivoltsPerBit(2000.0/4096),
-    
-    // Initialize the pointers used during the data acquisition process
-    // to readout the digitized waveforms from the V1720 to the PC
-    Buffer_Py(NULL), EventPointer_Py(NULL), EventWaveform_Py(NULL)
+    NumChannels(0), NumADCBits(0), MinADCBit(0), MaxADCBit(0)
 {;}
+// Initialize the pointers used during the data acquisition process
+// to readout the digitized waveforms from the V1720 to the PC
+//    Buffer_Py(NULL), EventPointer_Py(NULL), EventWaveform_Py(NULL)
 
 
 ADAQDigitizer::~ADAQDigitizer()
 {;}
 
 
-int ADAQDigitizer::OpenLink(uint32_t BrdAddr)
+int ADAQDigitizer::OpenLink()
 {
-  cout << LinkEstablished << endl;
-
-
-  // Set the V1720 32-bit hex board address, which must correspond to
-  // the settings on the physical potentiometers on the V1720 board
-  BoardAddress = BrdAddr;
+  CommandStatus = -42;
   
-  // If the link is not currently valid then establish one!
-  int Status = -42;
-  if(!LinkEstablished)
-    Status = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_USB, 
-				     0, 
-				     0, 
-				     BoardAddress,
-				     &BoardHandle);
-  else
+  if(LinkEstablished){
     if(Verbose)
       std::cout << "ADAQDigitizer : Error opening link! Link is already open!"
 		<< std::endl;
+  }
+  else{
+    CommandStatus = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_USB, 
+					    0, 
+					    0, 
+					    BoardAddress,
+					    &BoardHandle);
+  }
   
-  if(Status==0){
+  if(CommandStatus == CAEN_DGTZ_Success){
+
     LinkEstablished = true;
+
     if(Verbose){
+
+      CAEN_DGTZ_BoardInfo_t BoardInformation;
+      CAEN_DGTZ_GetInfo(BoardHandle, &BoardInformation);
+
       std::cout << "ADAQDigitizer : Link successfully established!\n"
-		<<   "                --> V1720 base address: 0x" 
-		<< std::setw(8) << std::setfill('0') << std::hex << BoardAddress << "\n"
-		<<   "                --> V1720 handle: " << BoardHandle
+		<< "--> Board type: " << BoardInformation.ModelName << "\n"
+		<< "--> Channels  : " << BoardInformation.Channels << "\n"
+		<< "--> AMC FW    : " << BoardInformation.ROC_FirmwareRel << "\n"
+		<< "--> ROC FW    : " << BoardInformation.AMC_FirmwareRel << "\n"
+		<< "--> ADC bits  : " << BoardInformation.ADC_NBits << "\n"
+		<< "--> Serial #  : " << BoardInformation.SerialNumber << "\n"
+		<< "\n"
+		<< "--> Base address : 0x" << std::setw(8) << std::setfill('0') << BoardAddress << "\n"
+		<< "--> Board ID     : " << BoardID << "\n"
+		<< "--> Board handle : " << BoardHandle << "\n"
 		<< std::endl;
       
-      // Get and output the AMC (Advanced Mezzanine Card) firmware
-      uint32_t amcFirmwareRevision;
-      CAEN_DGTZ_ReadRegister(BoardHandle, 0x108c, &amcFirmwareRevision);
-      std::cout << "                --> V1720 AMC FGPA firmware:  " << std::dec << (amcFirmwareRevision>>8 & 0xff) 
-		<< "." << (amcFirmwareRevision & 0xff) << std::endl;
-      
-      // Get and output the ROC (Read Out Card) FPGA firmware
-      uint32_t rocFirmwareRevision;
-      CAEN_DGTZ_ReadRegister(BoardHandle, CAEN_DGTZ_FW_REV_ADD, &rocFirmwareRevision);
-      std::cout << "                --> V1720 ROC FPGA firmware:  " << std::dec << (rocFirmwareRevision>>8 & 0xff) 
-		<< "." << (rocFirmwareRevision & 0xff) << "\n" << std::endl;
+      NumChannels = BoardInformation.Channels;
+      NumADCBits = BoardInformation.ADC_NBits;
+      MinADCBit = 0;
+      MaxADCBit = NumADCBits - 1;
     }
   }
   else
     if(Verbose and !LinkEstablished)
-      std::cout << "ADAQDigitizer : Error opening link: Error code: " << Status << "\n"
+      std::cout << "ADAQDigitizer : Error opening link! Returned error code: " << CommandStatus << "\n"
 		<< std::endl;
   
-  return Status;
+  return CommandStatus;
 }
 
 
 int ADAQDigitizer::CloseLink()
 {
-  int Status = -42;
+  CommandStatus = -42;
+  
   if(LinkEstablished)
-    Status = CAEN_DGTZ_CloseDigitizer(BoardHandle);
+    CommandStatus = CAEN_DGTZ_CloseDigitizer(BoardHandle);
   else
     if(Verbose)
       std::cout << "ADAQDigitizer : Error closing link! Link is already closed!\n"
 		<< std::endl;
+  
+  if(CommandStatus == CAEN_DGTZ_Success){
 
-  if(Status==0){
     LinkEstablished = false;
+
     if(Verbose)
       std::cout << "ADAQDigitizer : Link successfully closed!\n"
 		<< std::endl;
   }
   else
     if(Verbose and LinkEstablished)
-      std::cout << "ADAQDigitizer : Error closing link! Error code: " << Status << "\n"
+      std::cout << "ADAQDigitizer : Error closing link! Error code: " << CommandStatus << "\n"
 		<< std::endl;
-
-  return Status;
+  
+  return CommandStatus;
 }
 
 
@@ -163,48 +137,30 @@ int ADAQDigitizer::Initialize()
   
   // Set the channel configuration
   CAEN_DGTZ_WriteRegister(BoardHandle, CAEN_DGTZ_BROAD_CH_CTRL_ADD, 0x00000050);
-  
-  uint32_t d32;
-  // Get the board information
-  CAEN_DGTZ_ReadRegister(BoardHandle, CAEN_DGTZ_BOARD_INFO_ADD, &d32);
-  
-  // Store the digitizer board type (bits 0-7 of d32)
-  //BoardType = d32 & 0xff; 
-  
-  // Store the number of memory blocks; V1720 == 2
-  MemoryBlock = (d32 >> 8) & 0xff;
 }
 
 
-int ADAQDigitizer::EnableExternalTrigger(std::string SignalLogic)
+int ADAQDigitizer::SetRegisterValue(uint32_t Addr32, uint32_t Data32)
+{ 
+  CommandStatus = CAEN_DGTZ_WriteRegister(BoardHandle, Addr32, Data32); 
+  return CommandStatus;
+}
+
+
+int ADAQDigitizer::GetRegisterValue(uint32_t Addr32, uint32_t *Data32)
 {
-  SetExtTriggerInputMode(CAEN_DGTZ_TRGMODE_ACQ_AND_EXTOUT);
-  
-  // Get the value of the front panel I/O control register
-  uint32_t FrontPanelIOControlRegister = 0x811C;
-  uint32_t FrontPanelIOControlValue;
-  GetRegisterValue(FrontPanelIOControlRegister, &FrontPanelIOControlValue);
-  
-  // When Bit[0] of 0x811C == 0, NIM logic is used for input; so
-  // clear Bit[0] using bitwise ops if "NIM" is specified
-  if(SignalLogic=="NIM")
-    FrontPanelIOControlValue &= ~(1<<0);
-  else if(SignalLogic=="TTL")
-    FrontPanelIOControlValue |= 1<<0;
-  else
-    if(Verbose)
-      std::cout << "ADAQDigitizer : Error! Unsupported external trigger logic ("
-		<< SignalLogic << ") was specified!" << "\n"
-		<<   "                Select 'NIM' or 'TTL'!\n"
-		<< std::endl;
-  
-  SetRegisterValue(FrontPanelIOControlRegister, FrontPanelIOControlValue);
+  CommandStatus = CAEN_DGTZ_ReadRegister(BoardHandle, Addr32, Data32);
+  return CommandStatus;
 }
 
 
-int ADAQDigitizer::DisableExternalTrigger()
-{ return SetExtTriggerInputMode(CAEN_DGTZ_TRGMODE_DISABLED); }
+bool ADAQDigitizer::CheckRegisterForWriting(uint32_t Addr32)
+{ return true; }
 
+
+////////////////////////
+// Triggering methods //
+////////////////////////
 
 int ADAQDigitizer::EnableAutoTrigger(uint32_t ChannelEnableMask)
 { return SetChannelSelfTrigger(CAEN_DGTZ_TRGMODE_ACQ_ONLY, ChannelEnableMask); }
@@ -214,46 +170,149 @@ int ADAQDigitizer::DisableAutoTrigger(uint32_t ChannelEnableMask)
 { return SetChannelSelfTrigger(CAEN_DGTZ_TRGMODE_DISABLED, ChannelEnableMask); }
 
 
+int ADAQDigitizer::EnableExternalTrigger(std::string SignalLogic)
+{
+  CommandStatus = SetExtTriggerInputMode(CAEN_DGTZ_TRGMODE_ACQ_AND_EXTOUT);
+  
+  // Get the value of the front panel I/O control register
+  uint32_t FrontPanelIOControlRegister = CAEN_DGTZ_FRONT_PANEL_IO_CTRL_ADD;
+  uint32_t FrontPanelIOControlValue = 0;
+  CommandStatus = GetRegisterValue(FrontPanelIOControlRegister, &FrontPanelIOControlValue);
+  
+  // When Bit[0] of return value == 0, NIM logic is used for input; so
+  // clear Bit[0] using bitwise ops if "NIM" is specified
+  if(SignalLogic=="NIM")
+    FrontPanelIOControlValue &= ~(1<<0);
+  else if(SignalLogic=="TTL")
+    FrontPanelIOControlValue |= 1<<0;
+  else
+    if(Verbose)
+      std::cout << "ADAQDigitizer : Error! Unsupported external trigger logic ("
+		<< SignalLogic << ") was specified!" << "\n"
+		<< "                Select 'NIM' or 'TTL'!\n"
+		<< std::endl;
+  
+  CommandStatus = SetRegisterValue(FrontPanelIOControlRegister, FrontPanelIOControlValue);
+  return CommandStatus;
+}
+
+
+int ADAQDigitizer::DisableExternalTrigger()
+{ 
+  CommandStatus = SetExtTriggerInputMode(CAEN_DGTZ_TRGMODE_DISABLED); 
+  return CommandStatus;
+}
+
+
 int ADAQDigitizer::EnableSWTrigger()
-{ SetSWTriggerMode(CAEN_DGTZ_TRGMODE_ACQ_ONLY); }
+{ 
+  CommandStatus = SetSWTriggerMode(CAEN_DGTZ_TRGMODE_ACQ_ONLY);
+  return CommandStatus;
+}
 
 
 int ADAQDigitizer::DisableSWTrigger()
-{ SetSWTriggerMode(CAEN_DGTZ_TRGMODE_DISABLED); }
-
-
-int ADAQDigitizer::SetSWAcquisitionMode()
-{ return SetAcquisitionMode(CAEN_DGTZ_SW_CONTROLLED); }
-
-int ADAQDigitizer::SetSInAcquisitionMode()
-{ return SetAcquisitionMode(CAEN_DGTZ_S_IN_CONTROLLED); }
-
-
-int ADAQDigitizer::SetRegisterValue(uint32_t addr32, uint32_t data32)
-{ return CAEN_DGTZ_WriteRegister(BoardHandle, addr32, data32); }
-
-
-int ADAQDigitizer::GetRegisterValue(uint32_t addr32, uint32_t *data32)
-{ return CAEN_DGTZ_ReadRegister(BoardHandle, addr32, data32); }
-
-
-uint32_t ADAQDigitizer::GetRegisterValue(uint32_t addr32)
-{
-  uint32_t data32;
-  CommandStatus = CAEN_DGTZ_ReadRegister(BoardHandle, addr32, &data32);
-  return data32;
+{ 
+  CommandStatus = SetSWTriggerMode(CAEN_DGTZ_TRGMODE_DISABLED);
+  return CommandStatus;
 }
 
-bool ADAQDigitizer::CheckRegisterForWriting(uint32_t addr32)
-{ return true; }
 
-int ADAQDigitizer::GetNumFPGAEvents(uint32_t *data32)
-{ return GetRegisterValue(0x812c, data32); }
+int ADAQDigitizer::SetTriggerEdge(int Channel, string TriggerEdge)
+{
+  CommandStatus = -42;
+
+  if(TriggerEdge == "Rising")
+    CommandStatus = SetTriggerPolarity(Channel, 
+				       CAEN_DGTZ_TriggerOnRisingEdge);
+  else if(TriggerEdge == "Falling")
+    CommandStatus = SetTriggerPolarity(Channel, 
+				       CAEN_DGTZ_TriggerOnFallingEdge);
+  else
+    if(Verbose)
+      std::cout << "ADAQDigitizer : Error! Unsupported trigger edge type ("
+		<< TriggerEdge << ") was specified!\n"
+		<< "               Select 'Rising' or 'Falling'\n"
+		<< std::endl;
+  
+  return CommandStatus;
+}
+
+
+int ADAQDigitizer::SetTriggerCoincidence(bool Enable, int Level)
+{
+  CommandStatus = -42;
+
+  if(Enable){
+    
+    uint32_t TriggerSourceEnableMask = 0;
+
+    uint32_t TriggerCoincidenceLevel_BitShifted = Level << 24;
+
+    CommandStatus = GetRegisterValue(0x810C,&TriggerSourceEnableMask);
+    
+    TriggerSourceEnableMask = TriggerSourceEnableMask | TriggerCoincidenceLevel_BitShifted;
+    
+    CommandStatus = SetRegisterValue(0x810C,TriggerSourceEnableMask);
+  }
+  return CommandStatus;
+}
+
+
+/////////////////////////
+// Acquisition methods //
+/////////////////////////
+
+int ADAQDigitizer::SetAcquisitionMode(string AcqMode)
+{ 
+  CommandStatus = -42;
+
+  if(AcqMode == "Software")
+    CommandStatus = SetAcquisitionMode(CAEN_DGTZ_SW_CONTROLLED);
+  else if(AcqMode == "SIn")
+    CommandStatus = SetAcquisitionMode(CAEN_DGTZ_S_IN_CONTROLLED);
+  else
+    if(Verbose)
+      std::cout << "ADAQDigitizer : Error! Unsupported acquisition mode ("
+		<< AcqMode << ") was specified!\n"
+		<< "                Select 'Software' or 'SIn'.\n"
+		<< std::endl;
+
+  return CommandStatus;
+}
+
+
+int ADAQDigitizer::SetZSMode(string ZSMode)
+{
+  CommandStatus = -42;
+  
+  if(ZSMode == "None")
+    CommandStatus = SetZeroSuppressionMode(CAEN_DGTZ_ZS_NO);
+  else if(ZSMode == "ZLE")
+    CommandStatus = SetZeroSuppressionMode(CAEN_DGTZ_ZS_ZLE);
+  else
+    if(Verbose)
+      std::cout << "ADAQDigitizer : Error! Unsupported zero suppression mode ("
+		<< ZSMode << ") was specified!\n"
+		<< "                Select 'None' or 'ZLE'.\n"
+		<< std::endl;
+  
+  return CommandStatus;
+}
+
+
+int ADAQDigitizer::SetZLEChannelSettings(uint32_t Channel, uint32_t Threshold,
+					 uint32_t NBackward, uint32_t NForward,
+					 bool PosLogic)
+{;}
+
+
+/////////////////////
+// Readout methods //
+/////////////////////
 
 int ADAQDigitizer::CheckBufferStatus(bool *BufferStatus)
 {
-  // V1720 Channel Status Register : 0x1n88 where 'n' == channel #
-
   // bit[0] : 0 = memory not full; 1 = memory full
   // bit[1] : 0 = memory not empty; 1 = memory empty
   // bit[2] : 0 = DAC not busy; 1 = DAC busy
@@ -261,88 +320,36 @@ int ADAQDigitizer::CheckBufferStatus(bool *BufferStatus)
   // bit[4] : Reserved
   // bit[5] : Buffer free error
 
-  int Status = 0;
+  CommandStatus = -42;
 
   // Channel register addresses and channel-to-channel increment
-  uint32_t start = 0x1088;
-  uint32_t offset = 0x0100;
+  uint32_t Start = CAEN_DGTZ_CHANNEL_STATUS_BASE_ADDRESS;
+  uint32_t Offset = 0x0100;
 
-  for(int n=0; n<NumChannels; n++){
+  for(int ch=0; ch<NumChannels; ch++){
 
-    uint32_t addr32 = start + offset*n;
-    uint32_t data32 = 0;
+    uint32_t Addr32 = Start + Offset*ch;
+    uint32_t Data32 = 0;
     int Status = 0;
     // Skip channels that are not currently enabled
-    Status = GetChannelEnableMask(&data32);
-    if(!(data32 & (1 << n)))
+    CommandStatus = GetChannelEnableMask(&Data32);
+    if(!(Data32 & (1 << ch)))
       continue;
     
     // Check to see if the 0-th of each channel's status register bit
     // is set; if any of the channel buffers are full then set the
     // BufferFull flag to true
-    Status = CAEN_DGTZ_ReadRegister(BoardHandle, addr32, &data32);
-    if(data32 & (1 << 0))
-      BufferStatus[n] = true;
-    else
-      BufferStatus[n] = false;
+    CommandStatus = CAEN_DGTZ_ReadRegister(BoardHandle, Addr32, &Data32);
+    (Data32 & (1 << 0)) ? BufferStatus[ch] = true : BufferStatus[ch] = false;
   }
-  return Status;
+  return CommandStatus;
+}
+  
+
+int ADAQDigitizer::GetNumFPGAEvents(uint32_t *Data32)
+{ 
+  CommandStatus = GetRegisterValue(CAEN_DGTZ_EVENT_STORED_ADD,
+				   Data32);
+  return CommandStatus;
 }
 
-
-int ADAQDigitizer::SetZSMode(string ZSMode)
-{
-  int Status = 0;
-  
-  if(ZSMode == "None")
-    Status = SetZeroSuppressionMode(CAEN_DGTZ_ZS_NO);
-  else if(ZSMode == "ZLE")
-    Status = SetZeroSuppressionMode(CAEN_DGTZ_ZS_ZLE);
-  else
-    Status = -42;
-  
-  return Status;
-}
-
-
-int ADAQDigitizer::SetZLEChannelSettings(uint32_t Channel, uint32_t Threshold,
-					 uint32_t NBackward, uint32_t NForward,
-					 bool PosLogic)
-{
-  
-  
-  
-}
-
-  
-int ADAQDigitizer::SetTriggerEdge(int Channel, string TriggerEdge)
-{
-  int Status = 0;
-
-  if(TriggerEdge == "Rising")
-    Status = SetTriggerPolarity(Channel, CAEN_DGTZ_TriggerOnRisingEdge);
-  else if(TriggerEdge == "Falling")
-    Status = SetTriggerPolarity(Channel, CAEN_DGTZ_TriggerOnFallingEdge);
-  else
-    Status = -42;
-  
-  return Status;
-
-}
-
-
-int ADAQDigitizer::SetTriggerCoincidence(bool Enable, int Level)
-{
-  if(Enable){
-    
-    uint32_t TriggerSourceEnableMask = 0;
-
-    uint32_t TriggerCoincidenceLevel_BitShifted = Level << 24;
-
-    GetRegisterValue(0x810C,&TriggerSourceEnableMask);
-    
-    TriggerSourceEnableMask = TriggerSourceEnableMask | TriggerCoincidenceLevel_BitShifted;
-    
-    SetRegisterValue(0x810C,TriggerSourceEnableMask);
-  }
-}

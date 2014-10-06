@@ -29,21 +29,27 @@ public:
     BoardType = T;
     BoardID = ID;
     BoardAddress = A;
+    
+    BoardHandle = -42;
+    LinkEstablished = false;
+    Verbose = false;
+    CommandStatus = 0;
   };
+  
   ~ADAQVBoard(){};
 
   //////////////////////
   // Abstract methods //
   //////////////////////
   
-  // The following methods must be implemented in derived classes
+  // The following methods should be implemented in derived classes
 
-  virtual int OpenLink(uint32_t) = 0;
+  virtual int OpenLink() = 0;
   virtual int CloseLink() = 0;
+  virtual int Initialize() = 0;
   virtual int SetRegisterValue(uint32_t, uint32_t) = 0;
   virtual int GetRegisterValue(uint32_t, uint32_t *) = 0;
   virtual bool CheckRegisterForWriting(uint32_t) = 0;
-  virtual void Hello() = 0;
 
   /////////////////////
   // Set/get methods //
@@ -75,12 +81,17 @@ public:
   void SetVerbose(bool V) {Verbose = V;}
   bool GetVerbose() {return Verbose;}
 
+  // Bool to get status of most recently executed command
+  void SetCommandStatus(int CS) {CommandStatus = CS;}
+  int GetCommandStatus() {return CommandStatus;}
+  
 protected:
   ZBoardType BoardType;
   int BoardID;
   uint32_t BoardAddress;
   int BoardHandle;
   bool LinkEstablished, Verbose;
+  int CommandStatus;
 };
 
 #endif

@@ -137,7 +137,7 @@ all: $(CXXTARGET) $(PYTARGET)
 #******************************#
 # Build C++ shared object libary 
 
-$(CXXTARGET) : $(OBJS)
+$(CXXTARGET) : $(OBJS) $(INCLS)
 	@echo -e "\nBuilding $@ ..."
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -g -shared $^ -o $@
 	@echo -e "\n$@ build is complete!\n"

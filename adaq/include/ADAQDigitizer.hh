@@ -25,6 +25,7 @@ extern "C"{
 #include "CAENDigitizer.h"
 }
 
+// ADAQ
 #include "ADAQVBoard.hh"
 
 
@@ -35,90 +36,62 @@ public:
   ADAQDigitizer(ZBoardType, int, uint32_t);
   ~ADAQDigitizer();
 
-  ////////////////////////////////////
-  // Enhanced ADAQDigitizer methods //
-  ////////////////////////////////////
-
-  // Open/close the VME link to the V1720 board
-  int OpenLink(uint32_t);
+  ////////////////////////////////////////////////
+  // Mandatory implemention of virtual methods //
+  ////////////////////////////////////////////////
+  
+  int OpenLink();
   int CloseLink();
-
-  // Initialize the V1720 board 
   int Initialize();
+  int SetRegisterValue(uint32_t, uint32_t);
+  int GetRegisterValue(uint32_t, uint32_t *);
+  bool CheckRegisterForWriting(uint32_t);
+
+  ///////////////////////////////////////
+  // Enhanced digitizer control methods//
+  //////////////////////////////////////
+
+  // Trigger control
+
+  // Enable/disable channel self-triggering ("auto" triggering)
+  int EnableAutoTrigger(uint32_t);
+  int DisableAutoTrigger(uint32_t);
 
   // Enable/disable external triggering via NIM/TTL signals
   int EnableExternalTrigger(string SignalLogic="NIM");
   int DisableExternalTrigger();
-  
-  // Enable/disable channel self-triggering ("auto" triggering)
-  int EnableAutoTrigger(uint32_t);
-  int DisableAutoTrigger(uint32_t);
 
   // Enable/disable triggering via software ("SW") commands
   int EnableSWTrigger();
   int DisableSWTrigger();
 
-  // Set the acquisition mode
-  int SetSWAcquisitionMode();
-  int SetSInAcquisitionMode();
-  
-  // Get the number of V1720 digitizer channels (8)
-  int GetNumChannels() {return NumChannels;}
-
-  // Get the total number of bits (4096)
-  int GetNumBits() {return NumBits;}
-
-  // Get the smallest (0) and largest (4095) bit values
-  int GetMinBit() {return MinBit;}
-  int GetMaxBit() {return MaxBit;}
-
-  // Get the number of nanoseconds per sample (4ns/sample)
-  int GetNanosecondsPerSample() {return NanosecondsPerSample;}
-
-  // Get the number of millivolts per bit (~0.48828125 mV/bit)
-  int GetMillivoltsPerBit() {return MillivoltsPerBit;}
-
-  // Set/get V1720 register values
-  int SetRegisterValue(uint32_t, uint32_t);
-  int GetRegisterValue(uint32_t, uint32_t *);
-  uint32_t GetRegisterValue(uint32_t);
-
-  // Prevent overwriting restricted V1720 registers
-  bool CheckRegisterForWriting(uint32_t);
-  
-  // Check to see if the V1720 FPGA buffer is full
-  int CheckBufferStatus(bool *);
-
-  int SetZSMode(string);
-
-  int SetZLEChannelSettings(uint32_t, uint32_t, uint32_t, uint32_t, bool);
-
   int SetTriggerEdge(int, string);
-
   int SetTriggerCoincidence(bool, int);
 
+  // Acquisition control
+
+  int SetAcquisitionMode(string);
+  int SetZSMode(string);
+  int SetZLEChannelSettings(uint32_t, uint32_t, uint32_t, uint32_t, bool);
+  
+  // Readout
+
+  int CheckBufferStatus(bool *);
   int GetNumFPGAEvents(uint32_t *);
 
-private:
-  int MemoryBlock;
-
-  // int representing result of CAENDigitizer/CAENComm/CAENVME call
-  int CommandStatus;
   
-  // Number of digitizer channels
-  const int NumChannels;
+  /////////////////////////////////////////
+  // Get methods for private member data //
+  /////////////////////////////////////////
 
-  // Number of bits
-  const int NumBits;
-
-  // Min/Max bit
-  const int MinBit, MaxBit;
-
-  // Nanoseconds per sample
-  const int NanosecondsPerSample;
-
-  // Millivolts per bit
-  const double MillivoltsPerBit;
+  int GetNumChannels() {return NumChannels;}
+  int GetNumADCBits() {return NumADCBits;}
+  int GetMinADCBit() {return MinADCBit;}
+  int GetMaxADCBit() {return MaxADCBit;}
+  
+private:
+  int NumChannels;
+  int NumADCBits, MinADCBit, MaxADCBit;
 
 
   ////////////////////////////////////////

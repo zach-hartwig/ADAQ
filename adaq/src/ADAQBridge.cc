@@ -172,14 +172,14 @@ int ADAQBridge::Initialize()
 
 // Method to set a value to an individual register of the V1718. Note
 // that V1718 register access is through CAENVME not CAENComm library
-int ADAQBridge::SetRegisterValue(uint32_t addr32, uint32_t data32)
+int ADAQBridge::SetRegisterValue(uint32_t Addr32, uint32_t Data32)
 {
   CommandStatus = -42;
 
   // Ensure that each register proposed for writing is a register that
   // is valid for user writing to prevent screwing up V1718 firmware
-  if(CheckRegisterForWriting(addr32))
-    CommandStatus  = CAENVME_WriteRegister(BoardHandle, (CVRegisters)addr32, data32); 
+  if(CheckRegisterForWriting(Addr32))
+    CommandStatus  = CAENVME_WriteRegister(BoardHandle, (CVRegisters)Addr32, Data32); 
   
   return CommandStatus;
 }
@@ -187,15 +187,15 @@ int ADAQBridge::SetRegisterValue(uint32_t addr32, uint32_t data32)
 
 // Method to get a value stored at an individual register of the V1718
 // Note that V1718 register access is through CAENVME not CAENComm library
-int ADAQBridge::GetRegisterValue(uint32_t addr32, uint32_t *data32)
+int ADAQBridge::GetRegisterValue(uint32_t Addr32, uint32_t *Data32)
 {
-  CommandStatus = CAENVME_ReadRegister(BoardHandle, (CVRegisters)addr32, data32);
+  CommandStatus = CAENVME_ReadRegister(BoardHandle, (CVRegisters)Addr32, Data32);
   return CommandStatus;
 }
 
 
 // Method to check validity of V1718 register for writing
-bool ADAQBridge::CheckRegisterForWriting(uint32_t addr32)
+bool ADAQBridge::CheckRegisterForWriting(uint32_t Addr32)
 { return true; }
 
 

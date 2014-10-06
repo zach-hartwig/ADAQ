@@ -305,7 +305,44 @@ int ADAQDigitizer::SetZSMode(string ZSMode)
 int ADAQDigitizer::SetZLEChannelSettings(uint32_t Channel, uint32_t Threshold,
 					 uint32_t NBackward, uint32_t NForward,
 					 bool PosLogic)
-{;}
+{
+  CommandStatus = -42;
+
+  CAEN_DGTZ_ThresholdWeight_t DummyWeight = CAEN_DGTZ_ZS_FINE;
+  int32_t DummySamples = 4242;
+
+  ////////////////////////
+  // Set the ZLE threshold
+  
+  CommandStatus = SetChannelZSParams(Channel, 
+				     DummyWeight, // Arbitrary; unused in ZLE algorithm
+				     Threshold,
+				     DummySamples); // Arbitrary; unused in ZLE algorithm
+  
+  //////////////////////////////////////////////
+  // Set the ZLE backward/forward sample numbers
+
+  uint32_t Offset = 0x100; 
+
+  uint32_t Addr32 = CAEN_DGTZ_CHANNEL_ZS_NSAMPLE_BASE_ADDRESS;
+  Addr32 += (Offset * Channel);
+  
+  uint32_t Data32 = (NBackward << 16) + NForward;
+
+  CommandStatus = SetRegisterValue(Addr32, Data32);
+  
+  //////////////////////////////
+  // Set the ZLE algorithm logic
+
+  Addr32 = CAEN_DGTZ_CHANNEL_ZS_THRESHOLD_BASE_ADDRESS;
+  (PosLogic) ? Data32 = 0 : Data32 = 1;
+
+  CommandStatus = GetRegisterValue(Addr32, &Data32);
+  Data32 &= ~(1 << 31);
+  CommandStatus = SetRegisterValue(Addr32, Data32);
+
+  return CommandStatus;
+}
 
 
 /////////////////////

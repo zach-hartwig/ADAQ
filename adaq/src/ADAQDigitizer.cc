@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <unistd.h>
+#include <bitset>
 
 // CAEN
 extern "C" {
@@ -22,6 +23,27 @@ extern "C" {
 
 // ADAQ
 #include "ADAQDigitizer.hh"
+
+
+namespace ZLE{
+
+  const uint32_t ReadoutTypeBit = 24;
+  uint32_t ReadoutTypeMask = 0b1 << ReadoutTypeBit;
+
+  uint32_t ZLEEventSizeMask = 0x0fffffff;
+
+
+  uint32_t ZLESampleAMask = 0x0000ffff;
+  uint32_t ZLESampleBMask = 0xffff0000;
+
+  uint32_t ZLENumWordMask = 0x000fffff;
+
+  uint32_t ZLEControlMask = 0xc0000000;
+
+  uint32_t ZLEHeaderSize = 4; // [32-bit words]
+};
+using namespace ZLE;
+
 
 
 ADAQDigitizer::ADAQDigitizer(ZBoardType Type, int ID, uint32_t Address)
@@ -321,28 +343,139 @@ int ADAQDigitizer::SetZLEChannelSettings(uint32_t Channel, uint32_t Threshold,
   
   //////////////////////////////////////////////
   // Set the ZLE backward/forward sample numbers
-
-  uint32_t Offset = 0x100; 
-
+  
+  uint32_t ChannelOffset = 0x100; 
+  
   uint32_t Addr32 = CAEN_DGTZ_CHANNEL_ZS_NSAMPLE_BASE_ADDRESS;
-  Addr32 += (Offset * Channel);
+  Addr32 += (ChannelOffset * Channel);
   
   uint32_t Data32 = (NBackward << 16) + NForward;
-
   CommandStatus = SetRegisterValue(Addr32, Data32);
   
   //////////////////////////////
   // Set the ZLE algorithm logic
-
+  
   Addr32 = CAEN_DGTZ_CHANNEL_ZS_THRESHOLD_BASE_ADDRESS;
-  (PosLogic) ? Data32 = 0 : Data32 = 1;
-
+  Addr32 += (ChannelOffset * Channel);
+  
   CommandStatus = GetRegisterValue(Addr32, &Data32);
-  Data32 &= ~(1 << 31);
+  
+  // ZLE requires bit 31 == 0 (positive logic), == 1 (negative logic)
+  bitset<32> Data32Bitset(Data32);
+  (PosLogic) ? Data32Bitset.set(31,0) : Data32Bitset.set(31.1);
+  
+  // Convert bitset back to 32-bit integer and set register value
+  Data32 = (uint32_t)Data32Bitset.to_ulong();
   CommandStatus = SetRegisterValue(Addr32, Data32);
 
+
+  
   return CommandStatus;
 }
+
+
+int ADAQDigitizer::PrintZLEEventInfo(char *Buffer)
+{
+  cout << "\n\n\n"
+       << "******************************  NEW ZLE EVENT  ******************************\n"
+       << endl;
+
+  uint32_t *Words = (uint32_t *)Buffer;
+
+  uint32_t EventSize = Words[0] & ZLEEventSizeMask;
+  cout << "ZLE event size   : " << EventSize 
+       << " (Total 32-bit words in ZLE event)" << endl;
+  
+  for(int word=0; word<ZLEHeaderSize; word++){
+    bitset<32> BinaryOut(Words[word]);
+    cout << word << "\t" << "Header[" << word << "]\t" << BinaryOut << endl;
+  }
+
+  cout << 4 << "\tsize" << "\t" << Words[4] << endl;
+  
+  uint32_t WordCounter = 0;
+  
+  for(int word=5; word<EventSize; word++){
+    
+    uint32_t ZLEControl = Words[word] & ZLEControlMask;
+    ZLEControl = ZLEControl >> 30;
+    
+    if(ZLEControl == 0b11){
+      uint32_t NumWords = Words[word] & ZLENumWordMask;
+      
+      bitset<32> TMP(NumWords);
+      
+      cout << word << "\t" << "GOOD!"  << "\t"
+	   << NumWords << " words to follow!"
+	   << endl;
+
+      WordCounter = 1;
+    }
+    else if(ZLEControl == 0b01){
+      uint32_t NumWords = Words[word] & ZLENumWordMask;
+      
+      cout << word << "\t" << "skip" << "\t"
+	   << NumWords << " words have been skipped!"
+	   << endl;
+    }
+    else{
+      cout << word << "\t" << "data" << "\t" 
+	   << "Word number: " << WordCounter << "\t\t";
+      
+      uint32_t SampleN = Words[word] & ZLESampleAMask;
+      
+      uint32_t SampleN_plus_1 = Words[word] & ZLESampleBMask;
+      SampleN_plus_1 = SampleN_plus_1 >> 16;
+      
+      cout << "Sample[" << (WordCounter*2)-1 << "] = " << SampleN << "\t"
+	   << "Sample[" << (WordCounter*2) << "] = " << SampleN_plus_1 << "\t"
+	   << endl;
+      
+      WordCounter++;
+    }
+  }
+}
+
+
+int ADAQDigitizer::GetZLEWaveform(char *Buffer, 
+				  int Event,
+				  vector<vector<uint16_t> > &Waveforms)
+{
+  Waveforms.clear();
+  Waveforms.resize(NumChannels);
+
+  // Cast a pointer to the PC buffer containing ZLE events
+  uint32_t *Words = (uint32_t *)Buffer;
+
+  // Get the total number of 32-bit words in the ZLE event (4 header
+  // words plus size, control, and sample words)
+  uint32_t EventSize = Words[0] & ZLEEventSizeMask;
+
+  uint32_t WaveformSize = Words[4];
+
+  uint32_t Channel = 0;
+
+  for(int word=ZLEHeaderSize+1; word<EventSize; word++){
+    uint32_t ControlWord = Words[word] & ZLEControlMask;
+    ControlWord >>= 30;
+
+    if(ControlWord == 0b11){
+    }
+    else if(ControlWord == 0b01){
+    }
+    else{
+      uint32_t SampleA = Words[word] & ZLESampleAMask;
+      uint32_t SampleB = Words[word] & ZLESampleBMask;
+      SampleB >>= 16;
+
+      Waveforms[Channel].push_back(SampleA);
+      Waveforms[Channel].push_back(SampleB);
+    }
+  }
+}
+
+
+
 
 
 /////////////////////

@@ -80,6 +80,9 @@ public:
   int CheckBufferStatus(bool *);
   int GetNumFPGAEvents(uint32_t *);
 
+  int GetZLEWaveform(char *, int, vector<vector<uint16_t> > &);
+  int PrintZLEEventInfo(char *);
+  
   
   /////////////////////////////////////////
   // Get methods for private member data //
@@ -148,10 +151,10 @@ public:
 
   int SetGroupSelfTrigger(CAEN_DGTZ_TriggerMode_t mode, uint32_t groupMask) {return CAEN_DGTZ_SetGroupSelfTrigger(BoardHandle, mode, groupMask);}
   int GetGroupSelfTrigger(uint32_t group, CAEN_DGTZ_TriggerMode_t *mode) {return CAEN_DGTZ_GetGroupSelfTrigger(BoardHandle, group, mode);}
-
+  
   int SetTriggerPolarity(uint32_t channel, CAEN_DGTZ_TriggerPolarity_t polarity) {return CAEN_DGTZ_SetTriggerPolarity(BoardHandle, channel, polarity);}
   int GetTriggerPolarity(uint32_t channel, CAEN_DGTZ_TriggerPolarity_t *polarity) {return CAEN_DGTZ_GetTriggerPolarity(BoardHandle, channel, polarity);}
-
+  
 
   //////////////////////////////////
   // Non-trigger channel settings //
@@ -173,7 +176,7 @@ public:
 
   int SetChannelPulsePolarity(uint32_t channel, CAEN_DGTZ_PulsePolarity_t polarity) {return  CAEN_DGTZ_SetChannelPulsePolarity(BoardHandle, channel, polarity);}
   int GetChannelPulsePolarity(uint32_t channel, CAEN_DGTZ_PulsePolarity_t *polarity) {return  CAEN_DGTZ_GetChannelPulsePolarity(BoardHandle, channel, polarity);}
-
+  
 
   //////////////////////
   // Zero suppression //

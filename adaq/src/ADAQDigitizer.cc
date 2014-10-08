@@ -32,7 +32,6 @@ namespace ZLE{
 
   uint32_t ZLEEventSizeMask = 0x0fffffff;
 
-
   uint32_t ZLESampleAMask = 0x0000ffff;
   uint32_t ZLESampleBMask = 0xffff0000;
 
@@ -292,13 +291,22 @@ int ADAQDigitizer::SetAcquisitionControl(string AcqControl)
 
   if(AcqControl == "Software")
     CommandStatus = SetAcquisitionMode(CAEN_DGTZ_SW_CONTROLLED);
-  else if(AcqControl == "Gated (NIM)"){
-    CommandStatus = SetAcquisitionMode(CAEN_DGTZ_S_IN_CONTROLLED);
-    // Set signal type to NIM here
-  }
-  else if(AcqControl == "Gated (TTL"){
-    CommandStatus = SetAcquisitionMode(CAEN_DGTZ_S_IN_CONTROLLED);
-    // Set signal type to TTL here
+  else if(AcqControl == "Gated (NIM)" or AcqControl == "Gated (TTL)"){
+    
+    uint32_t Data32 = 0;
+    CommandStatus = GetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, &Data32);
+    
+    bitset<32> Data32Bitset(Data32);
+    Data32Bitset.set(0,0);
+    Data32Bitset.set(1,1);
+
+    Data32 = (uint32_t)Data32Bitset.to_ulong();
+    CommandStatus = SetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, Data32);
+
+    if(AcqControl == "Gated (NIM)"){}
+    // Set S IN to accept NIM pulses here
+    else if(AcqControl == "Gated (TTL)"){}
+    // Set S IN to accept NIM pulses here
   }
   else
     if(Verbose)

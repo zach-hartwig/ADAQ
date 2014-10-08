@@ -71,7 +71,7 @@ public:
 
   // Acquisition control
 
-  int SetAcquisitionMode(string);
+  int SetAcquisitionControl(string);
   int SetZSMode(string);
   int SetZLEChannelSettings(uint32_t, uint32_t, uint32_t, uint32_t, bool);
   

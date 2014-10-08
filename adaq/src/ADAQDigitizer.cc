@@ -286,21 +286,27 @@ int ADAQDigitizer::SetTriggerCoincidence(bool Enable, int Level)
 // Acquisition methods //
 /////////////////////////
 
-int ADAQDigitizer::SetAcquisitionMode(string AcqMode)
+int ADAQDigitizer::SetAcquisitionControl(string AcqControl)
 { 
   CommandStatus = -42;
 
-  if(AcqMode == "Software")
+  if(AcqControl == "Software")
     CommandStatus = SetAcquisitionMode(CAEN_DGTZ_SW_CONTROLLED);
-  else if(AcqMode == "SIn")
+  else if(AcqControl == "Gated (NIM)"){
     CommandStatus = SetAcquisitionMode(CAEN_DGTZ_S_IN_CONTROLLED);
+    // Set signal type to NIM here
+  }
+  else if(AcqControl == "Gated (TTL"){
+    CommandStatus = SetAcquisitionMode(CAEN_DGTZ_S_IN_CONTROLLED);
+    // Set signal type to TTL here
+  }
   else
     if(Verbose)
-      std::cout << "ADAQDigitizer[" << BoardID << "] : Error! Unsupported acquisition mode ("
-		<< AcqMode << ") was specified!\n"
-		<< "                Select 'Software' or 'SIn'.\n"
+      std::cout << "ADAQDigitizer[" << BoardID << "] : Error! Unsupported acquisition control style ("
+		<< AcqControl << ") was specified!\n"
+		<< "                Select 'Software', 'Gated (NIM)' or 'Gated (TTL)'.\n"
 		<< std::endl;
-
+  
   return CommandStatus;
 }
 

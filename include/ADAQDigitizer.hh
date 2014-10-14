@@ -81,7 +81,7 @@ public:
   int GetNumFPGAEvents(uint32_t *);
 
   int GetZLEWaveform(char *, int, vector<vector<uint16_t> > &);
-  int PrintZLEEventInfo(char *);
+  int PrintZLEEventInfo(char *, int);
   
   
   /////////////////////////////////////////
@@ -96,7 +96,9 @@ public:
 private:
   int NumChannels;
   int NumADCBits, MinADCBit, MaxADCBit;
-
+  
+  int ZLEStartWord, ZLEWordCounter;
+  
 public:
 
   ////////////////////////////

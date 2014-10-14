@@ -27,19 +27,32 @@ extern "C" {
 
 namespace ZLE{
 
-  const uint32_t ReadoutTypeBit = 24;
-  uint32_t ReadoutTypeMask = 0b1 << ReadoutTypeBit;
+  // Bit mask to get the size (number of 32-bit words) of a ZLE event
+  const uint32_t ZLEEventSizeMask = 0x0fffffff;
 
-  uint32_t ZLEEventSizeMask = 0x0fffffff;
+  // Bit masks to extract two ZLE samples from single 32-bit word
+  const uint32_t ZLESampleAMask = 0x0000ffff;
+  const uint32_t ZLESampleBMask = 0xffff0000;
 
-  uint32_t ZLESampleAMask = 0x0000ffff;
-  uint32_t ZLESampleBMask = 0xffff0000;
+  // Bit mask to obtain the ZLE control word
+  const uint32_t ZLEControlMask = 0xc0000000;
 
-  uint32_t ZLENumWordMask = 0x000fffff;
+  // Bit mask to get the number of words following the 'good', 'skip'
+  // and 'data' flags in the control word
+  const uint32_t ZLENumWordMask = 0x000fffff;
 
-  uint32_t ZLEControlMask = 0xc0000000;
+  // Number of words in the ZLE event header
+  const uint32_t ZLEHeaderSize = 4; // [32-bit words]
 
-  uint32_t ZLEHeaderSize = 4; // [32-bit words]
+  // Masks to determine if a control word is 'good' or 'skip'
+  const uint32_t ZLEControlWordGoodMask = 0b11;
+  const uint32_t ZLEControlWordSkipMask = 0b01;
+
+  // Number of bits to right-shift for control word testing
+  const uint32_t ZLEControlWordBitShift = 30;
+
+  // Number of bit to right-shift to get sample B data
+  const uint32_t ZLESampleBBitShift = 16;
 };
 using namespace ZLE;
 
@@ -47,7 +60,8 @@ using namespace ZLE;
 
 ADAQDigitizer::ADAQDigitizer(ZBoardType Type, int ID, uint32_t Address)
   : ADAQVBoard(Type, ID, Address),
-    NumChannels(0), NumADCBits(0), MinADCBit(0), MaxADCBit(0)
+    NumChannels(0), NumADCBits(0), MinADCBit(0), MaxADCBit(0),
+    ZLEStartWord(0), ZLEWordCounter(0)
 {;}
 // Initialize the pointers used during the data acquisition process
 // to readout the digitized waveforms from the V1720 to the PC
@@ -292,21 +306,30 @@ int ADAQDigitizer::SetAcquisitionControl(string AcqControl)
   if(AcqControl == "Software")
     CommandStatus = SetAcquisitionMode(CAEN_DGTZ_SW_CONTROLLED);
   else if(AcqControl == "Gated (NIM)" or AcqControl == "Gated (TTL)"){
-    
+    //CommandStatus = SetAcquisitionMode(CAEN_DGTZ_S_IN_CONTROLLED);
+
     uint32_t Data32 = 0;
+    CommandStatus = GetRegisterValue(CAEN_DGTZ_FRONT_PANEL_IO_CTRL_ADD, &Data32);
+    
+    bitset<32> Data32Bitset0(Data32);
+
+    if(AcqControl == "Gated (NIM)")
+      Data32Bitset0.set(0, 0);
+    else if(AcqControl == "Gated (TTL)")
+      Data32Bitset0.set(0, 1);
+
+    Data32 = (uint32_t)Data32Bitset0.to_ulong();
+    CommandStatus = SetRegisterValue(CAEN_DGTZ_FRONT_PANEL_IO_CTRL_ADD, Data32);
+    
+    //    uint32_t Data32 = 0;
     CommandStatus = GetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, &Data32);
     
-    bitset<32> Data32Bitset(Data32);
-    Data32Bitset.set(0,0);
-    Data32Bitset.set(1,1);
+    bitset<32> Data32Bitset1(Data32);
+    Data32Bitset1.set(0,0);
+    Data32Bitset1.set(1,1);
 
-    Data32 = (uint32_t)Data32Bitset.to_ulong();
+    Data32 = (uint32_t)Data32Bitset1.to_ulong();
     CommandStatus = SetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, Data32);
-
-    if(AcqControl == "Gated (NIM)"){}
-    // Set S IN to accept NIM pulses here
-    else if(AcqControl == "Gated (TTL)"){}
-    // Set S IN to accept NIM pulses here
   }
   else
     if(Verbose)
@@ -388,7 +411,9 @@ int ADAQDigitizer::SetZLEChannelSettings(uint32_t Channel, uint32_t Threshold,
 }
 
 
-int ADAQDigitizer::PrintZLEEventInfo(char *Buffer)
+int ADAQDigitizer::PrintZLEEventInfo(char *Buffer, 
+				     int Event)
+
 {
   cout << "\n\n\n"
        << "******************************  NEW ZLE EVENT  ******************************\n"
@@ -396,56 +421,73 @@ int ADAQDigitizer::PrintZLEEventInfo(char *Buffer)
 
   uint32_t *Words = (uint32_t *)Buffer;
 
-  uint32_t EventSize = Words[0] & ZLEEventSizeMask;
-  cout << "ZLE event size   : " << EventSize 
-       << " (Total 32-bit words in ZLE event)" << endl;
+  int ZLEStartWord = 0;
+  if(Event == 0){
+    ZLEStartWord = 0;
+    ZLEWordCounter = 0;
+  }
+  else
+    ZLEStartWord = ZLEWordCounter;
   
-  for(int word=0; word<ZLEHeaderSize; word++){
+  uint32_t EventSize = Words[ZLEStartWord] & ZLEEventSizeMask;
+  ZLEWordCounter += EventSize;
+  
+  cout << "  Event number : " << Event << " (within FPGA readout buffer)\n"
+       << "  Event size   : " << EventSize << " (Number 32-bit words in this ZLE event)\n"
+       << "  Event span   : Words[" << ZLEStartWord << "] to Words[" << ((ZLEStartWord+EventSize)-1) << "]\n"
+       << "\n"
+       << "  Word  Type  Value\n"
+       << "---------------------------------------------------------------------------------"
+       << endl;
+  
+  for(int word=ZLEStartWord; word<(ZLEStartWord+ZLEHeaderSize); word++){
     bitset<32> BinaryOut(Words[word]);
-    cout << word << "\t" << "Header[" << word << "]\t" << BinaryOut << endl;
+    cout << "  " << word << "\t" << "header[" << (word-ZLEStartWord) << "]\t" << BinaryOut << endl;
   }
 
-  cout << 4 << "\tsize" << "\t" << Words[4] << endl;
+  int SizeStartWord = ZLEStartWord + ZLEHeaderSize;
+  cout << "  " << SizeStartWord << "\tsize" << "\t" << Words[SizeStartWord] << endl;
   
-  uint32_t WordCounter = 0;
-  
-  for(int word=5; word<EventSize; word++){
+  int ZLEWaveformStartWord = SizeStartWord + 1;
+  uint32_t ZLEWaveformWordCounter = 0;
+
+  for(int word=ZLEWaveformStartWord; word<(ZLEStartWord+EventSize); word++){
     
     uint32_t ZLEControl = Words[word] & ZLEControlMask;
     ZLEControl = ZLEControl >> 30;
     
-    if(ZLEControl == 0b11){
+    if(ZLEControl == ZLEControlWordGoodMask){
       uint32_t NumWords = Words[word] & ZLENumWordMask;
       
       bitset<32> TMP(NumWords);
       
-      cout << word << "\t" << "GOOD!"  << "\t"
+      cout << "  " << word << "\t" << "GOOD!"  << "\t"
 	   << NumWords << " words to follow!"
 	   << endl;
 
-      WordCounter = 1;
+      ZLEWaveformWordCounter = 1;
     }
-    else if(ZLEControl == 0b01){
+    else if(ZLEControl == ZLEControlWordSkipMask){
       uint32_t NumWords = Words[word] & ZLENumWordMask;
       
-      cout << word << "\t" << "skip" << "\t"
+      cout << "  " << word << "\t" << "skip" << "\t"
 	   << NumWords << " words have been skipped!"
 	   << endl;
     }
     else{
-      cout << word << "\t" << "data" << "\t" 
-	   << "Word number: " << WordCounter << "\t\t";
+      cout << "  " << word << "\t" << "data" << "\t" 
+	   << "Word number: " << ZLEWaveformWordCounter << "\t\t";
       
       uint32_t SampleN = Words[word] & ZLESampleAMask;
       
       uint32_t SampleN_plus_1 = Words[word] & ZLESampleBMask;
       SampleN_plus_1 = SampleN_plus_1 >> 16;
       
-      cout << "Sample[" << (WordCounter*2)-1 << "] = " << SampleN << "\t"
-	   << "Sample[" << (WordCounter*2) << "] = " << SampleN_plus_1 << "\t"
+      cout << "Sample[" << (ZLEWaveformWordCounter*2)-1 << "] = " << SampleN << "\t"
+	   << "Sample[" << (ZLEWaveformWordCounter*2) << "] = " << SampleN_plus_1 << "\t"
 	   << endl;
       
-      WordCounter++;
+      ZLEWaveformWordCounter++;
     }
   }
 }
@@ -455,41 +497,67 @@ int ADAQDigitizer::GetZLEWaveform(char *Buffer,
 				  int Event,
 				  vector<vector<uint16_t> > &Waveforms)
 {
+  // Clear the Waveforms for a new ZLE event
   Waveforms.clear();
   Waveforms.resize(NumChannels);
 
   // Cast a pointer to the PC buffer containing ZLE events
   uint32_t *Words = (uint32_t *)Buffer;
-
-  // Get the total number of 32-bit words in the ZLE event (4 header
+  
+  // Determine which word in the PC buffer should be the first word
+  // readout depending on the event number
+  if(Event == 0){
+    ZLEStartWord = 0;
+    ZLEWordCounter = 0;
+  }
+  else
+    ZLEStartWord = ZLEWordCounter;
+  
+  // Get the total number of 32-bit words in this ZLE event (4 header
   // words plus size, control, and sample words)
-  uint32_t EventSize = Words[0] & ZLEEventSizeMask;
+  uint32_t EventSize = Words[ZLEStartWord] & ZLEEventSizeMask;
 
-  uint32_t WaveformSize = Words[4];
+  // Increment the ZLEWordCounter with the number of words in the
+  // current ZLE event such that, if there is another event that will
+  // be readout after this one, the start word will be set correctly
+  ZLEWordCounter += EventSize;
+
+  // Get the number of 32-bit words in the ZLE waveform (control words
+  // + waveform samples (remember: 2 samples per word))
+  int SizeStartWord = ZLEStartWord + ZLEHeaderSize;
+  uint32_t ZLEWaveformSize = Words[SizeStartWord];
+  
+  int ZLEWaveformStartWord = SizeStartWord + 1;
 
   uint32_t Channel = 0;
 
-  for(int word=ZLEHeaderSize+1; word<EventSize; word++){
+  for(int word=ZLEWaveformStartWord; word<(ZLEStartWord+EventSize); word++){
     uint32_t ControlWord = Words[word] & ZLEControlMask;
-    ControlWord >>= 30;
+    ControlWord >>= ZLEControlWordBitShift;
+    
+    // ZLE "good" control word
+    if(ControlWord == ZLEControlWordGoodMask){
+    }
 
-    if(ControlWord == 0b11){
+    // ZLE "skip" control word
+    else if(ControlWord == ZLEControlWordSkipMask){
     }
-    else if(ControlWord == 0b01){
-    }
+
+    // ZLE "data" word
     else{
+      // Readout the samples from the data words. Bits [15:0] are
+      // sample A; bits[31:15] are sample B. Note that sample "A"
+      // precedes samples "B" in chronological time.
+      
       uint32_t SampleA = Words[word] & ZLESampleAMask;
       uint32_t SampleB = Words[word] & ZLESampleBMask;
-      SampleB >>= 16;
-
+      SampleB >>= ZLESampleBBitShift;
+      
       Waveforms[Channel].push_back(SampleA);
       Waveforms[Channel].push_back(SampleB);
     }
   }
 }
-
-
-
 
 
 /////////////////////

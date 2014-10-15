@@ -342,6 +342,23 @@ int ADAQDigitizer::SetAcquisitionControl(string AcqControl)
 }
 
 
+int ADAQDigitizer::SInArmAcquisition()
+{
+  uint32_t Data32 = 0;
+  CommandStatus = GetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, &Data32);
+  
+  bitset<32> Data32Bitset(Data32);
+  Data32Bitset.set(2,1);
+  Data32 = (uint32_t)Data32Bitset.to_ulong();
+  
+  CommandStatus = SetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, Data32);
+}
+
+
+int ADAQDigitizer::SInDisarmAcquisition()
+{;}
+
+
 int ADAQDigitizer::SetZSMode(string ZSMode)
 {
   CommandStatus = -42;

@@ -74,12 +74,15 @@ public:
   int SetAcquisitionControl(string);
   int SetZSMode(string);
   int SetZLEChannelSettings(uint32_t, uint32_t, uint32_t, uint32_t, bool);
+
+  int SInArmAcquisition();
+  int SInDisarmAcquisition();
   
   // Readout
 
   int CheckBufferStatus(bool *);
   int GetNumFPGAEvents(uint32_t *);
-
+  
   int GetZLEWaveform(char *, int, vector<vector<uint16_t> > &);
   int PrintZLEEventInfo(char *, int);
   

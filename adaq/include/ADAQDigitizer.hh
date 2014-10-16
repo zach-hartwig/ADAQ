@@ -54,6 +54,9 @@ public:
   // Enhanced digitizer control methods //
   ////////////////////////////////////////
 
+  // General
+  bool CheckForEnabledChannel();
+
   // Trigger control
 
   int EnableAutoTrigger(uint32_t);

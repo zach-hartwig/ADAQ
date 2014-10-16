@@ -178,20 +178,58 @@ int ADAQDigitizer::Initialize()
 
 int ADAQDigitizer::SetRegisterValue(uint32_t Addr32, uint32_t Data32)
 { 
-  CommandStatus = CAEN_DGTZ_WriteRegister(BoardHandle, Addr32, Data32); 
+  CommandStatus = -42;
+  
+  if(CheckRegisterForWriting(Addr32))
+    CommandStatus = CAEN_DGTZ_WriteRegister(BoardHandle, Addr32, Data32); 
+  
   return CommandStatus;
 }
 
 
 int ADAQDigitizer::GetRegisterValue(uint32_t Addr32, uint32_t *Data32)
 {
-  CommandStatus = CAEN_DGTZ_ReadRegister(BoardHandle, Addr32, Data32);
+  CommandStatus = -42;
+  
+  if(CheckRegisterForWriting(Addr32))
+    CommandStatus = CAEN_DGTZ_ReadRegister(BoardHandle, Addr32, Data32);
+  
   return CommandStatus;
 }
 
 
 bool ADAQDigitizer::CheckRegisterForWriting(uint32_t Addr32)
-{ return true; }
+{
+  if((Addr32 < 0x1024) or
+     (Addr32 > 0x814c and Addr32 < 0xef00) or
+     (Addr32 > 0xf3fc)){
+    if(Verbose)
+      cout << "ADAQDigitizer : Error attempting to access a protected register address!\n"
+	   << endl;
+    return false;
+  }
+  else
+    return true;
+}
+
+
+/////////////////////
+// General methods //
+/////////////////////
+
+bool ADAQDigitizer::CheckForEnabledChannel()
+{
+  uint32_t ChannelEnableMask = 0;
+  GetChannelEnableMask(&ChannelEnableMask);
+  
+  if((0xff & ChannelEnableMask) == 0){
+    cout << "ADAQDigitizer : Warning! No channels were enabled for acquisition!\n"
+	 << endl;
+    return false;
+  }
+  else 
+    return true;
+}
 
 
 ////////////////////////
@@ -358,7 +396,18 @@ int ADAQDigitizer::SInArmAcquisition()
 
 
 int ADAQDigitizer::SInDisarmAcquisition()
-{;}
+{
+  uint32_t Data32 = 0;
+  CommandStatus = GetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, &Data32);
+  
+  bitset<32> Data32Bitset(Data32);
+  Data32Bitset.set(2,0);
+  Data32 = (uint32_t)Data32Bitset.to_ulong();
+  
+  CommandStatus = SetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, Data32);
+  
+  return CommandStatus;
+}
 
 
 int ADAQDigitizer::SetZSMode(string ZSMode)
@@ -536,11 +585,29 @@ int ADAQDigitizer::GetZLEWaveform(char *Buffer,
   // words plus size, control, and sample words)
   uint32_t EventSize = Words[ZLEStartWord] & ZLEEventSizeMask;
 
+  //// WARNING //// WARNING //// WARNING //// WARNING //// WARNING //// WARNING
+  ///
+  // There appears to be a bug in the CAEN V1720 firmware that causes
+  // readout of ZLE events with RecordLength>4030 to shit the bed. The
+  // CAEN_DGTZ_GetNumEvents() claims there is only 1 event (despite
+  // that the FPGA event register shows it is full) and the buffer if
+  // full of garbage. The EventSize is returned as ~(2**28)/2, which
+  // is obviously horseshit. This is a hack to prevent this situation
+  // from causing segfaults. CAEN has been contacted regarding this
+  // issue! ZSH (16 Oct 14)
+  
+  if(EventSize > 1e5)
+    return -42;
+
+  //
+  ///
+  //// WARNING //// WARNING //// WARNING //// WARNING //// WARNING //// WARNING
+  
   // Increment the ZLEWordCounter with the number of words in the
   // current ZLE event such that, if there is another event that will
   // be readout after this one, the start word will be set correctly
   ZLEWordCounter += EventSize;
-
+  
   // Get the number of 32-bit words in the ZLE waveform (control words
   // + waveform samples (remember: 2 samples per word))
   int SizeStartWord = ZLEStartWord + ZLEHeaderSize;
@@ -553,7 +620,7 @@ int ADAQDigitizer::GetZLEWaveform(char *Buffer,
   for(int word=ZLEWaveformStartWord; word<(ZLEStartWord+EventSize); word++){
     uint32_t ControlWord = Words[word] & ZLEControlMask;
     ControlWord >>= ZLEControlWordBitShift;
-    
+
     // ZLE "good" control word
     if(ControlWord == ZLEControlWordGoodMask){
     }
@@ -567,15 +634,17 @@ int ADAQDigitizer::GetZLEWaveform(char *Buffer,
       // Readout the samples from the data words. Bits [15:0] are
       // sample A; bits[31:15] are sample B. Note that sample "A"
       // precedes samples "B" in chronological time.
-      
+
       uint32_t SampleA = Words[word] & ZLESampleAMask;
       uint32_t SampleB = Words[word] & ZLESampleBMask;
       SampleB >>= ZLESampleBBitShift;
-      
+
       Waveforms[Channel].push_back(SampleA);
       Waveforms[Channel].push_back(SampleB);
     }
   }
+  
+  return 0;
 }
 
 

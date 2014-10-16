@@ -225,7 +225,7 @@ bool ADAQHighVoltage::CheckRegisterForWriting(uint32_t Addr32)
      (Addr32 >= 0x01b4 and Addr32 <=0x02fc) or
      (Addr32 >= 0x0334 and Addr32 <=0x037c)){
     if(Verbose)
-      cout << "ADAQHighVoltage : Error writing value to protected address!\n"
+      cout << "ADAQHighVoltage : Error attempting to access a protected register address\n"
 	   << endl;
     return false;
   }

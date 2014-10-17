@@ -1,8 +1,9 @@
 ///////////////////////////////////////////////////////////////////////
 //
 // name: ADAQPythonWrapper.cc
-// date: 06 JUL 12
+// date: 17 JUL 12
 // auth: Zach Hartwig
+// mail: hartwig@psfc.mit.edu
 // 
 // desc: ADAQPythonWrapper.cc uses Boost.Python to wrap the C++ ADAQ
 //       classes into a Python module. The relevent ADAQHighVoltage

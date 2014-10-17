@@ -1,11 +1,15 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 // name: ADAQBridge.hh
-// date: 06 Oct 14
+// date: 17 Oct 14
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 //
-// desc: 
+// desc: ADAQBridge is a derived class that is intended to provide
+//       full control over CAEN USB-VME bridge boards, including VME
+//       connection, register read/write, pulser control, and other
+//       high level functions. This class inherits all the general
+//       member data and methods contained in ADAQVBoard.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -22,6 +26,9 @@ using namespace std;
 
 // ADAQ
 #include "ADAQVBoard.hh"
+
+
+// Two structures that are useful for settings the pulsers
 
 struct PulserSettings{
   int PulserToSet;

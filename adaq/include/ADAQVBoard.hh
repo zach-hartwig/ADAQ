@@ -1,10 +1,15 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 // name: ADAQVBoard.hh
-// date: 02 Oct 14
+// date: 17 Oct 14
 // auth: Zach Hartwig
 //
-// desc: 
+// desc: ADAVBoard is a pure abstract class that provides a high-level
+//       base class description of CAEN VME boards and desktop
+//       digitizers. To implement specific types (digitizers, high
+//       voltages, VME-USB bridges, etc), users should inherit from
+//       this class for development since it provides a serious of
+//       common member data and variables across all type categories.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -14,6 +19,9 @@
 // Boost 
 #include <boost/cstdint.hpp>
 
+
+// Unique IDs for each type board/desktop unit. The following
+// enumerator contains those types presently supported by ADAQ.
 enum ZBoardType{
 
   // VME-USB boards
@@ -23,12 +31,12 @@ enum ZBoardType{
   zV1720,
   zV1724,
   zDT5720,
-
+  
   // High voltage boards
   zV6533M,
   zV6533N,
   zV6533P,
-
+  
   zV6534M,
   zV6534N,
   zV6534P
@@ -100,11 +108,26 @@ public:
   int GetCommandStatus() {return CommandStatus;}
   
 protected:
+  // The type of board described by inherited class
   ZBoardType BoardType;
+
+  // The user-assigned board ID
   int BoardID;
+
+  // The user-assigned address in VME space (corresponds to physical
+  // potentiometer settings on VME board)
   uint32_t BoardAddress;
+
+  // The CAEN-assigned board handle
   int BoardHandle;
-  bool LinkEstablished, Verbose;
+  
+  // Boolean to determine if a connection has been made to the board
+  bool LinkEstablished;
+
+  // Boolean to set various output to stdout 
+  bool Verbose;
+  
+  // Integer to hold returned value of ADAQ and CAEN libary methods
   int CommandStatus;
 };
 

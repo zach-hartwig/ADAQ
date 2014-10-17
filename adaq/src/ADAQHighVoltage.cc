@@ -1,11 +1,25 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 // name: ADAQHighVoltage.cc
-// date: 06 Oct 14
+// date: 17 Oct 14
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 //
-// desc: 
+// desc: ADAQHighVoltage is a derived class that is intended to
+//       provide full control a CAEN VME high voltage board, including
+//       VME connection, register read/write, programming, and high
+//       level voltage/current supply methods. This class inherits all
+//       the general member data and methods contained in ADAQVBoard.
+//
+//       CAEN did provide any API for their VME high voltage boards
+//       (at least at the time this code began to be developed in
+//       2012...); thus, one had to be written and this is the
+//       result. The methods provide fairly straightforward control of
+//       what are typically relatively simple boards, as well as some
+//       safety features since we are dealing with high voltage after
+//       all. The class is intended to be completely adaptaptable to
+//       any VME high voltage board (see the ZBoardTypes enumerator in
+//       ADAQVBoard for presently supported types).
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -37,11 +51,11 @@ ADAQHighVoltage::ADAQHighVoltage(ZBoardType Type, int ID, uint32_t Address)
     NumChannels(0), MaxVoltage(0), MaxCurrent(0),
     
     // The desired channel voltage (in volts) must be set in the
-    // registers as (V[volts]*10). Define a conversion value.
+    // registers as (V[volts]*10). Here define a conversion value.
     volts2input(10),
     
     // The desired channel current (in microamps) must be set in the
-    // registers as (I[microamps]*50). Define a conversion value.
+    // registers as (I[microamps]*50). Here define a conversion value.
     microamps2input(50)
 {
   if(BoardType == zV6533M or BoardType == zV6533N or BoardType == zV6533P){
@@ -106,12 +120,13 @@ ADAQHighVoltage::ADAQHighVoltage(ZBoardType Type, int ID, uint32_t Address)
     ChannelSetCurrent.push_back(0);
     ChannelPowerState.push_back(POWEROFF);
   }
-  
+
+  // Provide std::map to convert ZBoardType to string name
   insert(TypeToName)
     ((int)zV6533M,"V6533M") ((int)zV6533N,"V6533N") ((int)zV6533P,"V6533P")
     ((int)zV6534M,"V6534M") ((int)zV6534N,"V6534N") ((int)zV6534P,"V6534P");
 }
-  
+
 
 ADAQHighVoltage::~ADAQHighVoltage()
 {;}
@@ -608,4 +623,3 @@ uint16_t ADAQHighVoltage::GetTemperature(int Channel)
     return TemperatureGet;
   }
 }
-

@@ -1,10 +1,38 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 // name: ADAQDigitizer.cc
-// date: 02 Oct 14
+// date: 17 Oct 14
 // auth: Zach Hartwig
+// mail: hartwig@psfc.mit.edu
 //
-// desc: 
+// desc: ADAQDigitizer is a derived class that is intended to provide
+//       full control over a CAEN digitizer (either VME or desktop),
+//       including VME connection, register read/write, programming,
+//       and high level data acquisition and readout methods. The
+//       class inherits all the general member data and methods
+//       contained in ADAQVBoard.
+//
+//       The class is intended to be completely adaptable to any type
+//       of CAEN digitizer. All digitizer-specific information (number
+//       of channels, bit-depth, etc) is set upon establishing a valid
+//       VME connection to the unit, while all methods are intended to
+//       be as general as possible across all supported digitizers. 
+//
+//       Two sets of "wrappers" are provided. First, the class
+//       provides complete "wrapping" of the functions contained in
+//       the CAENDigitizer library. The main purposes are to (a)
+//       provide a straightforward and uniform set of methods for
+//       digitizer control amd (b) to obscure the nitty-gritty of the
+//       CAEN library functions from the user (if he/she desires).
+//
+//       Second, a number of Python-friendly methods are provided that
+//       are required for various set/get methods (Python has no
+//       concept of passing by reference, of which CAEN makes heavy
+//       use so we have to provide these methods). These methods are
+//       utilized in the ADAQ Python module that is created with
+//       Boost.Python during the ADAQ library build process. WARNING:
+//       These are experimental methods that haven't been touched
+//       since 2012! 
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -25,6 +53,8 @@ extern "C" {
 #include "ADAQDigitizer.hh"
 
 
+// The ZLE namespace contains a variety of hex and bitwise variables
+// that are necessary to properly readout the ZLE event buffer
 namespace ZLE{
 
   // Bit mask to get the size (number of 32-bit words) of a ZLE event
@@ -57,15 +87,12 @@ namespace ZLE{
 using namespace ZLE;
 
 
-
 ADAQDigitizer::ADAQDigitizer(ZBoardType Type, int ID, uint32_t Address)
   : ADAQVBoard(Type, ID, Address),
     NumChannels(0), NumADCBits(0), MinADCBit(0), MaxADCBit(0),
     ZLEStartWord(0), ZLEWordCounter(0)
+    //Buffer_Py(NULL), EventPointer_Py(NULL), EventWaveform_Py(Null)
 {;}
-// Initialize the pointers used during the data acquisition process
-// to readout the digitized waveforms from the V1720 to the PC
-//    Buffer_Py(NULL), EventPointer_Py(NULL), EventWaveform_Py(NULL)
 
 
 ADAQDigitizer::~ADAQDigitizer()
@@ -108,7 +135,6 @@ int ADAQDigitizer::OpenLink()
 		<< "--> ROC FW   : " << BoardInformation.AMC_FirmwareRel << "\n"
 		<< "--> ADC bits : " << BoardInformation.ADC_NBits << "\n"
 		<< "--> Serial # : " << BoardInformation.SerialNumber << "\n"
-
 		<< std::endl;
       
       NumChannels = BoardInformation.Channels;

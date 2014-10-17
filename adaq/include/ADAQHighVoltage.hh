@@ -1,11 +1,26 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 // name: ADAQHighVoltage.hh
-// date: 06 Oct 14
+// date: 17 Oct 14
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 //
-// desc: 
+// desc: ADAQHighVoltage is a derived class that is intended to
+//       provide full control of CAEN VME high voltage boards,
+//       including VME connection, register read/write, programming,
+//       and high level voltage/current supply methods. This class
+//       inherits all the general member data and methods contained in
+//       ADAQVBoard.
+//
+//       CAEN did provide any API for their VME high voltage boards
+//       (at least at the time this code began to be developed in
+//       2012...); thus, one had to be written and this is the
+//       result. The methods provide fairly straightforward control of
+//       what are typically relatively simple boards, as well as some
+//       safety features since we are dealing with high voltage after
+//       all. The class is intended to be completely adaptaptable to
+//       any VME high voltage board (see the ZBoardTypes enumerator in
+//       ADAQVBoard for presently supported types).
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -92,9 +107,6 @@ public:
   int GetMaxVoltage() {return MaxVoltage;}
   int GetMaxCurrent() {return MaxCurrent;}
   
-  // HV channel IDs
-  // enum {Channel0, Channel1, Channel2, Channel3, Channel4, Channel5};
-
 private:
   int NumChannels, MinChannel, MaxChannel;
   int MaxVoltage, MaxCurrent;

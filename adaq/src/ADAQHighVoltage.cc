@@ -54,40 +54,50 @@ ADAQHighVoltage::ADAQHighVoltage(ZBoardType Type, int ID, uint32_t Address)
     switch(BoardType){
     case zV6533M:
       ChannelPolarity += -1, -1, -1, 1, 1, 1;
+      ChannelPolarityString += "-", "-", "-", "+", "+", "+";
       break;
-
+      
     case zV6533N:
       ChannelPolarity += -1, -1, -1, -1, -1, -1;
+      ChannelPolarityString += "-", "-", "-", "-", "-", "-";
       break;
 
     case zV6533P:
       ChannelPolarity += 1, 1, 1, 1, 1, 1;
+      ChannelPolarityString += "+", "+", "+", "+", "+", "+";
       break;
     }
   }
-
-  if(BoardType == zV6534M or BoardType == zV6534N or BoardType == zV6534P){
+  
+  else if(BoardType == zV6534M or BoardType == zV6534N or BoardType == zV6534P){
     NumChannels = 6;
     MinChannel = 0;
     MaxChannel = 5;
     MaxVoltage = 6000; // [V]
     MaxCurrent = 1000; // [uA]
-
+    
     switch(BoardType){
     case zV6534M:
       ChannelPolarity += -1, -1, -1, 1, 1, 1;
+      ChannelPolarityString += "-", "-", "-", "+", "+", "+";
       break;
 
     case zV6534N:
       ChannelPolarity += -1, -1, -1, -1, -1, -1;
+      ChannelPolarityString += "-", "-", "-", "-", "-", "-";
       break;
 
     case zV6534P:
       ChannelPolarity += 1, 1, 1, 1, 1, 1;
+      ChannelPolarityString += "+", "+", "+", "+", "+", "+";
       break;
     }
   }
-
+  else{
+    cout << "ADAQHighVoltage [" << BoardID << "] : Error! Unrecognized board type '" << BoardType 
+	 << "'!\n" << endl;
+  }
+  
   // Set the voltage, current, and power status for all HV
   // channels. By default, all voltage/current is initialized to a
   // value of zero and the channels are all turned off
@@ -96,6 +106,10 @@ ADAQHighVoltage::ADAQHighVoltage(ZBoardType Type, int ID, uint32_t Address)
     ChannelSetCurrent.push_back(0);
     ChannelPowerState.push_back(POWEROFF);
   }
+  
+  insert(TypeToName)
+    ((int)zV6533M,"V6533M") ((int)zV6533N,"V6533N") ((int)zV6533P,"V6533P")
+    ((int)zV6534M,"V6534M") ((int)zV6534N,"V6534N") ((int)zV6534P,"V6534P");
 }
   
 
@@ -123,33 +137,31 @@ int ADAQHighVoltage::OpenLink()
   if(CommandStatus == CAENComm_Success){
 
     LinkEstablished = true;
-
+    
     if(Verbose){
-      cout << "ADAQHighVoltage : Link successfully established!\n"
-	   << "--> Board     :"
-	   << "--> Channels  :"
-	   << "--> VMax [V]  :"
-	   << "--> IMax [uA] :"
+      cout << "ADAQHighVoltage[" << BoardID << "] : Link successfully established!\n"
+	   << "--> Type      : " << TypeToName[BoardType] << "\n"
+	   << "--> Address   : 0x" << setw(8) << setfill('0') << hex << BoardAddress << "\n"
+	   << "--> User ID   : " << dec << BoardID << "\n"
+	   << "--> Handle    : " << BoardHandle << "\n"
+	   << "--> Channels  : " << NumChannels << "\n"
+	   << "--> VMax [V]  : " << MaxVoltage << "\n"
+	   << "--> IMax [uA] : " << MaxCurrent << "\n"
 	   << "--> Polarity  : [";
-
+      
       for(int ch=0; ch<NumChannels; ch++){
-	cout << ChannelPolarity[ch] << flush;
+	cout << ChannelPolarityString[ch] << flush;
 	if(ch < 5)
-	  cout << ", " << flush;
+	  cout << "," << flush;
 	else
 	  cout << "]" << endl;
       }
-
-      cout << "\n"
-	   << "--> Board address : 0x" << setw(8) << setfill('0') << hex << BoardAddress << "\n"
-	   << "--> Board ID      : " << BoardID << "\n"
-	   << "--> Board handle  : " << BoardHandle << "\n"
-	   << endl;
+      cout << endl;
     }
   }
   else
     if(Verbose and !LinkEstablished)
-      cout << "ADAQHighVoltage : Error opening link! Error code: " << CommandStatus << "\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error opening link! Error code: " << CommandStatus << "\n"
 	   << endl;
   
   return CommandStatus;
@@ -164,7 +176,7 @@ int ADAQHighVoltage::CloseLink()
     CommandStatus = CAENComm_CloseDevice(BoardHandle);
   else
     if(Verbose)
-      cout << "ADAQHighVoltage : Error closing link! Link is already closed!\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error closing link! Link is already closed!\n"
 	   << endl;
   
   if(CommandStatus == CAENComm_Success){
@@ -172,12 +184,12 @@ int ADAQHighVoltage::CloseLink()
     LinkEstablished = false;
 
     if(Verbose)
-      cout << "ADAQHighVoltage : Link successfully closed!\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Link successfully closed!\n"
 	   << endl;
   }
   else
     if(Verbose and LinkEstablished)
-      cout << "ADAQHighVoltage : Error closing link! Error code: " << CommandStatus << "\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error closing link! Error code: " << CommandStatus << "\n"
 	   << endl;
   
   return CommandStatus;
@@ -225,7 +237,7 @@ bool ADAQHighVoltage::CheckRegisterForWriting(uint32_t Addr32)
      (Addr32 >= 0x01b4 and Addr32 <=0x02fc) or
      (Addr32 >= 0x0334 and Addr32 <=0x037c)){
     if(Verbose)
-      cout << "ADAQHighVoltage : Error attempting to access a protected register address\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error attempting to access a protected register address\n"
 	   << endl;
     return false;
   }
@@ -237,8 +249,8 @@ bool ADAQHighVoltage::CheckRegisterForWriting(uint32_t Addr32)
 int ADAQHighVoltage::SetToSafeState()
 {
   if(Verbose)
-    cout << "ADAQHighVoltage : Setting the HV board to 'safe' mode! All channels will have\n"
-	 << "                  voltages and currents set to 0 and then powered off ...";
+    cout << "ADAQHighVoltage [" << BoardID << "] : Setting the HV board to 'safe' mode! All channels will have\n"
+	 << "                      voltages and currents set to 0 and then powered off ...";
   
   for(int ch=0; ch<NumChannels; ch++){
     SetVoltage(ch, 0);
@@ -280,7 +292,7 @@ int ADAQHighVoltage::PrintStatus()
   if(!Verbose)
     return 0;
   
-  cout <<  "ADAQHighVoltage : High voltage board status:\n" << endl;
+  cout <<  "ADAQHighVoltage [" << BoardID << "] : High voltage board status:\n" << endl;
   
   // Iterate through each channel...
   for(int ch=0; ch<NumChannels; ch++){
@@ -334,7 +346,7 @@ int ADAQHighVoltage::SetVoltage(int Channel, uint16_t VoltageSet)
  
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage : Error setting HV Voltage! Channel out of range (0 <= ch <= 5)\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error setting HV Voltage! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
   }
   else{
@@ -353,7 +365,7 @@ int ADAQHighVoltage::GetVoltage(int Channel, uint16_t *VoltageGet)
   
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage : Error getting HV Voltage! Channel out of range (0 <= ch <= 5)\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV Voltage! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
   }
   else{
@@ -371,7 +383,7 @@ uint16_t ADAQHighVoltage::GetVoltage(int Channel)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage : Error getting HV Voltage! Channel out of range (0 <= ch <= 5)\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV Voltage! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
   }
   else{
@@ -390,7 +402,7 @@ int ADAQHighVoltage::SetCurrent(int Channel, uint16_t CurrentSet)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage : Error setting HV current! Channel out of range (0 <= ch <= 5)\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error setting HV current! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
   }
   else{
@@ -409,7 +421,7 @@ int ADAQHighVoltage::GetCurrent(int Channel, uint16_t *CurrentGet)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage : Error getting HV current! Channel out of range (0 <= ch <= 5)\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV current! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
   }
   else{
@@ -427,7 +439,7 @@ uint16_t ADAQHighVoltage::GetCurrent(int Channel)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage : Error getting HV current! Channel out of range (0 <= ch <= 5)\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV current! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
   }
   else{
@@ -446,7 +458,7 @@ int ADAQHighVoltage::SetPowerOn(int Channel)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage : Error setting HV power on! Channel out of range (0 <= ch <= 5)\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error setting HV power on! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
     return -1;
   }
@@ -465,7 +477,7 @@ int ADAQHighVoltage::SetPowerOff(int Channel)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage : Error setting HV power off! Channel out of range (0 <= ch <= 5)\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error setting HV power off! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
   }
   else{
@@ -483,7 +495,7 @@ int ADAQHighVoltage::GetPowerState(int Channel, uint16_t *powerGet)
   
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage : Error getting HV power status! Channel out of range (0 <= ch <= 5)\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV power status! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
   }
   else
@@ -500,7 +512,7 @@ uint16_t ADAQHighVoltage::GetPowerState(int Channel)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage : Error getting HV power status! Channel out of range (0 <= ch <= 5)\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV power status! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
   }
   else{
@@ -518,7 +530,7 @@ int ADAQHighVoltage::GetPolarity(int Channel, uint16_t *polarityGet)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage : Error getting HV Channel polarity! Channel out of range (0 <= ch <= 5)\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV channel polarity! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
   }
   else
@@ -535,13 +547,30 @@ uint16_t ADAQHighVoltage::GetPolarity(int Channel)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage : Error getting HV Channel polarity! Channel out of range (0 <= ch <= 5)\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV channel polarity! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
   }
   else{
     uint16_t PolarityGet;
     CommandStatus = CAENComm_Read16(BoardHandle, POL[Channel], &PolarityGet);
     return PolarityGet;
+  }
+}
+
+
+// Method to get individual channel polarity string ("+" or "-")
+string ADAQHighVoltage::GetPolarityString(int Channel)
+{ 
+  CommandStatus = -42;
+  
+  if(Channel>MaxChannel or Channel<MinChannel){
+    if(Verbose)
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV channel polarity string! Channel out of range (0 <= ch <= 5)\n"
+	   << endl;
+  }
+  else{
+    CommandStatus = 0;
+    return ChannelPolarityString[Channel];
   }
 }
 
@@ -553,7 +582,7 @@ int ADAQHighVoltage::GetTemperature(int Channel, uint16_t *temperatureGet)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage : Error getting HV Channel temperature! Channel out of range (0 <= ch <= 5)\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV channel temperature! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
   }
   else
@@ -570,7 +599,7 @@ uint16_t ADAQHighVoltage::GetTemperature(int Channel)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage : Error getting HV Channel temperature! Channel out of range (0 <= ch <= 5)\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV channel temperature! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
   }
   else{

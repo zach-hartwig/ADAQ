@@ -233,14 +233,15 @@ public:
 
   // Methods for standard firmware waveform readout
 
-  int AllocateEvent(void **Evt) {return CAEN_DGTZ_AllocateEvent(BoardHandle, Evt);}
+  //int AllocateEvent(void **Evt) {return CAEN_DGTZ_AllocateEvent(BoardHandle, Evt);}
+  int AllocateEvent(CAEN_DGTZ_UINT16_EVENT_t **Evt) {return CAEN_DGTZ_AllocateEvent(BoardHandle, (void **) Evt);}
   int DecodeEvent(char *evtPtr, CAEN_DGTZ_UINT16_EVENT_t **Evt) {return CAEN_DGTZ_DecodeEvent(BoardHandle, evtPtr, (void **)Evt);}
   int FreeEvent(CAEN_DGTZ_UINT16_EVENT_t **Evt) {return CAEN_DGTZ_FreeEvent(BoardHandle, (void **)Evt);}
-
+  
   int GetNumEvents(char *buffer, uint32_t buffsize, uint32_t *numEvents) {return CAEN_DGTZ_GetNumEvents(BoardHandle, buffer, buffsize, numEvents);}
   int GetEventInfo(char *buffer, uint32_t buffsize, uint32_t numEvent, CAEN_DGTZ_EventInfo_t *eventInfo, char **EventPtr)
   {return CAEN_DGTZ_GetEventInfo(BoardHandle, buffer, buffsize, numEvent, eventInfo, EventPtr);}
-
+  
   // Methods for zero length encoding (zero suppression) readout
 
   int MallocZLEWaveforms(void **Waveforms, uint32_t *Size) {return CAEN_DGTZ_MallocZLEWaveforms(BoardHandle, Waveforms, Size);}

@@ -14,6 +14,7 @@
 
 // C++
 #include <vector>
+#include <map>
 using namespace std;
 
 // Boost 
@@ -75,6 +76,9 @@ public:
   int GetPolarity(int, uint16_t *);
   uint16_t GetPolarity(int);
 
+  string GetPolarityString(int);
+  int SetPolarityString(int, string);
+
   // Get individual channel temperature
   int GetTemperature(int, uint16_t *);
   uint16_t GetTemperature(int);
@@ -94,13 +98,16 @@ public:
 private:
   int NumChannels, MinChannel, MaxChannel;
   int MaxVoltage, MaxCurrent;
-
+  
   const int volts2input, microamps2input;
-
+  
   vector<uint16_t> ChannelSetVoltage; // [V]
   vector<uint16_t> ChannelSetCurrent; // [uA]
   vector<uint16_t> ChannelPowerState;
-  vector<uint16_t> ChannelPolarity;
+  vector<int16_t> ChannelPolarity;
+  vector<string> ChannelPolarityString;
+
+  map<int,string> TypeToName;
 };
 
 #endif

@@ -45,10 +45,10 @@ have no liability for direct, indirect, or other undesirable
 consequences of any character that may result from the use of this
 source code. This may include - but is not limited - to irrevocable
 changes to the user's firmware, software, hardware, or data. By your
-use of **ADAQAcquisition**, you implicitly agree to absolve the
-author(s) of any liability whatsoever. The reader is encouraged to
-consult the **ADAQAcquisition** User's Guide and is advised that the
-use of this source code is at his or her own risk.
+use of **ADAQ**, you implicitly agree to absolve the author(s) of any
+liability whatsoever. The reader is encouraged to consult the **ADAQ**
+User's Guide and is advised that the use of this source code is at his
+or her own risk.
 
 The **CAEN** libraries - which are distributed (a) for the user's
 convenience and (b) to ensure version compatibility - are also

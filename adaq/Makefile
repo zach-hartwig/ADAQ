@@ -71,7 +71,7 @@ SRCDIR = src
 CXXFLAGS += -I$(INCLDIR)/
 
 # Specify all the ADAQ header files
-INCLS = $(wildcard $(INCLDIR)*.hh)
+INCLS = $(wildcard $(INCLDIR)/*.hh)
 
 # Specify all object files (to be built in the build/ directory)
 SRCS = $(wildcard $(SRCDIR)/*.cc)

@@ -58,8 +58,13 @@ extern "C" {
 using namespace V6534Registers;
 
 
-ADAQHighVoltage::ADAQHighVoltage(ZBoardType Type, int ID, uint32_t Address)
-  : ADAQVBoard(Type, ID, Address),
+ADAQHighVoltage::ADAQHighVoltage(ZBoardType Type,  // ADAQ-specific device type identifier
+				 int ID,           // ADAQ-specific user-specified device ID
+				 uint32_t Address, // 8 hex digitizer VME base address
+				 int BN,           // USB link number
+				 int CN)           // CONET node ID
+
+  : ADAQVBoard(Type, ID, Address, BN, CN),
     NumChannels(0), MaxVoltage(0), MaxCurrent(0),
     
     // The desired channel voltage (in volts) must be set in the

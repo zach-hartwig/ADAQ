@@ -73,7 +73,7 @@ class ADAQDigitizer : public ADAQVBoard
 {
 
 public:
-  ADAQDigitizer(ZBoardType, int, uint32_t);
+  ADAQDigitizer(ZBoardType, int, uint32_t, int, int);
   ~ADAQDigitizer();
 
 

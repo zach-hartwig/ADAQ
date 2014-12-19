@@ -47,8 +47,13 @@ extern "C" {
 #include "ADAQBridge.hh"
 
 
-ADAQBridge::ADAQBridge(ZBoardType Type, int ID, uint32_t Address)
-  : ADAQVBoard(Type, ID, Address)
+ADAQBridge::ADAQBridge(ZBoardType Type,  // ADAQ-specific device type identifier
+		       int ID,           // ADAQ-specific user-specified ID
+		       uint32_t Address, // 8 hex digit VME base address (default == 0x0))
+		       int LN,           // USB link number (default == 0)
+		       int CN)           // CONET node ID (default == 0)
+
+  : ADAQVBoard(Type, ID, Address, LN, CN)
 {
   if(Type == zV1718){
     BoardName = "V1718";
@@ -75,10 +80,10 @@ int ADAQBridge::OpenLinkDirectly()
 	   << endl;
   }
   else
-    CommandStatus = CAENVME_Init(cvV1718, 
-				 0, 
-				 0, 
-				 &BoardHandle);
+    CommandStatus = CAENVME_Init(cvV1718,         // CAEN-specified VME bridge model
+				 0,               // Not used
+				 BoardLinkNumber, // USB link number
+				 &BoardHandle); 
   
   if(CommandStatus == CAENComm_Success){
 

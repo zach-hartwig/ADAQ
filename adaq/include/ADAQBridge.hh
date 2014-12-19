@@ -64,7 +64,7 @@ class ADAQBridge : public ADAQVBoard
 {
   
 public:
-  ADAQBridge(ZBoardType, int, uint32_t Address = 0x00000000);
+  ADAQBridge(ZBoardType, int, uint32_t = 0x00000000, int = 0, int = 0);
   ~ADAQBridge();
   
   ///////////////////////////////////////////////

@@ -99,8 +99,12 @@ namespace ZLE{
 using namespace ZLE;
 
 
-ADAQDigitizer::ADAQDigitizer(ZBoardType Type, int ID, uint32_t Address)
-  : ADAQVBoard(Type, ID, Address),
+ADAQDigitizer::ADAQDigitizer(ZBoardType Type,  // ADAQ-specific device type identifier
+			     int ID,           // ADAQ-specific user-specified ID
+			     uint32_t Address, // 8 hex digit VME base address
+			     int LN,           // USB link number
+			     int CN)           // CONET node ID
+  : ADAQVBoard(Type, ID, Address, LN, CN),
     NumChannels(0), NumADCBits(0), MinADCBit(0), MaxADCBit(0),
     ZLEStartWord(0), ZLEWordCounter(0)
     //Buffer_Py(NULL), EventPointer_Py(NULL), EventWaveform_Py(Null)
@@ -122,8 +126,8 @@ int ADAQDigitizer::OpenLink()
   }
   else{
     CommandStatus = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_USB, 
-					    0, 
-					    0, 
+					    BoardLinkNumber,
+					    BoardCONETNode,
 					    BoardAddress,
 					    &BoardHandle);
   }
@@ -139,6 +143,8 @@ int ADAQDigitizer::OpenLink()
       
       std::cout << "ADAQDigitizer[" << BoardID << "] : Link successfully established!\n"
 		<< "--> Type     : " << BoardInformation.ModelName << "\n"
+		<< "--> USB link : " << BoardLinkNumber << "\n"
+		<< "--> CONET ID : " << BoardCONETNode << "\n"
 		<< "--> Address  : 0x" << std::setw(8) << std::setfill('0') << std::hex << BoardAddress << "\n"
 		<< "--> User ID  : " << std::dec << BoardID << "\n"
 		<< "--> Handle   : " << BoardHandle << "\n"

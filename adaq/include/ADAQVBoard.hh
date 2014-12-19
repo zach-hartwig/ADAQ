@@ -43,6 +43,7 @@ enum ZBoardType{
   zV1720,
   zV1724,
   zDT5720,
+  zDT5730,
   
   // High voltage boards
   zV6533M,
@@ -59,10 +60,12 @@ class ADAQVBoard
 {
   
 public:
-  ADAQVBoard(ZBoardType T, int ID, uint32_t A){
+  ADAQVBoard(ZBoardType T, int ID, uint32_t A, int LN, int CN){
     BoardType = T;
     BoardID = ID;
     BoardAddress = A;
+    BoardLinkNumber = LN;
+    BoardCONETNode = CN;
     
     BoardHandle = -42;
     LinkEstablished = false;
@@ -91,21 +94,29 @@ public:
 
   // Standard methods to manipulate and retrieve member data
 
+  // An ADAQ-specific VME/desktop unit identifier
+  void SetBoardType(ZBoardType BT) {BoardType = BT;}
+  ZBoardType GetBoardType() {return BoardType;}
+
+    // An ADAQ-specific user-specified ID for the board
+  void SetBoardID(int BID) {BoardID = BID;}
+  int GetBoardID() {return BoardID;}
+
   // The VME board/desktop digitizer address
   void SetBoardAddress(uint32_t BA) {BoardAddress = BA;}
-  int GetBoardAddress() {return BoardAddress;}
+  uint32_t GetBoardAddress() {return BoardAddress;}
+
+  // The USB port number assigned to VME/desktop unit
+  void SetBoardLinkNumber(int BLN) {BoardLinkNumber = BLN;}
+  int GetBoardLinkNumber() {return BoardLinkNumber;}
+  
+  // The CONET node ID of the VME/desktop unit
+  void SetBoardCONETNode(int BCN) {BoardCONETNode = BCN;}
+  int GetBoardCONETNode() {return BoardCONETNode;}
   
   // The VME board/desktop digitizer handle
   void SetBoardHandle(int BH) {BoardHandle = BH;}
   int GetBoardHandle() {return BoardHandle;}
-
-  // A unique user-specified ID for the board
-  void SetBoardID(int BID) {BoardID = BID;}
-  int GetBoardID() {return BoardID;}
-
-  // An ADAQ specific VME/desktop unit identifier
-  void SetBoardType(ZBoardType BT) {BoardType = BT;}
-  ZBoardType GetBoardType() {return BoardType;}
 
   // Bool for PC - VME board/desktop digitizer connection
   void SetLinkEstablished(bool LE) {LinkEstablished = LE;}
@@ -129,6 +140,12 @@ protected:
   // The user-assigned address in VME space (corresponds to physical
   // potentiometer settings on VME board)
   uint32_t BoardAddress;
+
+  // The PC-assigned USB port number of the device
+  int BoardLinkNumber;
+
+  // The user-assignedCONET node ID within set of optically daisy-chained devices
+  int BoardCONETNode;
 
   // The CAEN-assigned board handle
   int BoardHandle;

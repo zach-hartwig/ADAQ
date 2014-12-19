@@ -42,6 +42,7 @@
 // C++
 #include <vector>
 #include <map>
+#include <string>
 using namespace std;
 
 // Boost 
@@ -55,7 +56,7 @@ class ADAQHighVoltage : public ADAQVBoard
 {
   
 public:
-  ADAQHighVoltage(ZBoardType, int, uint32_t);
+  ADAQHighVoltage(ZBoardType, int, uint32_t, int, int = 0);
   ~ADAQHighVoltage();
   
   /////////////////////////////////////////////////

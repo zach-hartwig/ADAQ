@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
 // name: ADAQRootEvent.hh
-// date: 19 Dec 14
+// date: 23 Dec 14
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 // 
@@ -27,18 +27,17 @@
 
 #include <vector>
 
-class ADAQEvent : public TObject
+class ADAQRootEvent : public TObject
 {
 public:
-
-  ADAQEvent() {Initialize();}
-  ~ADAQEvent();
-
+  ADAQRootEvent(){Initialize();}
+  ~ADAQRootEvent(){};
+  
   // Method to initialize/reset all member data
   void Initialize(){
     EventID = RunID = 0;
-    TotalEDep = 0.;
-    PhotonsCreated = PhotonDetected = 0;
+    EnergyDep = 0.;
+    PhotonsCreated = PhotonsDetected = 0;
     PhotonCreationTime.clear();
     PhotonDetectionTime.clear();
     VertexPos[0] = VertexPos[1] = VertexPos[2] = 0.;
@@ -56,8 +55,8 @@ public:
   Int_t GetRunID() {return RunID;}
 
   // The total ionizing energy deposited
-  void SetTotalEDep(Double_t TED) {TotalEDep = TED;}
-  Double_t GetTotalEDep() {return TotalEDep;}
+  void SetEnergyDep(Double_t ED) {EnergyDep = ED;}
+  Double_t GetEnergyDep() {return EnergyDep;}
 
   // The number of scintillation/Cerenkov photons created
   void SetPhotonsCreated(Int_t PC) {PhotonsCreated = PC;}
@@ -70,12 +69,12 @@ public:
   // Control of vector of scintillation/Cerenkov photon creation time
   void AddPhotonCreationTime(Double_t PCT) {PhotonCreationTime.push_back(PCT);}
   void ClearPhotonCreationTime() {PhotonCreationTime.clear();}
-  vector<Double_t> GetPhotonCreationTime() {return PhotonCreationTime;}
+  std::vector<Double_t> GetPhotonCreationTime() {return PhotonCreationTime;}
 
   // Control of vector of scintillation/Cerenkov photon detection time
   void AddPhotonDetectionTime(Double_t PDT) {PhotonDetectionTime.push_back(PDT);}
   void ClearPhotonDetectionTime() {PhotonDetectionTime.clear();}
-  vector<Double_t> GetPhotonDetectionTime() {return PhotonDetectionTime;}
+  std::vector<Double_t> GetPhotonDetectionTime() {return PhotonDetectionTime;}
 
   // The position of the vertex (track ID == 0) particle
   void SetVertexPos(Double_t VX, Double_t VY, Double_t VZ)
@@ -83,7 +82,7 @@ public:
 
   // The momentum direction of the vertex particle
   void SetVertexMomDir(Double_t PX, Double_t PY, Double_t PZ)
-  {VertexMomDir[0] = PX; VertexMomDir[1] = PY; VertexPosDir[2] = PZ;}
+  {VertexMomDir[0] = PX; VertexMomDir[1] = PY; VertexMomDir[2] = PZ;}
 
   // The kinetic energy of the vertex particle particle
   void SetVertexKE(Double_t VKE) {VertexKE = VKE;}
@@ -100,13 +99,13 @@ private:
   Int_t EventID, RunID;
 
   // Generic detector data
-  Double_t TotalEDep;
+  Double_t EnergyDep;
 
   // Scintillation/Cerenkov photon data
-  Int_t photonsCreated;
-  Int_t photonsDetected;
-  vector<Double_t> photonCreationTime;
-  vector<double_t> photonDetectionTime;
+  Int_t PhotonsCreated;
+  Int_t PhotonsDetected;
+  std::vector<Double_t> PhotonCreationTime;
+  std::vector<Double_t> PhotonDetectionTime;
 
   // Vertex particle (event track ID == 0) data
   Double_t VertexPos[3];
@@ -114,5 +113,7 @@ private:
   Double_t VertexKE;
   Int_t VertexPCode;
 
-  ClassDef(ADAQEvent, 1);
+  ClassDef(ADAQRootEvent, 1);
 };
+
+#endif

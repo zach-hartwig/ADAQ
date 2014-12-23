@@ -25,4 +25,3 @@
 #pragma link C++ class ADAQSimulationReadout+;
 
 #endif
-

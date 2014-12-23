@@ -93,7 +93,7 @@ DESTLIB = $(ADAQHOME)/lib/$(ARCH)
 
 $(TARGET) : $(OBJS) $(INCLS)
 	@echo -e "\nBuilding $@ ..."
-	$(CXX) $(CXXFLAGS) -g $(OBJS) -shared -o $@ 
+	$(CXX) $(CXXFLAGS) -g $(OBJS) $(ROOTLIBS) -shared -o $@ 
 	@echo -e "\n$@ build is complete!\n"
 
 $(BUILDDIR)/%.o : $(SRCDIR)/%.cc $(INCLS)

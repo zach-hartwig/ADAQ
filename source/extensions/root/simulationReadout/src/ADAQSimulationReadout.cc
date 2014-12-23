@@ -16,7 +16,7 @@ void ADAQSimulationReadout::CreateEventTree(std::string Name,
 					    ADAQSimulationEvent *Evt)
 {
   TTree *T = new TTree(Name.c_str(), Desc.c_str());
-  T->Branch("ADAQRootEvent", "An ADAQRootEvent branch", &Evt, 32000, 99);
+  T->Branch("ADAQSimulationEvent_Branch", "ADAQSimulationEvent", &Evt, 32000, 99);
   EventTreeList->Add(T);
 }
 
@@ -39,8 +39,7 @@ void ADAQSimulationReadout::ListEventTrees()
 {
   TIter It(EventTreeList);
   TTree *T;
-  while(T = (TTree *)It.Next()){
+  while((T = (TTree *)It.Next())){
     std::cout << "Tree name: " << T->GetName() << std::endl;
   }
 }
-

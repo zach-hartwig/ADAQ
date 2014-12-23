@@ -15,7 +15,7 @@
 //       ROOT data types to ensure compatibility with post-simulation
 //       analysis tools built using ROOT and for portability between
 //       platforms. 
-
+//
 /////////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ADAQSimulationEvent_hh__ 

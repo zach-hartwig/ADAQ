@@ -122,8 +122,8 @@ clean:
 
 # Install libs and headers into top-level ADAQ directory
 install:
-	@echo -e "\nInstalling ADAQ libraries in \$ADAQ/lib/$(ARCH) ..."
+	@echo -e "\nInstalling ADAQ libraries in $ADAQ/lib/$(ARCH) ..."
 	@cp -v $(TARGET) $(DESTLIB)
-	@echo -e "\nInstalling ADAQ headers in \$ADAQ/include ..."
+	@echo -e "\nInstalling ADAQ headers in $ADAQ/include ..."
 	@cp -v include/* $(DESTINCL)
 	@echo -e ""

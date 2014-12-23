@@ -64,7 +64,6 @@ endif
 # Specify the directories
 BUILDDIR = build
 INCLDIR = include
-LIBDIR = lib/$(ARCH)
 SRCDIR = src
 
 # Add ADAQ headers to compiler include path
@@ -79,12 +78,12 @@ TMP = $(patsubst %.cc,%.o,$(SRCS))
 OBJS = $(subst src/,build/,$(TMP))
 
 # Specify the CAEN libraries (included with ADAQ source)
-CAENLIBDIR = -L../caen/lib/$(ARCH)
+CAENLIBDIR = -L../../lib/$(ARCH)
 CAENLIBS = -lCAENVME -lCAENComm -lCAENDigitizer -lncurses -lc -lm
 LDFLAGS = $(CAENLIBDIR) $(CAENLIBS)
 
 # Specify the CAEN header files (included with ADAQ source) and Linux flag
-CAENINCLDIR = -I../caen/include
+CAENINCLDIR = -I../../include
 CAENFLAGS = -DLINUX
 CXXFLAGS += $(CAENINCLDIR) $(CAENFLAGS)
 
@@ -169,8 +168,8 @@ clean:
 
 # Install libs and headers to general directory
 install:
-	@echo -e "\nInstalling ADAQ libraries in ../lib/$(ARCH) ..."
-	@cp -v $(CXXTARGET) $(PYTARGET) ../lib/$(ARCH)
-	@echo -e "\nInstalling ADAQ headers in ../include ..."
-	@cp -v include/* ../include
+	@echo -e "\nInstalling ADAQ libraries in \$ADAQ/lib/$(ARCH) ..."
+	@cp -v $(CXXTARGET) $(PYTARGET) ../../lib/$(ARCH)
+	@echo -e "\nInstalling ADAQ headers in \$ADAQ/include ..."
+	@cp -v include/* ../../include
 	@echo -e ""

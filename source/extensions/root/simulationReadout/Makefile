@@ -125,5 +125,5 @@ install:
 	@echo -e "\nInstalling ADAQ libraries in $ADAQ/lib/$(ARCH) ..."
 	@cp -v $(TARGET) $(DESTLIB)
 	@echo -e "\nInstalling ADAQ headers in $ADAQ/include ..."
-	@cp -v include/* $(DESTINCL)
+	@cp -v include/*.hh $(DESTINCL)
 	@echo -e ""

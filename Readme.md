@@ -1,4 +1,4 @@
-![AIMS Logo](doc/figures/AIMSLogo_BoldPastelColors.png "Accelerator-based In-situ Materials Surveillance")  
+![AIMS Logo](ref/doc/figures/AIMSLogo_BoldPastelColors.png "Accelerator-based In-situ Materials Surveillance")  
 **A**ccelerator-based **I**n-situ **M**aterials **S**urveillance
 
 ## The ADAQ Libraries ##
@@ -108,7 +108,7 @@ The following contains an overview of the ADAQ directories:
 
 #### ADAQ directory ####
 
-The ADAQ libraries serve two main functions: first, to wrap all
+The main ADAQ library serves two main functions: first, to wrap all
 CAENDigitizer library functions with a more intuitive and consistent
 function style; second to provide a set of powerful enhanced methods
 for programming, operating, and readout of CAEN data acquisition
@@ -117,16 +117,18 @@ pieces of CAEN hardware (*e.g.* the ADAQDigitizer class provides an
 interface to support CAEN desktop and VME digitizers). Additionally,
 the ADAQPythonWrapper class uses Boost.Python to wrap all C++ classes
 such that the user has the additional option of seamless Python
-interface without the need to rewrite any code.
+interface without the need to rewrite any code. 
 
-All of the above is compiled into two shared object libraries :
-"libADAQ.so" provides the C++ interface methods while "libPyDAQ.so"
-provides the Python inteface methods. A GNU makefile control the
-library building. 
+The source code for the main ADAQ library is found in
+$ADAQ/source/adaq. The code is compiled into two shared object
+libraries : "libADAQ.so" provides the C++ interface methods while
+"libPyDAQ.so" provides the Python inteface methods. A GNU makefile
+control the library building.
+
 
 #### CAEN directory ####
 
-The $ADAQ/caen directory contains an assortment of useful CAEN
+The $ADAQ/ref/caen directory contains an assortment of useful CAEN
 drivers, firmware, and software that are - in most cases - required to
 work with the ADAQ libraries and - in a few cases - provided simply
 for convenience. The purpose of including the CAEN software libraries
@@ -141,33 +143,34 @@ files. Second, this ensures that ADAQ is always associated with
 specific version of the CAEN software libraries for compatibility and
 consistency.
 
-At present, the following CAEN libraries are used with ADAQ:  
+At present, the following, most up-to-date CAEN libraries have been
+tested succesfully used with the ADAQ libraries:
  - CAENComm-1.2.0 (Dec 2013)
  - CAENVMELib-2.41.0 (Mar 2013)
  - CAENDigitizer-2.6.0 (Sept 2014)
 
 #### Directory structure ####
 
- - **adaq/** : The ADAQ library source code
+ - **include/** : The main directory for all ADAQ and CAEN header files
 
- - **caen/** : CAEN drivers, firmware, and software used as part of ADAQ
-    - **libs/** : up-to-date libraries (CAEMComm, CAENDigitizer, CAENVMELib)
-    - **include/** : up-to-date headers files for above libraries
-    - **ref/** : includes all original CAEN sources, manual, notes, etc
+ - **lib/** : The main library directory for the ADAQ and CAEN libraries  
+   - **i686/** : 32-bit libraries
+   - **x86_64** : 64-bit libraries
+
+ - **ref/** : Useful references, archival material, and documentation
+    - **caen/** : CAEN drivers, firmware, and software used as part of ADAQ
         - **drivers/** : Linux drivers for the VME-USB connection
         - **firmware/** : firmware for the V1718, V1720 VME boards
         - **libraries/** : contains CAENComm, CAENDigitizer, and CAENVME libraries
-	- **manuals/** : presently useful CAEN manuals
-	- **notes/** : useful notes
-	- **software/** : CAEN-distributed binary software (e.g. CAENUpgrader tool)
+        - **manuals/** : presently useful CAEN manuals
+        - **notes/** : useful notes
+        - **software/** : CAEN-distributed binary software (e.g. CAENUpgrader tool)
 
- - **lib/** : The main library directory for the ADAQ and CAEN libraries;
-    - **i686/** : 32-bit libraries
-    - **x86_64** : 64-bit libraries
+    - **doc/** : Future home of ADAQ manual
 
- - **include/** : The main directory for ADAQ and CAEN header files
-
- - **root/** : ROOT classes for general data storage and graphical user interfaces.
+ - **source/** : ADAQ source code
+   - **adaq/** : Main ADAQ libraries for interfacing with CAEN hardware 
+   - **extensions/**: C++ and ROOT-specific extension libraries
 
  - **scripts/** : Bash scripts for installation and setup of ADAQ 
 

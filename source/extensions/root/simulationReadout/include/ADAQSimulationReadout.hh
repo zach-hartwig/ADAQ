@@ -19,7 +19,7 @@
 //       can be integrated with the ROOT toolkit.
 //
 // 2use: The user should fill an ADAQSimulationEvent concrete object
-//       at the end of each simulated event, and an ADAQSimultionRun
+//       at the end of each simulated event, and an ADAQSimulationRun
 //       concrete object at the end of each simulation run. These
 //       objects can be stored within this class using ROOT's
 //       TCollection-derived "TList" class. After the simulation is
@@ -34,6 +34,7 @@
 
 #include <TObject.h>
 #include <TList.h>
+#include <TString.h>
 #include <TTree.h>
 
 #include <string>
@@ -51,33 +52,49 @@ public:
 
   void PopulateMetadata();
 
-  void CreateEventTree(Int_t, std::string, std::string, ADAQSimulationEvent *);
-  void RemoveEventTree(std::string);
-  void RemoveEventTree(Int_t);
+  // Action methods for the Event TTrees
+
+  ADAQSimulationEvent *CreateEventTree(Int_t, TString, TString);
+  void AddEventTree(Int_t, TTree *);
+  void ListEventTrees();
   TTree *GetEventTree(std::string);
   TTree *GetEventTree(Int_t);
-  void ListEventTrees();
-  Int_t GetNumberOfEventTrees();
   Int_t GetEventTreeID(std::string);
   std::string GetEventTreeName(Int_t);
+  Int_t GetNumberOfEventTrees();
+  void RemoveEventTree(std::string);
+  void RemoveEventTree(Int_t);
+  void WriteEventTrees();
 
-  void AddRunSummary(ADAQSimulationRun *);
-  ADAQSimulationRun *GetRunSummary(Int_t);
-  Int_t GetNumberOfRunSummaries();
-  void ListRunSummaries();
+  // Action methods for the Runs
 
+  void AddRun(ADAQSimulationRun *);
+  ADAQSimulationRun *GetRun(Int_t);
+  Int_t GetNumberOfRuns();
+  void ListRuns();
+
+  // Set/Get methods for class member data
+
+  TString GetMachineName() {return MachineName->GetString();}
+  TString GetMachineUser() {return MachineUser->GetString();}
+  TString GetFileDate() {return FileDate->GetString();}
+  TString GetFileVersion() {return FileVersion->GetString();}
+
+  TList *GetEventTreeList() {return EventTreeList;}
+  TList *GetRunList() {return RunList;}
+
+  void WriteToFile();
   
 private:
   // Metadata
-  std::string MachineName, MachineUser;
-  time_t FileCreationTime;
+  TObjString *MachineName, *MachineUser;
+  TObjString *FileDate, *FileVersion;
 
-  Int_t EventTreeID;  
   TList *EventTreeList;
   std::map<Int_t, std::string> EventTreeNameMap;
   std::map<std::string, Int_t> EventTreeIDMap;
 
-  TList *RunSummaryList;
+  TList *RunList;
 
   ClassDef(ADAQSimulationReadout, 1);
 };

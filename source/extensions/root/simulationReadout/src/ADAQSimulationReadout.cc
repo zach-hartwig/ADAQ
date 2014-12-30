@@ -29,7 +29,6 @@
 //
 /////////////////////////////////////////////////////////////////////////////////
 
-
 #include <iostream>
 #include <sys/unistd.h>
 
@@ -37,7 +36,7 @@
 
 ADAQSimulationReadout::ADAQSimulationReadout()
   : EventTreeList(new TList), 
-    RunSummaryList(new TList)
+    RunList(new TList)
 { PopulateMetadata(); }
 
 
@@ -51,10 +50,13 @@ void ADAQSimulationReadout::PopulateMetadata()
   gethostname(Host, sizeof Host);
   getlogin_r(User, sizeof User);
 
-  MachineName = Host;
-  MachineUser = User;
+  MachineName = new TObjString(Host);
+  MachineUser = new TObjString(User);
 
-  FileCreationTime = time(0);
+  time_t RawTime;
+  time(&RawTime);
+  FileDate = new TObjString(ctime(&RawTime));
+  FileVersion = new TObjString("1.0");
 }
 
 
@@ -63,16 +65,28 @@ void ADAQSimulationReadout::PopulateMetadata()
 // Methods for ADAQSimulationEvent objects //
 /////////////////////////////////////////////
 
-void ADAQSimulationReadout::CreateEventTree(Int_t ID,
-					    std::string Name,
-					    std::string Desc,
-					    ADAQSimulationEvent *Evt)
+ADAQSimulationEvent *ADAQSimulationReadout::CreateEventTree(Int_t ID,
+							    TString Name,
+							    TString Desc)
 {
-  TTree *T = new TTree(Name.c_str(), Desc.c_str());
-  T->Branch("ADAQSimulationEvent_Branch", "ADAQSimulationEvent", &Evt, 32000, 99);
+  ADAQSimulationEvent *Event = new ADAQSimulationEvent;
+
+  TTree *T = new TTree(Name, Desc);
+  T->Branch("ADAQSimulationEventBranch", "ADAQSimulationEvent", Event, 32000, 99);
   
-  EventTreeIDMap[Name] = ID;
-  EventTreeNameMap[ID] = Name;
+  EventTreeIDMap[(std::string)Name] = ID;
+  EventTreeNameMap[ID] = (std::string)Name;
+  
+  EventTreeList->Add(T);
+
+  return Event;
+}
+
+void ADAQSimulationReadout::AddEventTree(Int_t ID,
+					 TTree *T)
+{
+  EventTreeIDMap[T->GetName()] = ID;
+  EventTreeNameMap[ID] = T->GetName();
   
   EventTreeList->Add(T);
 }
@@ -110,6 +124,15 @@ void ADAQSimulationReadout::ListEventTrees()
 }
 
 
+void ADAQSimulationReadout::WriteEventTrees()
+{
+  TIter It(EventTreeList);
+  TTree *T;
+  while((T = (TTree *)It.Next()))
+    T->Write();
+}
+
+
 Int_t ADAQSimulationReadout::GetNumberOfEventTrees()
 { return EventTreeList->GetSize(); }
 
@@ -127,17 +150,28 @@ std::string ADAQSimulationReadout::GetEventTreeName(Int_t ID)
 ///////////////////////////////////////////
 
 
-void ADAQSimulationReadout::AddRunSummary(ADAQSimulationRun *Run)
-{ RunSummaryList->Add(Run); }
+void ADAQSimulationReadout::AddRun(ADAQSimulationRun *Run)
+{ RunList->Add(Run); }
 
 
-ADAQSimulationRun *ADAQSimulationReadout::GetRunSummary(Int_t ID)
-{ return (ADAQSimulationRun *)RunSummaryList->At(ID); }
+ADAQSimulationRun *ADAQSimulationReadout::GetRun(Int_t ID)
+{ return (ADAQSimulationRun *)RunList->At(ID); }
 
 
-Int_t ADAQSimulationReadout::GetNumberOfRunSummaries()
-{ return RunSummaryList->GetSize(); }
+Int_t ADAQSimulationReadout::GetNumberOfRuns()
+{ return RunList->GetSize(); }
 
 
-void ADAQSimulationReadout::ListRunSummaries()
+void ADAQSimulationReadout::ListRuns()
 {;}
+
+
+void ADAQSimulationReadout::WriteToFile()
+{
+  MachineName->Write("MachineName");
+  MachineUser->Write("MachineUser");
+  FileDate->Write("FileDate");
+  FileVersion->Write("FileVersion");
+
+  EventTreeList->Write();
+}

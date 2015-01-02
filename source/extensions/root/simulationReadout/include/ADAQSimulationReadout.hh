@@ -50,7 +50,10 @@ public:
   ADAQSimulationReadout();
   ~ADAQSimulationReadout();
 
+  // Action methods for metadata objects
+
   void PopulateMetadata();
+  void WriteMetadata();
 
   // Action methods for the Event TTrees
 
@@ -72,6 +75,7 @@ public:
   ADAQSimulationRun *GetRun(Int_t);
   Int_t GetNumberOfRuns();
   void ListRuns();
+  void WriteRuns();
 
   // Set/Get methods for class member data
 

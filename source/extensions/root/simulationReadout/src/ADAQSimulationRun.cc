@@ -21,7 +21,7 @@
 
 
 ADAQSimulationRun::ADAQSimulationRun()
-  : RunID(0), 
+  : RunID(0), TotalEvents(0),
     ParticlesIncident(0), ParticlesBetweenThresholds(0),
     DetectorLowerThresholdInMeV(0.), DetectorUpperThresholdInMeV(1000000.),
     PhotonsCreated(0), PhotonsDetected(0)
@@ -34,6 +34,7 @@ ADAQSimulationRun::~ADAQSimulationRun()
 
 void ADAQSimulationRun::Reset()
 {
+  RunID = TotalEvents = 0;
   ParticlesIncident = ParticlesBetweenThresholds = 0;
   PhotonsCreated = PhotonsDetected;
 }

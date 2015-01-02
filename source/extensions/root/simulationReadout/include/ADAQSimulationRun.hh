@@ -41,6 +41,9 @@ public:
   void SetRunID(Int_t RID) {RunID = RID;}
   Int_t GetRunID() {return RunID;}
 
+  void SetTotalEvents(Int_t TE) {TotalEvents  = TE;}
+  Int_t GetTotalEvents() {return TotalEvents;}
+
   void SetParticlesIncident(Int_t DI) {ParticlesIncident = DI;}
   void AddToParticlesIncident(Int_t DI) {ParticlesIncident += DI;}
   Int_t GetParticlesIncident() {return ParticlesIncident;}
@@ -64,11 +67,9 @@ public:
   Int_t GetPhotonsDetected() {return PhotonsDetected;}
   
 private:
-  Int_t RunID;
-  
+  Int_t RunID, TotalEvents;
   Int_t ParticlesIncident, ParticlesBetweenThresholds;
   Double_t DetectorLowerThresholdInMeV, DetectorUpperThresholdInMeV;
-  
   Int_t PhotonsCreated, PhotonsDetected;
   
   ClassDef(ADAQSimulationRun, 1);

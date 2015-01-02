@@ -30,6 +30,7 @@
 /////////////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
+#include <sstream>
 #include <sys/unistd.h>
 
 #include "ADAQSimulationReadout.hh"
@@ -59,6 +60,14 @@ void ADAQSimulationReadout::PopulateMetadata()
   FileVersion = new TObjString("1.0");
 }
 
+
+void ADAQSimulationReadout::WriteMetadata()
+{
+  MachineName->Write("MachineName");
+  MachineUser->Write("MachineUser");
+  FileDate->Write("FileDate");
+  FileVersion->Write("FileVersion");
+}
 
 
 /////////////////////////////////////////////
@@ -163,15 +172,34 @@ Int_t ADAQSimulationReadout::GetNumberOfRuns()
 
 
 void ADAQSimulationReadout::ListRuns()
-{;}
+{
+  TIter It(RunList);
+  ADAQSimulationRun *R;
+  while((R = (ADAQSimulationRun *)It.Next())){
+  }
+}
+
+void ADAQSimulationReadout::WriteRuns()
+{
+  TIter It(RunList);
+  ADAQSimulationRun *R;
+  while((R = (ADAQSimulationRun *)It.Next())){
+    std::stringstream SS;
+    SS << "Run" << R->GetRunID();
+    TString Name = SS.str();
+    R->Write(Name);
+  }
+}
 
 
 void ADAQSimulationReadout::WriteToFile()
 {
-  MachineName->Write("MachineName");
-  MachineUser->Write("MachineUser");
-  FileDate->Write("FileDate");
-  FileVersion->Write("FileVersion");
-
+  // Write the metadata
+  WriteMetadata();
+  
+  // Write out each individual tree in the EventTreeList
   EventTreeList->Write();
+  
+  // Write out each of the run objects in the RunList
+  WriteRuns();
 }

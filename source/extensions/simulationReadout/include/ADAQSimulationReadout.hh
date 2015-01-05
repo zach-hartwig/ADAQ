@@ -36,6 +36,7 @@
 #include <TList.h>
 #include <TString.h>
 #include <TTree.h>
+#include <TFile.h>
 
 #include <string>
 #include <map>
@@ -49,6 +50,15 @@ class ADAQSimulationReadout : public TObject
 public:
   ADAQSimulationReadout();
   ~ADAQSimulationReadout();
+
+  // Action methods for the ROOT TFile
+
+  void CreateSequentialFile(std::string);
+  void CreateParallelFile(std::string, Int_t, Int_t);
+  void GenerateSlaveFileNames();
+  
+  void WriteSequentialFile();
+  void WriteParallelFile();
 
   // Action methods for metadata objects
 
@@ -86,17 +96,29 @@ public:
 
   TList *GetEventTreeList() {return EventTreeList;}
   TList *GetRunList() {return RunList;}
-
-  void WriteToFile();
   
 private:
-  // Metadata
+
+  // ASIM ROOT file objects
+  TFile *ASIMFile;
+  TString ASIMFileName;
+  Bool_t ASIMFileNameSet;
+
+  // Objects to handle optional parallel processing
+  Int_t MPI_Rank, MPI_Size;
+  std::vector<TString> SlaveFileNames;
+
+  // Metadata 
   TObjString *MachineName, *MachineUser;
   TObjString *FileDate, *FileVersion;
+
+  // Objects to handle event-level information
 
   TList *EventTreeList;
   std::map<Int_t, std::string> EventTreeNameMap;
   std::map<std::string, Int_t> EventTreeIDMap;
+
+  // Objects to handle run-level information;
 
   TList *RunList;
 

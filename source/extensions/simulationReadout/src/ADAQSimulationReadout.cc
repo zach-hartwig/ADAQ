@@ -29,6 +29,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////////
 
+#include <TChain.h>
+
 #include <iostream>
 #include <sstream>
 #include <sys/unistd.h>
@@ -36,13 +38,168 @@
 #include "ADAQSimulationReadout.hh"
 
 ADAQSimulationReadout::ADAQSimulationReadout()
-  : EventTreeList(new TList), 
-    RunList(new TList)
+  : ASIMFile(new TFile), ASIMFileName(""), ASIMFileNameSet(false),
+    MPI_Rank(0), MPI_Size(0),
+    EventTreeList(new TList), RunList(new TList)
 { PopulateMetadata(); }
 
 
 ADAQSimulationReadout::~ADAQSimulationReadout()
-{ delete EventTreeList; }
+{
+  //  delete RunList;
+  //  delete EventTreeList;
+  //  delete ASIMFile;
+}
+
+
+void ADAQSimulationReadout::CreateSequentialFile(std::string Name)
+{
+  if(ASIMFile){
+    
+    // Emergency close if the ASIM file is somehow still open
+    if(ASIMFile->IsOpen())
+      ASIMFile->Close();
+    
+    // Release allocated memory for depracated TFile
+    delete ASIMFile;
+  }
+
+  ASIMFileName = Name;
+  ASIMFileNameSet = true;
+  
+  // Recreate a new TFile
+  ASIMFile = new TFile(ASIMFileName, "recreate");
+}
+
+
+void ADAQSimulationReadout::CreateParallelFile(std::string Name,
+					       Int_t Rank,
+					       Int_t Size)
+{
+  if(ASIMFile){
+    
+    // Emergency close if the ASIM file is somehow still open
+    if(ASIMFile->IsOpen())
+      ASIMFile->Close();
+    
+    // Release allocated memory for depracated TFile
+    delete ASIMFile;
+  }
+  
+  std::stringstream SS;
+  SS << Name << ".slave" << Rank;
+
+  ASIMFileName = SS.str();
+  ASIMFileNameSet = true;
+
+  MPI_Rank = Rank;
+  MPI_Size = Size;
+  
+  GenerateSlaveFileNames();
+  
+  ASIMFile = new TFile(ASIMFileName, "recreate");
+}
+
+
+
+
+void ADAQSimulationReadout::GenerateSlaveFileNames()
+{
+  if(!ASIMFileNameSet){
+    // Should generate exception
+    return;
+  }
+
+  SlaveFileNames.clear();
+  for(Int_t rank=0; rank<MPI_Size; rank++){
+
+    std::string Name = ASIMFileName.Data();
+    std::stringstream SS;
+    
+    size_t pos = Name.find("slave");
+    if(pos != std::string::npos){
+      SS << Name.substr(0,pos) << "slave" << rank;
+      SlaveFileNames.push_back((TString)SS.str());
+    }
+    else
+      // Should generate exception
+      {}
+  }
+}
+
+
+void ADAQSimulationReadout::WriteSequentialFile()
+{
+  // Write the metadata
+  WriteMetadata();
+  
+  // Write out each individual tree in the EventTreeList
+  EventTreeList->Write();
+  
+  // Write out each of the run objects in the RunList
+  WriteRuns();
+
+  ASIMFile->Close();
+}
+
+
+void ADAQSimulationReadout::WriteParallelFile()
+{
+  std::string Name = ASIMFileName.Data();
+
+  // All slaves should write out the event TTrees contained on each
+  // slave node to a node-specific ROOT file and then close the file
+  EventTreeList->Write();
+  ASIMFile->Close();
+  ListEventTrees();
+
+  // Only a single process (the master) should handle the aggregation
+  // of slave ROOT files containing the event treesinto a single
+  // master ASIM file that contains all event- and run-level data
+
+  if(MPI_Rank == 0){
+    // Create the master ASIM file name
+    TString FinalFileName = Name.substr(0, Name.find(".slave"));
+    
+    TIter It(EventTreeList);
+    TTree *T;
+    while((T = (TTree *)It.Next())){
+
+      std::cout << T->GetName() << std::endl;
+
+      //      TChain *EventTreeChain = new TChain(T->GetName());
+
+      /*
+      
+      // Add all the node-specific ASIM files to the chain
+      std::vector<TString>::iterator it;
+      for(it = SlaveFileNames.begin(); it != SlaveFileNames.end(); it++){
+	EventTreeChain->Add((*it));
+      }
+      
+      EventTreeChain->Merge(FinalFileName);
+      */
+      
+      //      delete EventTreeChain;
+    }
+    
+    /*
+    // Update the master ASIM file with mandatory ASIM file metadata
+    TFile *FinalFile = new TFile(FinalFileName, "update");
+    WriteMetadata();
+    WriteRuns();
+    FinalFile->Close();
+    delete FinalFile;
+      
+    // Remove the node-specific ASIM files
+    std::vector<TString>::iterator it;
+    for(it = SlaveFileNames.begin(); it != SlaveFileNames.end(); it++){
+      std::string RemoveSlaveFileCmd = "rm -f " + Name;
+      system(RemoveSlaveFileCmd.c_str());
+    }
+    */
+  }
+}
 
 
 void ADAQSimulationReadout::PopulateMetadata()
@@ -189,17 +346,4 @@ void ADAQSimulationReadout::WriteRuns()
     TString Name = SS.str();
     R->Write(Name);
   }
-}
-
-
-void ADAQSimulationReadout::WriteToFile()
-{
-  // Write the metadata
-  WriteMetadata();
-  
-  // Write out each individual tree in the EventTreeList
-  EventTreeList->Write();
-  
-  // Write out each of the run objects in the RunList
-  WriteRuns();
 }

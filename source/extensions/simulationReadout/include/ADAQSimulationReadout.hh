@@ -88,7 +88,9 @@ public:
   void WriteRuns();
 
   // Set/Get methods for class member data
-
+  
+  Bool_t GetASIMFileOpen() {return ASIMFileOpen;}
+  
   TString GetMachineName() {return MachineName->GetString();}
   TString GetMachineUser() {return MachineUser->GetString();}
   TString GetFileDate() {return FileDate->GetString();}
@@ -100,11 +102,11 @@ public:
 private:
 
   // ASIM ROOT file objects
-
+  
   TFile *ASIMFile;
   TString ASIMFileName;
-  Bool_t ASIMFileNameSet;
-
+  Bool_t ASIMFileOpen;
+  
   // Objects to handle optional parallel processing
 
   Int_t MPI_Rank, MPI_Size;

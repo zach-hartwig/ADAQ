@@ -31,7 +31,7 @@
 #include "ADAQSimulationReadout.hh"
 
 ADAQSimulationReadout::ADAQSimulationReadout()
-  : ASIMFile(new TFile), ASIMFileName(""), ASIMFileNameSet(false),
+  : ASIMFile(new TFile), ASIMFileName(""), ASIMFileOpen(false), 
     MPI_Rank(0), MPI_Size(0),
     EventTreeList(new TList), RunList(new TList)
 { PopulateMetadata(); }
@@ -47,21 +47,23 @@ ADAQSimulationReadout::~ADAQSimulationReadout()
 
 void ADAQSimulationReadout::CreateSequentialFile(std::string Name)
 {
-  if(ASIMFile){
+  if(ASIMFileOpen){
+    std::cout << "ADAQSimulationReadout::CreateSequentialFile():\n"
+	      << "  An ASIM file is presently open for data output! A new ASIM file\n"
+	      << "  cannot be opened until the existing ASIM file is written to disk\n"
+	      << "  and closed. Nothing to be done.\n"
+	      << std::endl;
     
-    // Emergency close if the ASIM file is somehow still open
-    if(ASIMFile->IsOpen())
-      ASIMFile->Close();
-    
-    // Release allocated memory for depracated TFile
-    delete ASIMFile;
+    return;
   }
   
   ASIMFileName = Name;
-  ASIMFileNameSet = true;
   
-  // Recreate a new TFile
+  // Recreate a new ROOT TFile for the ASIM file
+  if(ASIMFile) delete ASIMFile;
   ASIMFile = new TFile(ASIMFileName, "recreate");
+
+  ASIMFileOpen = true;
 }
 
 
@@ -69,40 +71,39 @@ void ADAQSimulationReadout::CreateParallelFile(std::string Name,
 					       Int_t Rank,
 					       Int_t Size)
 {
-  if(ASIMFile){
+  if(ASIMFileOpen){
+    std::cout << "ADAQSimulationReadout::CreateParallelFile():\n"
+	      << "  An ASIM file is presently open for data output! A new ASIM file\n"
+	      << "  cannot be opened until the existing ASIM file is written to disk\n"
+	      << "  and closed. Nothing to be done.\n"
+	      << std::endl;
     
-    // Emergency close if the ASIM file is somehow still open
-    if(ASIMFile->IsOpen())
-      ASIMFile->Close();
-    
-    // Release allocated memory for depracated TFile
-    delete ASIMFile;
+    return;
   }
-  
-  std::stringstream SS;
-  SS << Name << ".slave" << Rank;
 
-  ASIMFileName = SS.str();
-  ASIMFileNameSet = true;
-
+  // Set MPI rank and size class members
   MPI_Rank = Rank;
   MPI_Size = Size;
-  
+
+  // Generate names for all slaves ASIM files based on rank
+  std::stringstream SS;
+  SS << Name << ".slave" << Rank;
+  ASIMFileName = SS.str();
   GenerateSlaveFileNames();
   
+  // Recreate slave ASIM files
+  if(ASIMFile) delete ASIMFile;
   ASIMFile = new TFile(ASIMFileName, "recreate");
+  
+  ASIMFileOpen = true;
 }
-
-
 
 
 void ADAQSimulationReadout::GenerateSlaveFileNames()
 {
-  if(!ASIMFileNameSet){
-    // Should generate exception
+  if(!ASIMFileOpen)
     return;
-  }
-
+  
   SlaveFileNames.clear();
   for(Int_t rank=0; rank<MPI_Size; rank++){
 
@@ -123,6 +124,10 @@ void ADAQSimulationReadout::GenerateSlaveFileNames()
 
 void ADAQSimulationReadout::WriteSequentialFile()
 {
+  if(!ASIMFileOpen)
+    return;
+
+
   // Write the metadata
   WriteMetadata();
   
@@ -133,11 +138,16 @@ void ADAQSimulationReadout::WriteSequentialFile()
   WriteRuns();
 
   ASIMFile->Close();
+
+  ASIMFileOpen = false;
 }
 
 
 void ADAQSimulationReadout::WriteParallelFile()
 {
+  if(!ASIMFileOpen)
+    return;
+
   std::string Name = ASIMFileName.Data();
 
   // All slaves should write out the event TTrees contained on each
@@ -205,6 +215,8 @@ void ADAQSimulationReadout::WriteParallelFile()
       system(RemoveSlaveFileCmd.c_str());
     }
   }
+
+  ASIMFileOpen = false;
 }
 
 
@@ -298,6 +310,9 @@ void ADAQSimulationReadout::ListEventTrees()
 
 void ADAQSimulationReadout::WriteEventTrees()
 {
+  if(!ASIMFileOpen)
+    return;
+  
   TIter It(EventTreeList);
   TTree *T;
   while((T = (TTree *)It.Next()))
@@ -344,6 +359,9 @@ void ADAQSimulationReadout::ListRuns()
 
 void ADAQSimulationReadout::WriteRuns()
 {
+  if(!ASIMFileOpen)
+    return;
+
   TIter It(RunList);
   ADAQSimulationRun *R;
   while((R = (ADAQSimulationRun *)It.Next())){

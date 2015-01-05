@@ -168,8 +168,8 @@ clean:
 
 # Install libs and headers to general directory
 install:
-	@echo -e "\nInstalling ADAQ libraries in \$ADAQ/lib/$(ARCH) ..."
-	@cp -v $(CXXTARGET) $(PYTARGET) ../../lib/$(ARCH)
-	@echo -e "\nInstalling ADAQ headers in \$ADAQ/include ..."
-	@cp -v include/* ../../include
+	@echo -e "\nInstalling ADAQ libraries in $(ADAQHOME)/lib/$(ARCH) ..."
+	@cp -v $(CXXTARGET) $(PYTARGET) $(ADAQHOME)/lib/$(ARCH)
+	@echo -e "\nInstalling ADAQ headers in $ADAQ/include ..."
+	@cp -v include/* $(ADAQHOME)/include
 	@echo -e ""

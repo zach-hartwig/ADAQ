@@ -100,15 +100,18 @@ public:
 private:
 
   // ASIM ROOT file objects
+
   TFile *ASIMFile;
   TString ASIMFileName;
   Bool_t ASIMFileNameSet;
 
   // Objects to handle optional parallel processing
+
   Int_t MPI_Rank, MPI_Size;
   std::vector<TString> SlaveFileNames;
 
   // Metadata 
+
   TObjString *MachineName, *MachineUser;
   TObjString *FileDate, *FileVersion;
 

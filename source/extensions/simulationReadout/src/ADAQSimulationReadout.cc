@@ -6,26 +6,19 @@
 // mail: hartwig@psfc.mit.edu
 // 
 // desc: The ADAQSimulationReadout class provides a framework for
-//       reading out simulated detector data into event- and run-level
-//       information class containers. The primary purpose is to
-//       provide a standardized, flexible method for high efficiency
-//       detector data persistency and post-simulation data analysis
-//       using software tools (e.g. the ADAQAnalysis program). The
-//       class combines the ADAQSimulationEvent and ADAQSimultionRun
-//       classes for containerized data storage with ROOT TCollection
-//       objects to facilitate data storage. The class is primarily
-//       developed for use with Geant4 "Sensitive Detectors" but in
-//       principle could be used by any Monte Carlo simulation that
-//       can be integrated with the ROOT toolkit.
+//       reading out simulated detector data into a standardized
+//       format ROOT file (called an ASIM file). THe primary purpose
+//       is to provide a standardized, flexible method for high
+//       efficiency detector data persistency and post-simulation data
+//       analysis using software tools (e.g. the ADAQAnalysis
+//       program). The class utilizes the ADAQSimulationEvent and
+//       ADAQSimultionRun classes for containerized data storage with
+//       ROOT TCollection objects to facilitate data storage. The
+//       class is primarily developed for use with Geant4 "Sensitive
+//       Detectors" but in principle could be used by any Monte Carlo
+//       simulation that can be integrated with the ROOT toolkit.
 //
-// 2use: The user should fill an ADAQSimulationEvent concrete object
-//       at the end of each simulated event, and an ADAQSimultionRun
-//       concrete object at the end of each simulation run. These
-//       objects can be stored within this class using ROOT's
-//       TCollection-derived "TList" class. After the simulation is
-//       complete, the ADAQSimulationReadout class should be written
-//       to a ROOT file with the extension ".asim" to indicate that it
-//       is an ADAQSimulationReadout-formated ROOT file.
+// 2use: 
 //
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -46,9 +39,9 @@ ADAQSimulationReadout::ADAQSimulationReadout()
 
 ADAQSimulationReadout::~ADAQSimulationReadout()
 {
-  //  delete RunList;
-  //  delete EventTreeList;
-  //  delete ASIMFile;
+  delete RunList;
+  delete EventTreeList;
+  delete ASIMFile;
 }
 
 
@@ -63,7 +56,7 @@ void ADAQSimulationReadout::CreateSequentialFile(std::string Name)
     // Release allocated memory for depracated TFile
     delete ASIMFile;
   }
-
+  
   ASIMFileName = Name;
   ASIMFileNameSet = true;
   
@@ -151,7 +144,6 @@ void ADAQSimulationReadout::WriteParallelFile()
   // slave node to a node-specific ROOT file and then close the file
   EventTreeList->Write();
   ASIMFile->Close();
-  ListEventTrees();
 
   // Only a single process (the master) should handle the aggregation
   // of slave ROOT files containing the event treesinto a single
@@ -161,43 +153,57 @@ void ADAQSimulationReadout::WriteParallelFile()
     // Create the master ASIM file name
     TString FinalFileName = Name.substr(0, Name.find(".slave"));
     
-    TIter It(EventTreeList);
-    TTree *T;
-    while((T = (TTree *)It.Next())){
+    // Create a TChain for all existing event TTrees by iterating over
+    // the TTree names stored in the std::map. Because the slave
+    // ASIMFiles have been written and closed at this point, the
+    // TTrees have been purged from ROOT memory so it's easier to just
+    // grab the names from the std::map.
 
-      std::cout << T->GetName() << std::endl;
-
-      //      TChain *EventTreeChain = new TChain(T->GetName());
-
-      /*
+    std::map<Int_t, std::string>::iterator It0;
+    Int_t Index = 0;
+    for(It0 = EventTreeNameMap.begin(); It0!=EventTreeNameMap.end(); It0++){
       
-      // Add all the node-specific ASIM files to the chain
-      std::vector<TString>::iterator it;
-      for(it = SlaveFileNames.begin(); it != SlaveFileNames.end(); it++){
-	EventTreeChain->Add((*it));
+      TChain *EventTreeChain = new TChain(It0->second.c_str());
+
+      std::vector<TString>::iterator It1;
+      for(It1 = SlaveFileNames.begin(); It1 != SlaveFileNames.end(); It1++){
+	EventTreeChain->Add((*It1));
+      }
+
+      // The following method enables multiple TChains to be written
+      // to the final ASIM ROOT file without overwriting each other
+      
+      if(Index == 0)
+	EventTreeChain->Merge(FinalFileName);
+      else{
+	TFile *FinalFile = new TFile(FinalFileName, "update");
+	EventTreeChain->Merge(FinalFile, 0);
       }
       
-      EventTreeChain->Merge(FinalFileName);
-      */
-      
-      //      delete EventTreeChain;
+      delete EventTreeChain;
+
+      Index++;
     }
     
-    /*
-    // Update the master ASIM file with mandatory ASIM file metadata
+    // Update the master ASIM file with file metadata and run-level
+    // data, which is not dependent on the slave ASIM files
+
     TFile *FinalFile = new TFile(FinalFileName, "update");
     WriteMetadata();
     WriteRuns();
+
+    // Write, close, and delete the master ASIM TFile object
     FinalFile->Close();
     delete FinalFile;
       
-    // Remove the node-specific ASIM files
-    std::vector<TString>::iterator it;
-    for(it = SlaveFileNames.begin(); it != SlaveFileNames.end(); it++){
-      std::string RemoveSlaveFileCmd = "rm -f " + Name;
+    // Delete the node-specific ASIM files from the operating system
+
+    std::vector<TString>::iterator It2;
+    for(It2 = SlaveFileNames.begin(); It2 != SlaveFileNames.end(); It2++){
+      std::string FileName = (*It2).Data();
+      std::string RemoveSlaveFileCmd = "rm -f " + FileName;
       system(RemoveSlaveFileCmd.c_str());
     }
-    */
   }
 }
 

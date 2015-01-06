@@ -7,7 +7,15 @@
 #include <TTree.h>
 #include <TFile.h>
 
+// Boost
+#ifndef __CINT__
+#include <boost/cstdint.hpp>
+#endif
+
+#include <vector>
+
 #include "ADAQReadoutInformation.hh"
+#include "ADAQWaveformData.hh"
 
 
 class ADAQReadoutManager : public TObject
@@ -16,31 +24,35 @@ public:
   ADAQReadoutManager();
   ~ADAQReadoutManager();
 
-  // Action methods for the ADAQ ROOT file
-
-  void CreateFile(std::string);
-  void WriteFile();
-
   // Action methods for metadate objects
 
   void PopulateMetadata();
   void WriteMetadata();
 
+  // Action methods for the ADAQ ROOT file
+  
+  void CreateFile(std::string);
+  void WriteFile();
+  
   // Action methods for event-level data
-
-  void CreateWaveformTree(Int_t);
-  TTree *GetWaveformTree() {return WaveformTree;}
-
-  void CreateWaveformDataTree(Int_t);
+  
+  void CreateWaveformTree();
+#ifndef __CINT__
+  void CreateWaveformTreeBranch(Int_t, vector<uint16_t> *);
+#endif
+    TTree *GetWaveformTree() {return WaveformTree;}
+  
+  void CreateWaveformDataTree();
+  void CreateWaveformDataTreeBranch(Int_t, ADAQWaveformData *);
   TTree *GetWaveformDataTree() {return WaveformDataTree;}
-
+  
   // Action methods for run-level data
-
-  void SetReadoutInformation(ADAQReadoutInformation *ARI) {ReadoutInformation = ARI;}
+  
+  void CreateReadoutInformation();
   ADAQReadoutInformation *GetReadoutInformation() {return ReadoutInformation;}
-
+  
   // Set/Get methods for member data
-
+  
   Bool_t GetADAQFileOpen() {return ADAQFileOpen;}
 
   TString GetMachineName() {return MachineName->GetString();}
@@ -65,7 +77,7 @@ private:
   // Objects for event-level information
 
   TTree *WaveformTree, *WaveformDataTree;
-
+  
   // Objects for run-level information
 
   ADAQReadoutInformation *ReadoutInformation;

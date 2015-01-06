@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "ADAQReadoutManager.hh"
 
 ADAQReadoutManager::ADAQReadoutManager()
@@ -33,4 +35,105 @@ void ADAQReadoutManager::WriteMetadata()
   MachineUser->Write("MachineUser");
   FileDate->Write("FileDate");
   FileVersion->Write("FileVersion");
+}
+
+
+void ADAQReadoutManager::CreateFile(std::string Name)
+{
+  if(ADAQFileOpen)
+    return;
+  
+  if(ADAQFile) delete ADAQFile;
+  ADAQFile = new TFile(Name.c_str(), "recreate");
+  
+  PopulateMetadata();
+  
+  CreateWaveformTree();
+  
+  CreateWaveformDataTree();
+
+  CreateReadoutInformation();
+
+  ADAQFileOpen = true;
+}
+
+
+void ADAQReadoutManager::WriteFile()
+{
+  if(!ADAQFileOpen)
+    return;
+  
+  WriteMetadata();
+  
+  WaveformTree->Write();
+  
+  WaveformDataTree->Write();
+  
+  ReadoutInformation->Write();
+  
+  ADAQFile->Close();
+
+  ADAQFileOpen = false;
+}
+
+
+void ADAQReadoutManager::CreateWaveformTree()
+{
+  if(!ADAQFileOpen)
+    return;
+  
+  if(WaveformTree) delete WaveformTree;
+  WaveformTree = new TTree("WaveformTree", 
+			   "TTree to hold digitized waveforms for ADAQ files");
+}  
+
+
+void ADAQReadoutManager::CreateWaveformTreeBranch(Int_t Channel, 
+						  vector<uint16_t> *ChannelWaveform)
+{
+  if(!ADAQFileOpen)
+    return;
+
+  std::stringstream SS;
+  SS << "WaveformCh" << Channel;
+  TString BranchName = SS.str();
+  WaveformTree->Branch(BranchName, ChannelWaveform);
+}
+
+
+void ADAQReadoutManager::CreateWaveformDataTree()
+{
+  if(!ADAQFileOpen)
+    return;
+
+  if(WaveformDataTree) delete WaveformDataTree;
+  WaveformDataTree = new TTree("WaveformDataTree", 
+			       "TTree to hold analyzed waveform data for ADAQ files");
+}
+
+
+void ADAQReadoutManager::CreateWaveformDataTreeBranch(Int_t Channel, 
+						      ADAQWaveformData *ChannelWaveformData)
+{
+  if(!ADAQFileOpen)
+    return;
+
+  std::stringstream SS;
+  SS << "WaveformDataCh" << Channel;
+  TString BranchName = SS.str();
+  WaveformDataTree->Branch(BranchName, 
+			   "ADAQWaveformData",
+			   &ChannelWaveformData,
+			   32000,
+			   99);
+}
+
+
+void ADAQReadoutManager::CreateReadoutInformation()
+{
+  if(!ADAQFileOpen)
+    return;
+
+  if(ReadoutInformation) delete ReadoutInformation;
+  ReadoutInformation  = new ADAQReadoutInformation;
 }

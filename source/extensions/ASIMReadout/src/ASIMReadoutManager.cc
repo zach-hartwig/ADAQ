@@ -70,8 +70,8 @@ void ASIMReadoutManager::CreateSequentialFile(std::string Name)
 
 
 void ASIMReadoutManager::CreateParallelFile(std::string Name,
-					       Int_t Rank,
-					       Int_t Size)
+					    Int_t Rank,
+					    Int_t Size)
 {
   if(ASIMFileOpen){
     std::cout << "ASIMReadoutManager::CreateParallelFile():\n"
@@ -252,8 +252,8 @@ void ASIMReadoutManager::WriteMetadata()
 ///////////////////////////////////
 
 ASIMEvent *ASIMReadoutManager::CreateEventTree(Int_t ID,
-							    TString Name,
-							    TString Desc)
+					       TString Name,
+					       TString Desc)
 {
   ASIMEvent *Event = new ASIMEvent;
 
@@ -269,7 +269,7 @@ ASIMEvent *ASIMReadoutManager::CreateEventTree(Int_t ID,
 }
 
 void ASIMReadoutManager::AddEventTree(Int_t ID,
-					 TTree *T)
+				      TTree *T)
 {
   EventTreeIDMap[T->GetName()] = ID;
   EventTreeNameMap[ID] = T->GetName();

@@ -21,6 +21,7 @@
 #pragma link off all functions;
 
 #pragma link C++ class ADAQReadoutInformation+;
-#pragma link C++ class ADAQWaveformEvent+;
+#pragma link C++ class ADAQWaveformData+;
+#pragma link C++ class ADAQReadoutManager+;
 
 #endif

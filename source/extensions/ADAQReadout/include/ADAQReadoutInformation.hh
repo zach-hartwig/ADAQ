@@ -143,7 +143,8 @@ private:
   TString DGFWType;
 
   // Global acquisition settings
-  Int_t RecordLength, PostTrigger, CoincidenceLevel;
+  Int_t RecordLength, CoincidenceLevel;
+  Double_t PostTrigger;
   TString TriggerType, TriggerEdge, AcquisitionType;
 
   // Channel specific acquisition settings

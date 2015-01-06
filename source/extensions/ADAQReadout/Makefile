@@ -1,34 +1,34 @@
 ######################################################################
 #
 # name: Makefile
-# date: 23 Dec 14
+# date: 05 Jan 14
 # auth: Zach Hartwig
 # mail: hartwig@psfc.mit.edu
 #
 # desc: This GNUmakefile controls the building of the ROOT-based
 #       extension library for the readout and analysis of experimental
-#       data acquired from CAEN data acquisition hardware. The purpose
-#       is to provide a standardized and straightforward way to save
-#       experimental data persistently then easily access it later
-#       with analysis programs such as ADAQAnalysis.
+#       data acquired from CAEN data acquisition hardware entitled the
+#       libADAQReadout.so library. The purpose is to provide a
+#       standardized and straightforward way to save experimental data
+#       persistently then easily access it later with analysis
+#       programs such as ADAQAnalysis.
 #       
-#       The ADAQHardwareReadout.so library is built locally within the
-#       build/ directory when 'make' is called and then copied - along
-#       with the header files -into the top-level $ADAQ/lib/$ARCH and
-#       $ADAQ/include when a 'make install' for general purpose access
-#       by other codes. Note that $ARCH specifies the system
-#       architecture (32- or 64-bit)
+#       The library is built locally within the build/ directory when
+#       'make' is called and then copied - along with the header files
+#       -into the top-level $ADAQ/lib/$ARCH and $ADAQ/include when a
+#       'make install' for general purpose access by other codes. Note
+#       that $ARCH specifies the system architecture (32- or 64-bit)
 #
 # dpnd: The library has only a single dependency:
 #       -- The ROOT toolkit
 #
-# 2run: To build the ADAQSimulationReadout.so library locally
+# 2run: To build libADAQReadout.so locally:
 #       $ make
 # 
-#       To install library and headers in $ADAQ/lib and $ADAQ/include
+#       To install library and headers in $ADAQ/lib and $ADAQ/include:
 #       $ make install
 #
-#       To clean up transient build files and delete local library
+#       To clean up transient build files and delete local library:
 #       $ make clean
 #    
 ######################################################################
@@ -61,7 +61,7 @@ INCLDIR = $(PWD)/include
 BUILDDIR = build
 SRCDIR = src
 
-CXXFLAGS += -I$(INCLDIR)/
+CXXFLAGS += -I$(INCLDIR)/ -I$(ADAQHOME)/include
 
 # Specify all the ADAQ header files
 INCLS = $(wildcard $(INCLDIR)/*.hh)
@@ -72,10 +72,10 @@ TMP = $(patsubst %.cc,%.o,$(SRCS))
 OBJS = $(subst src/,build/,$(TMP))
 
 # Add the mandatory ROOT dictionary object file
-OBJS += $(BUILDDIR)/ADAQHardwareReadoutDict.o
+OBJS += $(BUILDDIR)/ADAQReadoutDict.o
 
 # Specify main library as the target
-TARGET = $(BUILDDIR)/libADAQHardwareReadout.so
+TARGET = $(BUILDDIR)/libADAQReadout.so
 
 # Specify the top-level destination directory
 DESTINCL = $(ADAQHOME)/include
@@ -100,13 +100,13 @@ $(BUILDDIR)/%.o : $(SRCDIR)/%.cc $(INCLS)
 
 # Build the ROOT dictionary
 
-$(BUILDDIR)/ADAQHardwareReadoutDict.o : $(BUILDDIR)/ADAQHardwareReadoutDict.cc
+$(BUILDDIR)/ADAQReadoutDict.o : $(BUILDDIR)/ADAQReadoutDict.cc
 	@echo -e "\nBuilding '$@' ..."
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-$(BUILDDIR)/ADAQHardwareReadoutDict.cc : $(INCLS) $(INCLDIR)/RootLinkDef.h
+$(BUILDDIR)/ADAQReadoutDict.cc : $(INCLS) $(INCLDIR)/RootLinkDef.h
 	@echo -e "\nGenerating ROOT dictionary '$@' ..."
-	rootcint -f $@ -c -I$(ADAQHOME)/source/extensions/hardwareReadout/$(INCLDIR) $^ 
+	rootcint -f $@ -c -I$(ADAQHOME)/source/extensions/ADAQReadout/$(INCLDIR) $^ 
 
 # PHONY rules
 

@@ -1,24 +1,22 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
-// name: ADAQSimulationReadout.cc
+// name: ASIMReadoutManager.cc
 // date: 23 Dec 14
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 // 
-// desc: The ADAQSimulationReadout class provides a framework for
-//       reading out simulated detector data into a standardized
-//       format ROOT file (called an ASIM file). THe primary purpose
-//       is to provide a standardized, flexible method for high
-//       efficiency detector data persistency and post-simulation data
-//       analysis using software tools (e.g. the ADAQAnalysis
-//       program). The class utilizes the ADAQSimulationEvent and
-//       ADAQSimultionRun classes for containerized data storage with
-//       ROOT TCollection objects to facilitate data storage. The
-//       class is primarily developed for use with Geant4 "Sensitive
-//       Detectors" but in principle could be used by any Monte Carlo
-//       simulation that can be integrated with the ROOT toolkit.
-//
-// 2use: 
+// desc: The ASIMReadoutManager class provides a framework for reading
+//       out simulated detector data into a standardized format ROOT
+//       file (called an ASIM file). THe primary purpose is to provide
+//       a standardized, flexible method for high efficiency detector
+//       data persistency and post-simulation data analysis using
+//       software tools (e.g. the ADAQAnalysis program). The class
+//       utilizes the ADAQSimulationEvent and ADAQSimultionRun classes
+//       for containerized data storage with ROOT TCollection objects
+//       to facilitate data storage. The class is primarily developed
+//       for use with Geant4 "Sensitive Detectors" but in principle
+//       could be used by any Monte Carlo simulation that can be
+//       integrated with the ROOT toolkit.
 //
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -28,16 +26,16 @@
 #include <sstream>
 #include <sys/unistd.h>
 
-#include "ADAQSimulationReadout.hh"
+#include "ASIMReadoutManager.hh"
 
-ADAQSimulationReadout::ADAQSimulationReadout()
+ASIMReadoutManager::ASIMReadoutManager()
   : ASIMFile(new TFile), ASIMFileName(""), ASIMFileOpen(false), 
     MPI_Rank(0), MPI_Size(0),
     EventTreeList(new TList), RunList(new TList)
 { PopulateMetadata(); }
 
 
-ADAQSimulationReadout::~ADAQSimulationReadout()
+ASIMReadoutManager::~ASIMReadoutManager()
 {
   delete RunList;
   delete EventTreeList;
@@ -45,10 +43,14 @@ ADAQSimulationReadout::~ADAQSimulationReadout()
 }
 
 
-void ADAQSimulationReadout::CreateSequentialFile(std::string Name)
+//////////////////////////////////////
+// Methods for ASIM file management //
+//////////////////////////////////////
+
+void ASIMReadoutManager::CreateSequentialFile(std::string Name)
 {
   if(ASIMFileOpen){
-    std::cout << "ADAQSimulationReadout::CreateSequentialFile():\n"
+    std::cout << "ASIMReadoutManager::CreateSequentialFile():\n"
 	      << "  An ASIM file is presently open for data output! A new ASIM file\n"
 	      << "  cannot be opened until the existing ASIM file is written to disk\n"
 	      << "  and closed. Nothing to be done.\n"
@@ -67,12 +69,12 @@ void ADAQSimulationReadout::CreateSequentialFile(std::string Name)
 }
 
 
-void ADAQSimulationReadout::CreateParallelFile(std::string Name,
+void ASIMReadoutManager::CreateParallelFile(std::string Name,
 					       Int_t Rank,
 					       Int_t Size)
 {
   if(ASIMFileOpen){
-    std::cout << "ADAQSimulationReadout::CreateParallelFile():\n"
+    std::cout << "ASIMReadoutManager::CreateParallelFile():\n"
 	      << "  An ASIM file is presently open for data output! A new ASIM file\n"
 	      << "  cannot be opened until the existing ASIM file is written to disk\n"
 	      << "  and closed. Nothing to be done.\n"
@@ -99,7 +101,7 @@ void ADAQSimulationReadout::CreateParallelFile(std::string Name,
 }
 
 
-void ADAQSimulationReadout::GenerateSlaveFileNames()
+void ASIMReadoutManager::GenerateSlaveFileNames()
 {
   if(!ASIMFileOpen)
     return;
@@ -122,7 +124,7 @@ void ADAQSimulationReadout::GenerateSlaveFileNames()
 }
 
 
-void ADAQSimulationReadout::WriteSequentialFile()
+void ASIMReadoutManager::WriteSequentialFile()
 {
   if(!ASIMFileOpen)
     return;
@@ -143,7 +145,7 @@ void ADAQSimulationReadout::WriteSequentialFile()
 }
 
 
-void ADAQSimulationReadout::WriteParallelFile()
+void ASIMReadoutManager::WriteParallelFile()
 {
   if(!ASIMFileOpen)
     return;
@@ -220,7 +222,7 @@ void ADAQSimulationReadout::WriteParallelFile()
 }
 
 
-void ADAQSimulationReadout::PopulateMetadata()
+void ASIMReadoutManager::PopulateMetadata()
 {
   char Host[128], User[128];
   gethostname(Host, sizeof Host);
@@ -236,7 +238,7 @@ void ADAQSimulationReadout::PopulateMetadata()
 }
 
 
-void ADAQSimulationReadout::WriteMetadata()
+void ASIMReadoutManager::WriteMetadata()
 {
   MachineName->Write("MachineName");
   MachineUser->Write("MachineUser");
@@ -245,18 +247,18 @@ void ADAQSimulationReadout::WriteMetadata()
 }
 
 
-/////////////////////////////////////////////
-// Methods for ADAQSimulationEvent objects //
-/////////////////////////////////////////////
+///////////////////////////////////
+// Methods for ASIMEvent objects //
+///////////////////////////////////
 
-ADAQSimulationEvent *ADAQSimulationReadout::CreateEventTree(Int_t ID,
+ASIMEvent *ASIMReadoutManager::CreateEventTree(Int_t ID,
 							    TString Name,
 							    TString Desc)
 {
-  ADAQSimulationEvent *Event = new ADAQSimulationEvent;
+  ASIMEvent *Event = new ASIMEvent;
 
   TTree *T = new TTree(Name, Desc);
-  T->Branch("ADAQSimulationEventBranch", "ADAQSimulationEvent", Event, 32000, 99);
+  T->Branch("ASIMEventBranch", "ASIMEvent", Event, 32000, 99);
   
   EventTreeIDMap[(std::string)Name] = ID;
   EventTreeNameMap[ID] = (std::string)Name;
@@ -266,7 +268,7 @@ ADAQSimulationEvent *ADAQSimulationReadout::CreateEventTree(Int_t ID,
   return Event;
 }
 
-void ADAQSimulationReadout::AddEventTree(Int_t ID,
+void ASIMReadoutManager::AddEventTree(Int_t ID,
 					 TTree *T)
 {
   EventTreeIDMap[T->GetName()] = ID;
@@ -276,29 +278,29 @@ void ADAQSimulationReadout::AddEventTree(Int_t ID,
 }
 
 
-void ADAQSimulationReadout::RemoveEventTree(std::string Name)
+void ASIMReadoutManager::RemoveEventTree(std::string Name)
 {
   TTree *T = (TTree *)EventTreeList->FindObject(Name.c_str());
   EventTreeList->Remove(T);
 }
 
 
-void ADAQSimulationReadout::RemoveEventTree(Int_t ID)
+void ASIMReadoutManager::RemoveEventTree(Int_t ID)
 { RemoveEventTree(EventTreeNameMap[ID]); }
 
 
-TTree *ADAQSimulationReadout::GetEventTree(std::string Name)
+TTree *ASIMReadoutManager::GetEventTree(std::string Name)
 {
   TTree *T = (TTree *)EventTreeList->FindObject(Name.c_str());
   return T;
 }
 
 
-TTree *ADAQSimulationReadout::GetEventTree(Int_t ID)
+TTree *ASIMReadoutManager::GetEventTree(Int_t ID)
 { return GetEventTree(EventTreeNameMap[ID]); }
 
 
-void ADAQSimulationReadout::ListEventTrees()
+void ASIMReadoutManager::ListEventTrees()
 {
   TIter It(EventTreeList);
   TTree *T;
@@ -308,7 +310,7 @@ void ADAQSimulationReadout::ListEventTrees()
 }
 
 
-void ADAQSimulationReadout::WriteEventTrees()
+void ASIMReadoutManager::WriteEventTrees()
 {
   if(!ASIMFileOpen)
     return;
@@ -320,51 +322,51 @@ void ADAQSimulationReadout::WriteEventTrees()
 }
 
 
-Int_t ADAQSimulationReadout::GetNumberOfEventTrees()
+Int_t ASIMReadoutManager::GetNumberOfEventTrees()
 { return EventTreeList->GetSize(); }
 
 
-Int_t ADAQSimulationReadout::GetEventTreeID(std::string Name)
+Int_t ASIMReadoutManager::GetEventTreeID(std::string Name)
 { return EventTreeIDMap[Name]; }
 
 
-std::string ADAQSimulationReadout::GetEventTreeName(Int_t ID)
+std::string ASIMReadoutManager::GetEventTreeName(Int_t ID)
 { return EventTreeNameMap[ID]; }
 
 
-///////////////////////////////////////////
-// Methods for ADAQSimulationRun objects //
-///////////////////////////////////////////
+/////////////////////////////////
+// Methods for ASIMRun objects //
+/////////////////////////////////
 
 
-void ADAQSimulationReadout::AddRun(ADAQSimulationRun *Run)
+void ASIMReadoutManager::AddRun(ASIMRun *Run)
 { RunList->Add(Run); }
 
 
-ADAQSimulationRun *ADAQSimulationReadout::GetRun(Int_t ID)
-{ return (ADAQSimulationRun *)RunList->At(ID); }
+ASIMRun *ASIMReadoutManager::GetRun(Int_t ID)
+{ return (ASIMRun *)RunList->At(ID); }
 
 
-Int_t ADAQSimulationReadout::GetNumberOfRuns()
+Int_t ASIMReadoutManager::GetNumberOfRuns()
 { return RunList->GetSize(); }
 
 
-void ADAQSimulationReadout::ListRuns()
+void ASIMReadoutManager::ListRuns()
 {
   TIter It(RunList);
-  ADAQSimulationRun *R;
-  while((R = (ADAQSimulationRun *)It.Next())){
+  ASIMRun *R;
+  while((R = (ASIMRun *)It.Next())){
   }
 }
 
-void ADAQSimulationReadout::WriteRuns()
+void ASIMReadoutManager::WriteRuns()
 {
   if(!ASIMFileOpen)
     return;
 
   TIter It(RunList);
-  ADAQSimulationRun *R;
-  while((R = (ADAQSimulationRun *)It.Next())){
+  ASIMRun *R;
+  while((R = (ASIMRun *)It.Next())){
     std::stringstream SS;
     SS << "Run" << R->GetRunID();
     TString Name = SS.str();

@@ -1,36 +1,35 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
-// name: ADAQSimulationEvent.hh
+// name: ASIMEvent.hh
 // date: 23 Dec 14
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 // 
-// desc: The ADAQSimulationEvent C++class provides a generic container
-//       for the essential event-level data of a particle detector
-//       that is modelled with Monte Carlo particle transport
-//       methods. This class is designed to provide a straightforward
-//       and universal method of persistently storing event-level data
-//       for later analysis within the ADAQ framework. This class is
-//       designed to be used within the ROOT framework and utilizes
-//       ROOT data types to ensure compatibility with post-simulation
-//       analysis tools built using ROOT and for portability between
-//       platforms. 
+// desc: The ASIMEvent class provides a generic container for the
+//       essential event-level data of a particle detector that is
+//       modelled with Monte Carlo particle transport methods. This
+//       class is designed to provide a straightforward and universal
+//       method of persistently storing event-level data for later
+//       analysis within the ADAQ framework. This class is designed to
+//       be used within the ROOT framework and utilizes ROOT data
+//       types to ensure compatibility with post-simulation analysis
+//       tools built using ROOT and for portability between platforms.
 //
 /////////////////////////////////////////////////////////////////////////////////
 
-#ifndef __ADAQSimulationEvent_hh__ 
-#define __ADAQSimulationEvent_hh__ 1
+#ifndef __ASIMEvent_hh__ 
+#define __ASIMEvent_hh__ 1
 
 #include <TObject.h>
 #include <TString.h>
 
 #include <vector>
 
-class ADAQSimulationEvent : public TObject
+class ASIMEvent : public TObject
 {
 public:
-  ADAQSimulationEvent();
-  ~ADAQSimulationEvent();
+  ASIMEvent();
+  ~ASIMEvent();
   
   // Method to initialize/reset all member data
   void Initialize();
@@ -81,7 +80,7 @@ private:
   std::vector<Double_t> PhotonCreationTime;
   std::vector<Double_t> PhotonDetectionTime;
 
-  ClassDef(ADAQSimulationEvent, 1);
+  ClassDef(ASIMEvent, 1);
 };
 
 #endif

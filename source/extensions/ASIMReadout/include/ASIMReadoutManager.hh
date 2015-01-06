@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
-// name: ADAQSimulationReadout.hh
+// name: ASIMReadoutManager.hh
 // date: 23 Dec 14
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 // 
-// desc: The ADAQSimulationReadout class provides a framework for
+// desc: The ASIMReadoutManager class provides a framework for
 //       reading out simulated detector data into event- and run-level
 //       information class containers. The primary purpose is to
 //       provide a standardized, flexible method for high efficiency
@@ -18,19 +18,10 @@
 //       principle could be used by any Monte Carlo simulation that
 //       can be integrated with the ROOT toolkit.
 //
-// 2use: The user should fill an ADAQSimulationEvent concrete object
-//       at the end of each simulated event, and an ADAQSimulationRun
-//       concrete object at the end of each simulation run. These
-//       objects can be stored within this class using ROOT's
-//       TCollection-derived "TList" class. After the simulation is
-//       complete, the ADAQSimulationReadout class should be written
-//       to a ROOT file with the extension ".asim" to indicate that it
-//       is an ADAQSimulationReadout-formated ROOT file.
-//
 /////////////////////////////////////////////////////////////////////////////////
 
-#ifndef __ADAQSimulationReadout_hh__
-#define __ADAQSimulationReadout_hh__ 1
+#ifndef __ASIMReadoutManager_hh__
+#define __ASIMReadoutManager_hh__ 1
 
 #include <TObject.h>
 #include <TList.h>
@@ -42,14 +33,14 @@
 #include <map>
 #include <ctime>
 
-#include "ADAQSimulationEvent.hh"
-#include "ADAQSimulationRun.hh"
+#include "ASIMEvent.hh"
+#include "ASIMRun.hh"
 
-class ADAQSimulationReadout : public TObject
+class ASIMReadoutManager : public TObject
 {
 public:
-  ADAQSimulationReadout();
-  ~ADAQSimulationReadout();
+  ASIMReadoutManager();
+  ~ASIMReadoutManager();
 
   // Action methods for the ROOT TFile
 
@@ -67,7 +58,7 @@ public:
 
   // Action methods for the Event TTrees
 
-  ADAQSimulationEvent *CreateEventTree(Int_t, TString, TString);
+  ASIMEvent *CreateEventTree(Int_t, TString, TString);
   void AddEventTree(Int_t, TTree *);
   void ListEventTrees();
   TTree *GetEventTree(std::string);
@@ -81,8 +72,8 @@ public:
 
   // Action methods for the Runs
 
-  void AddRun(ADAQSimulationRun *);
-  ADAQSimulationRun *GetRun(Int_t);
+  void AddRun(ASIMRun *);
+  ASIMRun *GetRun(Int_t);
   Int_t GetNumberOfRuns();
   void ListRuns();
   void WriteRuns();
@@ -127,7 +118,7 @@ private:
 
   TList *RunList;
 
-  ClassDef(ADAQSimulationReadout, 1);
+  ClassDef(ASIMReadoutManager, 1);
 };
 
 #endif

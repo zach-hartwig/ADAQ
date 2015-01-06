@@ -1,13 +1,13 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
-// name: ADAQSimulationRun.hh
+// name: ASIMRun.hh
 // date: 23 Dec 14
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 // 
-// desc: The ADAQSimulationRun C++ class provides a generic container
-//       for the essential run-level data of a particle detector that
-//       is modelled with Monte Carlo particle transport methods. This
+// desc: The ASIMRun class provides a generic container for the
+//       essential run-level data of a particle detector that is
+//       modelled with Monte Carlo particle transport methods. This
 //       class is designed to provide a straightforward and universal
 //       method of persistently storing run-level data for later
 //       analysis within the ADAQ framework. This class is designed to
@@ -17,19 +17,19 @@
 //
 /////////////////////////////////////////////////////////////////////////////////
 
-#ifndef __ADAQSimulationRun_hh__ 
-#define __ADAQSimulationRun_hh__ 1
+#ifndef __ASIMRun_hh__ 
+#define __ASIMRun_hh__ 1
 
 #include <TObject.h>
 #include <TString.h>
 
 #include <vector>
 
-class ADAQSimulationRun : public TObject
+class ASIMRun : public TObject
 {
 public:
-  ADAQSimulationRun();
-  ~ADAQSimulationRun();
+  ASIMRun();
+  ~ASIMRun();
   
   // Method to initialize/reset all member data
   void Reset();
@@ -72,7 +72,7 @@ private:
   Double_t DetectorLowerThresholdInMeV, DetectorUpperThresholdInMeV;
   Int_t PhotonsCreated, PhotonsDetected;
   
-  ClassDef(ADAQSimulationRun, 1);
+  ClassDef(ASIMRun, 1);
 };
 
 #endif

@@ -20,8 +20,8 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class ADAQSimulationEvent+;
-#pragma link C++ class ADAQSimulationRun+;
-#pragma link C++ class ADAQSimulationReadout+;
+#pragma link C++ class ASIMEvent+;
+#pragma link C++ class ASIMRun+;
+#pragma link C++ class ASIMReadoutManager+;
 
 #endif

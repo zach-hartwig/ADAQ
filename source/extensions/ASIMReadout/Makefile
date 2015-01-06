@@ -7,24 +7,25 @@
 #
 # desc: This GNUmakefile controls the building of the ROOT-based
 #       extension library for the readout and analysis of simulated
-#       data within the ADAQ framework. The purpose is provide a
-#       standardized and straightforward way to save simulated
-#       detector data persistently then easily access it later for
-#       analysis. For example, the user may choose to readout Geant4-
-#       simulated detector data into persistent storage and then
-#       seemlessly analyze it with the ADAQAnalysis program.
+#       data within the ADAQ framework (libASIMReadout.so). The
+#       purpose is provide a standardized and straightforward way to
+#       save simulated detector data persistently then easily access
+#       it later for analysis. For example, the user may choose to
+#       readout Geant4- simulated detector data into persistent
+#       storage and then seemlessly analyze it with the ADAQAnalysis
+#       program.
 #
-#       The ADAQSimulationReadout.so library is built locally within
-#       the build/ directory when 'make' is called and then copied -
-#       along with the header files -into the top-level
-#       $ADAQ/lib/$ARCH and $ADAQ/include when a 'make install' for
-#       general purpose access by other codes. Note that $ARCH
-#       specifies the system architecture (32- or 64-bit)
+#       The libASIMReadout.so is built locally within the build/
+#       directory when 'make' is called and then copied - along with
+#       the header files -into the top-level $ADAQ/lib/$ARCH and
+#       $ADAQ/include when a 'make install' for general purpose access
+#       by other codes. Note that $ARCH specifies the system
+#       architecture (32- or 64-bit)
 #
 # dpnd: The library has only a single dependency:
 #       -- The ROOT toolkit
 #
-# 2run: To build the ADAQSimulationReadout.so library locally
+# 2run: To build libASIMReadout.so locally
 #       $ make
 # 
 #       To install library and headers in $ADAQ/lib and $ADAQ/include
@@ -74,10 +75,10 @@ TMP = $(patsubst %.cc,%.o,$(SRCS))
 OBJS = $(subst src/,build/,$(TMP))
 
 # Add the mandatory ROOT dictionary object file
-OBJS += $(BUILDDIR)/ADAQSimulationReadoutDict.o
+OBJS += $(BUILDDIR)/ASIMReadoutDict.o
 
 # Specify main library as the target
-TARGET = $(BUILDDIR)/libADAQSimulationReadout.so
+TARGET = $(BUILDDIR)/libASIMReadout.so
 
 # Specify the top-level destination directory
 DESTINCL = $(ADAQHOME)/include
@@ -102,13 +103,13 @@ $(BUILDDIR)/%.o : $(SRCDIR)/%.cc $(INCLS)
 
 # Build the ROOT dictionary
 
-$(BUILDDIR)/ADAQSimulationReadoutDict.o : $(BUILDDIR)/ADAQSimulationReadoutDict.cc
+$(BUILDDIR)/ASIMReadoutDict.o : $(BUILDDIR)/ASIMReadoutDict.cc
 	@echo -e "\nBuilding '$@' ..."
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-$(BUILDDIR)/ADAQSimulationReadoutDict.cc : $(INCLS) $(INCLDIR)/RootLinkDef.h
+$(BUILDDIR)/ASIMReadoutDict.cc : $(INCLS) $(INCLDIR)/RootLinkDef.h
 	@echo -e "\nGenerating ROOT dictionary '$@' ..."
-	rootcint -f $@ -c -I$(ADAQHOME)/source/extensions/root/simulationReadout/$(INCLDIR) $^ 
+	rootcint -f $@ -c -I$(ADAQHOME)/source/extensions/root/ASIMReadout/$(INCLDIR) $^ 
 
 # PHONY rules
 

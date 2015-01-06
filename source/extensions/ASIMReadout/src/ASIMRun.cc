@@ -1,13 +1,13 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
-// name: ADAQSimulationRun.cc
+// name: ASIMRun.cc
 // date: 23 Dec 14
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 // 
-// desc: The ADAQSimulationRun C++ class provides a generic container
-//       for the essential run-level data of a particle detector that
-//       is modelled with Monte Carlo particle transport methods. This
+// desc: The ASIMRun class provides a generic container for the
+//       essential run-level data of a particle detector that is
+//       modelled with Monte Carlo particle transport methods. This
 //       class is designed to provide a straightforward and universal
 //       method of persistently storing run-level data for later
 //       analysis within the ADAQ framework. This class is designed to
@@ -17,10 +17,10 @@
 //
 /////////////////////////////////////////////////////////////////////////////////
 
-#include "ADAQSimulationRun.hh"
+#include "ASIMRun.hh"
 
 
-ADAQSimulationRun::ADAQSimulationRun()
+ASIMRun::ASIMRun()
   : RunID(0), TotalEvents(0),
     ParticlesIncident(0), ParticlesBetweenThresholds(0),
     DetectorLowerThresholdInMeV(0.), DetectorUpperThresholdInMeV(1000000.),
@@ -28,11 +28,11 @@ ADAQSimulationRun::ADAQSimulationRun()
 {;}
 
 
-ADAQSimulationRun::~ADAQSimulationRun()
+ASIMRun::~ASIMRun()
 {;}
 
 
-void ADAQSimulationRun::Reset()
+void ASIMRun::Reset()
 {
   RunID = TotalEvents = 0;
   ParticlesIncident = ParticlesBetweenThresholds = 0;
@@ -40,7 +40,7 @@ void ADAQSimulationRun::Reset()
 }
 
 
-Double_t ADAQSimulationRun::GetDetectorEfficiency()
+Double_t ASIMRun::GetDetectorEfficiency()
 {
   if(ParticlesIncident == 0)
     return 0.;
@@ -49,7 +49,7 @@ Double_t ADAQSimulationRun::GetDetectorEfficiency()
 }
 
 
-Double_t ADAQSimulationRun::GetOpticalEfficiency()
+Double_t ASIMRun::GetOpticalEfficiency()
 {
   if(PhotonsCreated == 0)
     return 0.;

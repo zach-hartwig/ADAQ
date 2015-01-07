@@ -1,0 +1,24 @@
+# name: .gitignore
+# date: 06 Jan 15
+# auth: Zach Hartwig
+# mail: hartwig@psfc.mit.edu
+# desc: List of files for git to completely ignore from repository 
+
+# Ignore top-level ADAQ headers and libraries. They should be
+# installed on the system during the build from source
+include/ADAQ*.hh
+include/ASIM*.hh
+
+lib/i686/*ADAQ*
+lib/i686/*ASIM*
+
+lib/x86_64/*ADAQ*
+lib/x86_64/*ASIM*
+
+# Ignore all ADAQ core and extension library build files
+source/adaq/build/*
+source/extensions/ADAQReadout/build/*
+source/extensions/ASIMReadout/build/*
+
+# Miscellaneous
+templates/CAENAcquisitionTemplate/build/*

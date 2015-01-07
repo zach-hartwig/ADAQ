@@ -1,4 +1,5 @@
 #include <sstream>
+#include <iostream>
 
 #include "ADAQReadoutManager.hh"
 
@@ -45,16 +46,15 @@ void ADAQReadoutManager::CreateFile(std::string Name)
   
   if(ADAQFile) delete ADAQFile;
   ADAQFile = new TFile(Name.c_str(), "recreate");
+  ADAQFileOpen = true;
   
   PopulateMetadata();
   
   CreateWaveformTree();
   
   CreateWaveformDataTree();
-
+  
   CreateReadoutInformation();
-
-  ADAQFileOpen = true;
 }
 
 
@@ -70,9 +70,8 @@ void ADAQReadoutManager::WriteFile()
   WaveformDataTree->Write();
   
   ReadoutInformation->Write();
-  
-  ADAQFile->Close();
 
+  ADAQFile->Close();
   ADAQFileOpen = false;
 }
 
@@ -117,7 +116,7 @@ void ADAQReadoutManager::CreateWaveformDataTreeBranch(Int_t Channel,
 {
   if(!ADAQFileOpen)
     return;
-
+  
   std::stringstream SS;
   SS << "WaveformDataCh" << Channel;
   TString BranchName = SS.str();

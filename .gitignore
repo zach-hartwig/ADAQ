@@ -4,10 +4,17 @@
 # mail: hartwig@psfc.mit.edu
 # desc: List of files for git to completely ignore from repository 
 
+# General 
+*.o
+*.log
+*.cache
+*~
+
 # Ignore top-level ADAQ headers and libraries. They should be
 # installed on the system during the build from source
 include/ADAQ*.hh
 include/ASIM*.hh
+include/RootLinkDef.h
 
 lib/i686/*ADAQ*
 lib/i686/*ASIM*
@@ -22,3 +29,19 @@ source/extensions/ASIMReadout/build/*
 
 # Miscellaneous
 templates/CAENAcquisitionTemplate/build/*
+ref/caen/software/CAENUpgrader-1.4.1/CAENBridgeUpgrade/Makefile
+ref/caen/software/CAENUpgrader-1.4.1/CAENBridgeUpgrade/src/.deps/
+ref/caen/software/CAENUpgrader-1.4.1/CAENBridgeUpgrade/src/Makefile
+ref/caen/software/CAENUpgrader-1.4.1/CAENUpgraderGUI/Makefile
+ref/caen/software/CAENUpgrader-1.4.1/Makefile
+ref/caen/software/CAENUpgrader-1.4.1/autom4te.cache/
+ref/caen/software/CAENUpgrader-1.4.1/config.h
+ref/caen/software/CAENUpgrader-1.4.1/config.status
+ref/caen/software/CAENUpgrader-1.4.1/cvUpgrade/Makefile
+ref/caen/software/CAENUpgrader-1.4.1/cvUpgrade/src/.deps/
+ref/caen/software/CAENUpgrader-1.4.1/cvUpgrade/src/Makefile
+ref/caen/software/CAENUpgrader-1.4.1/stamp-h1
+
+
+
+

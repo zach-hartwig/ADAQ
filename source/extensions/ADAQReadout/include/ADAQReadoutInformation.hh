@@ -8,7 +8,6 @@
 #include <vector>
 using namespace std;
 
-
 class ADAQReadoutInformation : public TObject
 {
 public:
@@ -21,11 +20,11 @@ public:
 
   // Device information
 
-  void SetDGType(TString T) {DGType = T;}
-  TString GetDGType() {return DGType;}
+  void SetDGModelName(TString MN) {DGModelName = MN;}
+  TString GetDGModelName() {return DGModelName;}
 
-  void SetDGSerialNum(Int_t SN) {DGSerialNum = SN;}
-  Int_t GetDGSerialNum() {return DGSerialNum;}
+  void SetDGSerialNumber(Int_t SN) {DGSerialNumber = SN;}
+  Int_t GetDGSerialNumber() {return DGSerialNumber;}
   
   void SetDGNumChannels(Int_t NC) {DGNumChannels = NC;}
   Int_t GetDGNumChannels() {return DGNumChannels;}
@@ -36,14 +35,15 @@ public:
   void SetDGSamplingRate(Int_t SR) {DGSamplingRate = SR;}
   Int_t GetDGSamplingRate() {return DGSamplingRate;}
   
-  void SetDGROCFWRevision(Int_t FWR) {DGROCFWRevision = FWR;}
-  Int_t GetDGROCFWRevision() {return DGROCFWRevision;}
-
-  void SetDGAMCFWRevision(Int_t FWR) {DGAMCFWRevision = FWR;}
-  Int_t GetDGAMCFWRevision() {return DGAMCFWRevision;}
+  void SetDGROCFWRevision(TString FWR) {DGROCFWRevision = FWR;}
+  TString GetDGROCFWRevision() {return DGROCFWRevision;}
+  
+  void SetDGAMCFWRevision(TString FWR) {DGAMCFWRevision = FWR;}
+  TString GetDGAMCFWRevision() {return DGAMCFWRevision;}
   
   void SetDGFWType(TString FWT) {DGFWType = FWT;}
   TString GetDGFWType() {return DGFWType;}
+
 
   // Global acquisition settings
 
@@ -65,7 +65,23 @@ public:
   void SetAcquisitionType(TString TT) {AcquisitionType = TT;}
   TString GetAcquisitionType() {return AcquisitionType;}
 
+  void SetDataReductionMode(Bool_t DRM) {DataReductionMode = DRM;}
+  Bool_t GetDataReductionMode() {return DataReductionMode;}
+
+  void SetZeroSuppressionMode(Bool_t DRM) {ZeroSuppressionMode = DRM;}
+  Bool_t GetZeroSuppressionMode() {return ZeroSuppressionMode;}
+
+  void SetAcquisitionTimer(Bool_t AT) {AcquisitionTimer = AT;}
+  Bool_t GetAcquisitionTimer() {return AcquisitionTimer;}
+  
+  void SetAcquisitionTime(Int_t AT) {AcquisitionTime = AT;}
+  Int_t GetAcquisitionTime() {return AcquisitionTime;}
+
+
   // Channel-specific acquisition settings
+
+  void SetChannelEnable(vector<Bool_t> T) {ChannelEnable = T;}
+  vector<Bool_t> GetChannelEnable() {return ChannelEnable;}
 
   void SetTrigger(vector<Int_t> T) {Trigger = T;}
   vector<Int_t> GetTrigger() {return Trigger;}
@@ -75,9 +91,6 @@ public:
 
   void SetBaselineCalcMax(vector<Int_t> T) {BaselineCalcMax = T;}
   vector<Int_t> GetBaselineCalcMax() {return BaselineCalcMax;}
-
-  void SetChannelEnable(vector<Int_t> T) {ChannelEnable = T;}
-  vector<Int_t> GetChannelEnable() {return ChannelEnable;}
 
   void SetDCOffset(vector<Int_t> T) {DCOffset = T;}
   vector<Int_t> GetDCOffset() {return DCOffset;}
@@ -133,23 +146,26 @@ private:
   ///////////////////////////
   
   // Device information
-  TString DGType;
-  Int_t DGSerialNum;
+  TString DGModelName;
+  Int_t DGSerialNumber;
   Int_t DGNumChannels;
   Int_t DGBitDepth;
   Int_t DGSamplingRate;
-  Int_t DGROCFWRevision;
-  Int_t DGAMCFWRevision;
+  TString DGROCFWRevision;
+  TString DGAMCFWRevision;
   TString DGFWType;
 
   // Global acquisition settings
   Int_t RecordLength, CoincidenceLevel;
   Double_t PostTrigger;
   TString TriggerType, TriggerEdge, AcquisitionType;
-
+  Bool_t DataReductionMode, ZeroSuppressionMode;
+  Bool_t AcquisitionTimer;
+  Int_t AcquisitionTime;
+  
   // Channel specific acquisition settings
+  vector<Bool_t> ChannelEnable;
   vector<Int_t> Trigger, BaselineCalcMin, BaselineCalcMax;
-  vector<Int_t> ChannelEnable;
   vector<Int_t> DCOffset;
   vector<Int_t> ZLEFwd, ZLEBck, ZLEThreshold;
   

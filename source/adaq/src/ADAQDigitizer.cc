@@ -61,6 +61,9 @@ extern "C" {
 #include "CAENDigitizer.h"
 }
 
+#include <boost/assign/std/vector.hpp>
+using namespace boost::assign;
+
 // ADAQ
 #include "ADAQDigitizer.hh"
 
@@ -105,10 +108,23 @@ ADAQDigitizer::ADAQDigitizer(ZBoardType Type,  // ADAQ-specific device type iden
 			     int LN,           // USB link number
 			     int CN)           // CONET node ID
   : ADAQVBoard(Type, ID, Address, LN, CN),
-    NumChannels(0), NumADCBits(0), MinADCBit(0), MaxADCBit(0),
+    BoardSerialNumber(0), BoardModelName(""),
+    BoardROCFirmwareRevision(""), BoardAMCFirmwareRevision(""),
+    NumChannels(0), NumADCBits(0), MinADCBit(0), MaxADCBit(0), SamplingRate(0),
     ZLEStartWord(0), ZLEWordCounter(0)
     //Buffer_Py(NULL), EventPointer_Py(NULL), EventWaveform_Py(Null)
-{;}
+{
+
+  // Create a std::map that specifies the digitizatino rate for each
+  // ADAQ-supported digitizer since this information is not encoded in
+  // the CAEN board information structure. Units of digitization are
+  // [Megasamples / second]
+  insert(SamplingRateMap)
+    (zV1720, 250)
+    (zV1724, 100)
+    (zDT5720, 250)
+    (zDT5730, 500);
+}
 
 
 ADAQDigitizer::~ADAQDigitizer()
@@ -138,27 +154,38 @@ int ADAQDigitizer::OpenLink()
     
     if(Verbose){
       
+      // Readout information about digitizer device into class data members
+
       CAEN_DGTZ_BoardInfo_t BoardInformation;
       CAEN_DGTZ_GetInfo(BoardHandle, &BoardInformation);
       
+      // High-level Physical information about the board
+      BoardSerialNumber = BoardInformation.SerialNumber;
+      BoardModelName = BoardInformation.ModelName;
+      BoardROCFirmwareRevision = BoardInformation.ROC_FirmwareRel;
+      BoardAMCFirmwareRevision = BoardInformation.AMC_FirmwareRel;
+      
+      // Conceptual information about the digitization
+      NumChannels = BoardInformation.Channels;
+      NumADCBits = BoardInformation.ADC_NBits;
+      MinADCBit = 0;
+      MaxADCBit = pow(2, NumADCBits);
+      SamplingRate = SamplingRateMap[BoardType];
+      
       std::cout << "ADAQDigitizer[" << BoardID << "] : Link successfully established!\n"
-		<< "--> Type     : " << BoardInformation.ModelName << "\n"
+		<< "--> Type     : " << BoardModelName << "\n"
+		<< "--> Channels : " << NumChannels << "\n"
+		<< "--> ADC bits : " << NumADCBits << "\n"
+		<< "--> Dgtz rate: " << SamplingRate << " MS/s\n"
+		<< "--> AMC FW   : " << BoardROCFirmwareRevision << "\n"
+		<< "--> ROC FW   : " << BoardAMCFirmwareRevision << "\n"
+		<< "--> Serial # : " << BoardSerialNumber << "\n"
 		<< "--> USB link : " << BoardLinkNumber << "\n"
 		<< "--> CONET ID : " << BoardCONETNode << "\n"
 		<< "--> Address  : 0x" << std::setw(8) << std::setfill('0') << std::hex << BoardAddress << "\n"
 		<< "--> User ID  : " << std::dec << BoardID << "\n"
 		<< "--> Handle   : " << BoardHandle << "\n"
-		<< "--> Channels : " << BoardInformation.Channels << "\n"
-		<< "--> AMC FW   : " << BoardInformation.ROC_FirmwareRel << "\n"
-		<< "--> ROC FW   : " << BoardInformation.AMC_FirmwareRel << "\n"
-		<< "--> ADC bits : " << BoardInformation.ADC_NBits << "\n"
-		<< "--> Serial # : " << BoardInformation.SerialNumber << "\n"
 		<< std::endl;
-      
-      NumChannels = BoardInformation.Channels;
-      NumADCBits = BoardInformation.ADC_NBits;
-      MinADCBit = 0;
-      MaxADCBit = pow(2, NumADCBits);
     }
   }
   else

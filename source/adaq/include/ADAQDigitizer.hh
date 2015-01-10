@@ -54,6 +54,7 @@
 // C++
 #include <string>
 #include <vector>
+#include <map>
 #include <iostream>
 using namespace std;
 
@@ -133,14 +134,30 @@ public:
   // Get methods for private member data //
   /////////////////////////////////////////
 
+  // Methods/variables prefaced by "Board" refer to high-level or
+  // physical information pertaining to the device
+  int GetBoardSerialNumber() {return BoardSerialNumber;}
+  string GetBoardModelName() {return BoardModelName;}
+  string GetBoardROCFirmwareRevision() {return BoardROCFirmwareRevision;}
+  string GetBoardAMCFirmwareRevision() {return BoardAMCFirmwareRevision;}
+
+  // Methods/variables without "Board" preface are conceptual or
+  // information about the device
   int GetNumChannels() {return NumChannels;}
   int GetNumADCBits() {return NumADCBits;}
   int GetMinADCBit() {return MinADCBit;}
   int GetMaxADCBit() {return MaxADCBit;}
+  int GetSamplingRate() {return SamplingRate;}
   
 private:
+  int BoardSerialNumber;
+  string BoardModelName;
+  string BoardROCFirmwareRevision, BoardAMCFirmwareRevision;
+  
   int NumChannels;
-  int NumADCBits, MinADCBit, MaxADCBit;
+  int NumADCBits, MinADCBit, MaxADCBit, SamplingRate;
+  map<ZBoardType, int> SamplingRateMap;
+
   int ZLEStartWord, ZLEWordCounter;
   
 public:

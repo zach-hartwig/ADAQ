@@ -69,7 +69,7 @@ void ADAQReadoutManager::WriteFile()
   
   WaveformDataTree->Write();
   
-  ReadoutInformation->Write();
+  ReadoutInformation->Write("ReadoutInformation");
 
   ADAQFile->Close();
   ADAQFileOpen = false;
@@ -81,7 +81,9 @@ void ADAQReadoutManager::CreateWaveformTree()
   if(!ADAQFileOpen)
     return;
   
-  if(WaveformTree) delete WaveformTree;
+  // Note that TTree memory is automatically freed when the TFile in
+  // which the TTree lives is deleted
+
   WaveformTree = new TTree("WaveformTree", 
 			   "TTree to hold digitized waveforms for ADAQ files");
 }  
@@ -104,8 +106,10 @@ void ADAQReadoutManager::CreateWaveformDataTree()
 {
   if(!ADAQFileOpen)
     return;
-
-  if(WaveformDataTree) delete WaveformDataTree;
+  
+  // Note that TTree memory is automatically freed when the TFile in
+  // which the TTree lives is deleted
+  
   WaveformDataTree = new TTree("WaveformDataTree", 
 			       "TTree to hold analyzed waveform data for ADAQ files");
 }
@@ -122,7 +126,7 @@ void ADAQReadoutManager::CreateWaveformDataTreeBranch(Int_t Channel,
   TString BranchName = SS.str();
   WaveformDataTree->Branch(BranchName, 
 			   "ADAQWaveformData",
-			   &ChannelWaveformData,
+			   ChannelWaveformData,
 			   32000,
 			   99);
 }

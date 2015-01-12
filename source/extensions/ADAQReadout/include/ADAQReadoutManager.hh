@@ -40,7 +40,7 @@ public:
 #ifndef __CINT__
   void CreateWaveformTreeBranch(Int_t, vector<uint16_t> *);
 #endif
-    TTree *GetWaveformTree() {return WaveformTree;}
+  TTree *GetWaveformTree() {return WaveformTree;}
   
   void CreateWaveformDataTree();
   void CreateWaveformDataTreeBranch(Int_t, ADAQWaveformData *);

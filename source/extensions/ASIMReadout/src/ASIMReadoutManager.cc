@@ -64,7 +64,7 @@ void ASIMReadoutManager::CreateSequentialFile(std::string Name)
   // Recreate a new ROOT TFile for the ASIM file
   if(ASIMFile) delete ASIMFile;
   ASIMFile = new TFile(ASIMFileName, "recreate");
-
+  
   ASIMFileOpen = true;
 }
 
@@ -82,7 +82,7 @@ void ASIMReadoutManager::CreateParallelFile(std::string Name,
     
     return;
   }
-
+  
   // Set MPI rank and size class members
   MPI_Rank = Rank;
   MPI_Size = Size;
@@ -103,7 +103,7 @@ void ASIMReadoutManager::CreateParallelFile(std::string Name,
 
 void ASIMReadoutManager::GenerateSlaveFileNames()
 {
-  if(!ASIMFileOpen)
+  if(ASIMFileOpen)
     return;
   
   SlaveFileNames.clear();
@@ -174,14 +174,13 @@ void ASIMReadoutManager::WriteParallelFile()
     std::map<Int_t, std::string>::iterator It0;
     Int_t Index = 0;
     for(It0 = EventTreeNameMap.begin(); It0!=EventTreeNameMap.end(); It0++){
-      
+
       TChain *EventTreeChain = new TChain(It0->second.c_str());
 
       std::vector<TString>::iterator It1;
-      for(It1 = SlaveFileNames.begin(); It1 != SlaveFileNames.end(); It1++){
+      for(It1 = SlaveFileNames.begin(); It1 != SlaveFileNames.end(); It1++)
 	EventTreeChain->Add((*It1));
-      }
-
+      
       // The following method enables multiple TChains to be written
       // to the final ASIM ROOT file without overwriting each other
       
@@ -196,10 +195,9 @@ void ASIMReadoutManager::WriteParallelFile()
 
       Index++;
     }
-    
+
     // Update the master ASIM file with file metadata and run-level
     // data, which is not dependent on the slave ASIM files
-
     TFile *FinalFile = new TFile(FinalFileName, "update");
     WriteMetadata();
     WriteRuns();
@@ -217,7 +215,6 @@ void ASIMReadoutManager::WriteParallelFile()
       system(RemoveSlaveFileCmd.c_str());
     }
   }
-
   ASIMFileOpen = false;
 }
 

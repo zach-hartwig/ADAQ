@@ -133,7 +133,7 @@ public:
   bool GetStoreRawWaveforms() {return StoreRawWaveforms;}
 
   void SetStoreEnergyData(bool SED) {StoreEnergyData = SED;}
-  bool GetStoreEnergyDate() {return StoreEnergyData;}
+  bool GetStoreEnergyData() {return StoreEnergyData;}
   
   void SetStorePSDData(bool SPP) {StorePSDData = SPP;}
   bool GetStorePSDData() {return StorePSDData;}

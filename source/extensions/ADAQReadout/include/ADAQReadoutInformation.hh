@@ -178,17 +178,17 @@ private:
   Int_t HVNumChannels;
   
   vector<Int_t> HVVoltage, HVCurrent, HVPolarity;
-  vector<bool> HVStatus;
+  vector<Bool_t> HVStatus;
 
 
   //////////////////////////
   // Waveform information //
   //////////////////////////
   
-  // Booleans for what information will be stored in an ADAQ file
-  bool StoreRawWaveforms;
-  bool StoreEnergyData;
-  bool StorePSDData;
+  // BooTeans for what information will be stored in an ADAQ file
+  Bool_t StoreRawWaveforms;
+  Bool_t StoreEnergyData;
+  Bool_t StorePSDData;
   
 
   ////////////////////////////

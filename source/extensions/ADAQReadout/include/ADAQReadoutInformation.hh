@@ -103,7 +103,19 @@ public:
   
   void SetZLEThreshold(vector<Int_t> T) {ZLEThreshold = T;}
   vector<Int_t> GetZLEThreshold() {return ZLEThreshold;}
+  
+  void SetPSDTotalStart(vector<Int_t> T) {PSDTotalStart = T;}
+  vector<Int_t> GetPSDTotalStart() {return PSDTotalStart;}
 
+  void SetPSDTotalStop(vector<Int_t> T) {PSDTotalStop = T;}
+  vector<Int_t> GetPSDTotalStop() {return PSDTotalStop;}
+  
+  void SetPSDTailStart(vector<Int_t> T) {PSDTailStart = T;}
+  vector<Int_t> GetPSDTailStart() {return PSDTailStart;}
+  
+  void SetPSDTailStop(vector<Int_t> T) {PSDTailStop = T;}
+  vector<Int_t> GetPSDTailStop() {return PSDTailStop;}
+  
 
   //////////////////////////////////////////////////
   // Set/Get methods for high voltage information //
@@ -168,6 +180,8 @@ private:
   vector<Int_t> Trigger, BaselineCalcMin, BaselineCalcMax;
   vector<Int_t> DCOffset;
   vector<Int_t> ZLEFwd, ZLEBck, ZLEThreshold;
+  vector<Int_t> PSDTotalStart, PSDTotalStop;
+  vector<Int_t> PSDTailStart, PSDTailStop;
   
  
   //////////////////////////////

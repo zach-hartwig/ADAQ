@@ -22,10 +22,10 @@ lib/i686/*ASIM*
 lib/x86_64/*ADAQ*
 lib/x86_64/*ASIM*
 
-# Ignore all ADAQ core and extension library build files
-source/adaq/build/*
-source/extensions/ADAQReadout/build/*
-source/extensions/ASIMReadout/build/*
+# Ignore all ADAQ core library build files
+source/ADAQControl/build/*
+source/ADAQReadout/build/*
+source/ASIMReadout/build/*
 
 # Miscellaneous
 templates/CAENAcquisitionTemplate/build/*

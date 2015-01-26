@@ -1,24 +1,23 @@
 ######################################################################
 #
 # name: Makefile
-# date: 17 Oct 14
+# date: 26 Jan 15
 # auth: Zach Hartwig
 # mail: hartwig@psfc.mit.edu
 #
-# desc: This GNUmakefile controls the building of the ADAQ C++ and
-#       Python shared object libraries. Macros prefix "CXX" refers to
-#       those used to build the ADAQ C++ shared object library
-#       ("libADAQ.so") and "PY" refers to those used to build the ADAQ
-#       Python shared object library ("libPyADAQ.so"), with the
-#       exception that "CXX" (full macro) specifies clang as the
-#       compiler that will be used to build both. The target libraries
-#       are built locally in "lib/<arch> during "make" and then copied
-#       to the "../lib/<arch> during "make install", where <arch> is
-#       either i686 (32-bit) or x86_64 (64-bit). The makefile should
-#       automatically determine the architecture using the 'uname -m'
-#       command.
+# desc: This GNUmakefile controls the building and installation of the
+#       libADAQControl.so (C/C++) and libPyADAQControl.so (Python)
+#       libraries, which provide a powerful, generic set of methods
+#       for programming, running, and acquiring data with CAEN data
+#       acquisition and high voltage hardware. In this makefile, "CXX"
+#       refers to C++ specific objects; "PY" refers to Python specific
+#       objects. During a "make", the target libraries are built
+#       locally in lib/<arch>/; during a "make install", the headers
+#       (libraries) are copied into $ADAQHOME/include
+#       ($ADAQHOME/lib/<arch>), where <arch> is either i686 (32-bit)
+#       or x86_64 (64-bit).
 #
-# dpnd: The ADAQ libraries have three main dependencies:
+# dpnd: The ADAQControl libraries have three main dependencies:
 #       -- The CAEN Libraries (most recent version):
 #          -> CAENDigitizer (v.2.6.0)
 #          -> CAENVMELib (v2.41.0)
@@ -29,7 +28,7 @@
 # 2run: To build both C++ and Python libraries:
 #       $ make
 # 
-#       To install ADAQ libraries in $ADAQREPO/lib:
+#       To install ADAQ libraries in $ADAQHOME/lib/<arch>/:
 #       $ make install
 #
 #       To clean up build files and delete local libraries:
@@ -121,9 +120,9 @@ else
   BOOSTLIB= -lboost_python
 endif
 
-# Targets are C++ and Python shared object libraries
-CXXTARGET=$(BUILDDIR)/libADAQ.so
-PYTARGET=$(BUILDDIR)/libPyADAQ.so
+# Targets are C++ and Python shared o	bject libraries
+CXXTARGET=$(BUILDDIR)/libADAQControl.so	
+PYTARGET=$(BUILDDIR)/libPyADAQControl.so	
 
 all: $(CXXTARGET) $(PYTARGET)
 

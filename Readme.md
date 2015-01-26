@@ -3,34 +3,47 @@
 
 ## The ADAQ Libraries ##
 
-The ADAQ (AIMS Data AcQuisition) libraries form a self-contained
-software layer that manages the interface between the CAEN data
-acquisition hardware and the ADAQ acquisition and analysis codes. It
-automatically provides the necessary CAEN libraries (CAENComm,
-CAENDigitizer, CAENVME) and then adds an enhanced layer of
-functionality on top to provide more powerful and straightforward
-control of the CAEN hardware. ADAQ provides users with C, C++, and
-Python interfaces for controlling the CAEN hardware. Additionally,
-ADAQ provides a set of custom ROOT and Geant4 so that the user may
-interface ROOT analysis projects and Geant4 particle transport
-simulations to the ADAQ framework. The ADAQ framework can be
-envisioned as follows:
+The ADAQ (AIMS Data AcQuisition) libraries provide a powerful set of
+C++ and Python tools for comprehensive data acquisition and analysis
+of experimental and simulated particle detector data. The
+'ADAQControl' library (C++, Python) forms a self-contained software
+layer that manages the interface between CAEN data acquisition
+hardware and the user's PC by automatically incorporating the
+necessary CAEN libraries (CAENComm, CAENDigitizer, and CAENVME) and
+then adding nn enhanced layer of functionality on top to provide more
+powerful and straightforward control of the CAEN hardware. The
+'ADAQReadout' library provides standardized readout of all critical
+information (DAQ settings, digitized waveforms, analyzed waveform
+data, etc) into highly compressed binary 'ADAQ' files. The
+'ASIMReadout' library provides standardized readout of critical
+simulated detector quantities into highly compressed binary 'ASIM'
+files when used in C++-compatible Monte Carlo particle transport codes
+like Geant4. Both libraries are built ontop of the [ROOT data analysis
+framework](https://root.cern.ch/drupal/). The ADAQ and ASIM files can
+be analyzed offline using the GUI-based
+[ADAQAnalysis](https://github.com/zach-hartwig/ADAQAcquisition)
+program. Finally, a set of classes are provided for use of ADAQ
+projects that incorporate ROOT.
+
+Thus, the ADAQ framework can be envisioned as follows:
 
 ```
-                                                          ----------------
-                                                          | ROOT classes | : Classes for integrating ROOT with ADAQ projects
-                                                          ----------------
-                                                                 |
-                             ADAQ Libraries                      |        
+                                                           ----------------
+                                                           | ROOT classes | : Classes for integrating ROOT with ADAQ projects
+                                                           ----------------
+                                                                   |
+                             ADAQ Libraries                        |
+		       (ADAQControl,ADAQReadout)	           |        
                        -------------------------           User applications
 -----------------      |    CAEN libraries     |      --------------------------
 | CAEN HARDWARE |  ->  |          &            |  ->  | Acquisition / Analysis | : Applications built with the ADAQ framework
 -----------------      |  Enhanced interfaces  |      --------------------------
-                       -------------------------                 |
-                                                                 |
-                                                          ------------------	
-                                                          | Geant4 classes | : Classes for readout of detector simulation data
-                                                          ------------------	
+                       -------------------------                   |
+                                                                   |
+                                                          --------------------	
+                                                          | Geant4 simulation| : Libraries for readout of simuated detector data
+                                                          --------------------
+							       ASIMReadout	
 ```
 
 ### License and disclaimer ###
@@ -69,48 +82,74 @@ libraries:
 
 2. [Boost](http://www.boost.org/)
 
+3. [ROOT](https://root.cern.ch/drupal/)
+
 
 
 ### Build instructions ###
 
-The following lines should first be added to your .bashrc file to such
-that the ADAQ setup script can configure your environment correctly:
+At present, the ADAQ libraries are only supported for Linux and MacOS
+environments; no future support for Windows is foreseen at this time.
 
-```bash
-export ADAQ_HOME=/full/path/to/ADAQ
-source $ADAQ_HOME/scripts/setup.sh dev >& /dev/null
-```
+First, clone into the repository from GitHub. Then, you'll need to
+build each ADAQ library individually using the GNU makefiles provided
+in each library's source directory to build and install the libraries
+into the $ADAQ_HOME/include (for headers) and $ADAQ_HOME/lib/<arch>
+(for libraries, where '<arch>' is either i686 (32-bit) or x86_64
+(64-bit)).
 
-On Linux or MacOS, clone into the repository and then use the provided
-GNU makefile to build and install the ADAQ libraries:
 
 ```bash
    # Clone the ADAQ source code
    git clone https://github.com/zach-hartwig/ADAQ.git
 
-   # Move to the ADAQ library source code
-   cd ADAQ/adaq
+   # Move to the ADAQ library source code 
+   cd ADAQ/source
 
-   # Build the libraries from source
-   make
+   # Build/install each desired library. To build/install all libraries:
+   cd ADAQControl; make; make install
+   cd ../ADAQReadout; make; make install
+   cd ../ASIMReadout; make; make install
 
-   # Install libraries locally within ADAQ directory
-   make install
-
-   # If desired to cleanup all build files and libraries:
+   # If desired to cleanup all build files and libraries, within each
+   # library's directory run
    make clean
 ```
+
+Once the libraries have been built, the following lines should be
+added to your .bashrc file to such that the ADAQ setup script can
+configure your environment correctly:
+```bash
+export ADAQ_HOME=/full/path/to/ADAQ
+source $ADAQ_HOME/scripts/setup.sh dev >& /dev/null
+```
+Remember to open a new terminal for the settings to take effect!
+
 
 
 ### Directory overview ###
 
 The following contains an overview of the ADAQ directories:
 
-#### ADAQ directory ####
+#### The ADAQ source directory ####
 
-The main ADAQ library serves two main functions: first, to wrap all
-CAENDigitizer library functions with a more intuitive and consistent
-function style; second to provide a set of powerful enhanced methods
+Each ADAQ library lives in its own subdirectory of the
+$ADAQ_HOME/source directory. At present, each library must be
+built/installed separately rather by a single large GNU
+makefile. While this may change in the future, this enables the user
+to independently build the ADAQControl library without installing ROOT
+on the system since ROOT is *not* an ADAQControl dependency; the
+ADAQReadout and ASIMReadout libraries *require* a ROOT installation.
+
+The ADAQControl library serves three main functions: first, to
+automically provide the user with all necessary and up-to-date CAEN
+libraries and headers. No need to go downloading and installing them
+anymore! The CAEN libraries and headers are located *locally* within
+the $ADAQ_HOME directory, and, therefore, will not interfere with
+other global installations of CAEN headers and libraries.  The second
+function is to wrap all CAEN library functions with a more intuitive
+and consistent function style; third and finally, to build upon the
+CAEN library methods and provide a set of powerful enhanced methods
 for programming, operating, and readout of CAEN data acquisition
 hardware. Classes are provided the logically map onto the supported
 pieces of CAEN hardware (*e.g.* the ADAQDigitizer class provides an
@@ -119,16 +158,22 @@ the ADAQPythonWrapper class uses Boost.Python to wrap all C++ classes
 such that the user has the additional option of seamless Python
 interface without the need to rewrite any code. 
 
-The source code for the main ADAQ library is found in
-$ADAQ/source/adaq. The code is compiled into two shared object
-libraries : "libADAQ.so" provides the C++ interface methods while
-"libPyDAQ.so" provides the Python inteface methods. A GNU makefile
-control the library building.
+The ADAQReadout and ASIMReadout library provides a streamlined method
+to readout expeirment DAQ settings and digitizer data and simulated
+detector data, respectively, into highly compressed, binary ROOT files
+that have a standardized format. This provides the ability to easily
+store digitized data along with the acquisition settings for offline
+analysis, using the closely associated
+[ADAQAnalysis](https://github.com/zach-hartwig/ADAQAnalysis] program,
+on the ROOT command line, or in an analysis program of the user's own
+design. One of the main purposes in providing these classes is to
+facilitate the often difficult task of folding ROOT into the user's
+own experimental and simulation codes.
 
 
 #### CAEN directory ####
 
-The $ADAQ/ref/caen directory contains an assortment of useful CAEN
+The $ADAQ_HOME/ref/caen directory contains an assortment of useful CAEN
 drivers, firmware, and software that are - in most cases - required to
 work with the ADAQ libraries and - in a few cases - provided simply
 for convenience. The purpose of including the CAEN software libraries
@@ -169,12 +214,14 @@ tested succesfully used with the ADAQ libraries:
     - **doc/** : Future home of ADAQ manual
 
  - **source/** : ADAQ source code
-   - **adaq/** : Main ADAQ libraries for interfacing with CAEN hardware 
-   - **extensions/**: C++ and ROOT-specific extension libraries
+   - **ADAQControl/** : C++/Python interface to CAEN DAQ hardware
+   - **ADAQReadout/** : C++ readout of CAEN DAQ settings and digitized data to ADAQ-formatted ROOT 
+   - **ASIMReadout/** : C++ readout of simulated detector data to ASIM-formatted ROOT files
+   - **root/** : Classes for use with ADAQ projects utilizing ROOT
 
  - **scripts/** : Bash scripts for installation and setup of ADAQ 
 
- - **templates/** : Minimal code packages to aid user's developement projects
+ - **templates/** : Minimal code packages to aid user's development projects
 
 ### Contact ###
 

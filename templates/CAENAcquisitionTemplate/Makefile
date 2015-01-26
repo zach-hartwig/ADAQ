@@ -1,5 +1,5 @@
 # name: Makefile 
-# date: 14 Aug 14
+# date: 26 Jan 15
 # auth: Zach Hartwig
 # mail: hartwig@psfc.mit.edu
 # desc: GNU makefile for building the CAENAcquisitionTemplate
@@ -40,15 +40,15 @@ CXX = clang++
 # Specify the other necessary header file locations
 CXXFLAGS += -I$(ADAQHOME)/include -I$(INCLDIR)
 
-# Specify the location of the ADAQ libraries
-LDFLAGS+=-L$(ADAQHOME)/lib/$(HOSTTYPE) -lADAQ 
+# Specify the location of the ADAQ control library
+LDFLAGS+=-L$(ADAQHOME)/lib/$(HOSTTYPE) -lADAQControl
 
 # Specify the location of the CAEN libraries (architecture-dependent)
 LDFLAGS+=-L$(ADAQHOME)/lib/$(HOSTTYPE) -lCAENVME -lCAENComm -lCAENDigitizer -lncurses -lc -lm
 
-# Specify the location of the Boost libraries (for compilation on the
+# Specify Boost libraries to link against
 # C-Mod workstations)
-LDFLAGS+=-lboost_thread-mt
+LDFLAGS+=-lboost_thread
 
 # Specify the target
 TARGET = $(BINDIR)/CAENAcquisitionTemplate

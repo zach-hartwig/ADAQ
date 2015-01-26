@@ -40,7 +40,11 @@ AcquisitionManager::AcquisitionManager()
 {
   ///////////////////////////////////////////////////////////////////
   // Instantiate a manager to control all interactions with the V1720
-  DGManager = new ADAQDigitizer;
+  DGManager = new ADAQDigitizer(zV1720, // ADAQ-specified CAEN device ID
+				0, // User-specified ID
+				V1720BoardAddress, // Address in VME space
+				0, // USB link number
+				0); // CONET node number
   DGManager->SetVerbose(true);
 
   //////////////////////////////////////
@@ -93,7 +97,7 @@ void AcquisitionManager::InitVMEConnection()
 	   <<   "                                   --> V1720Address = 0x" << hex << setw(8) << setfill('0') << V1720BoardAddress << "\n"
 	   << endl;
 
-    int Status = DGManager->OpenLink(V1720BoardAddress);
+    int Status = DGManager->OpenLink();
     (Status==0) ? V1720LinkOpen = true : V1720LinkOpen = false;
     
     if(V1720Enable and !V1720LinkOpen){

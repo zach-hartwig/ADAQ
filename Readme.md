@@ -28,22 +28,23 @@ projects that incorporate ROOT.
 Thus, the ADAQ framework can be envisioned as follows:
 
 ```
-                                                           ----------------
-                                                           | ROOT classes | : Classes for integrating ROOT with ADAQ projects
-                                                           ----------------
-                                                                   |
-                             ADAQ Libraries                        |
-		       (ADAQControl,ADAQReadout)	           |        
-                       -------------------------           User applications
------------------      |    CAEN libraries     |      --------------------------
-| CAEN HARDWARE |  ->  |          &            |  ->  | Acquisition / Analysis | : Applications built with the ADAQ framework
------------------      |  Enhanced interfaces  |      --------------------------
-                       -------------------------                   |
-                                                                   |
-                                                          --------------------	
-                                                          | Geant4 simulation| : Libraries for readout of simuated detector data
-                                                          --------------------
-							       ASIMReadout	
+                                       ----------------
+                                       | ROOT classes | : Classes for integrating ROOT
+                                       ----------------     into ADAQ projects
+                                               |
+               ADAQControl,ADAQReadout         |        
+                  ---------------              |        
+------------      | CAEN Libs   |     ------------------
+|   CAEN   |  ->  |     &       | ->  |  Acquisition & | : User applications built 
+| Hardware |  ->  |  Enhanced   | ->  |    Analysis    |     with the ADAQ framework
+------------      | Interfaces  |     ------------------
+                  ---------------              |
+                                               |
+                                               |
+                                    -----------------------	
+                                    | Detector simulation | : Readout management for
+                                    -----------------------     simulated detector data
+                                         ASIMReadout	
 ```
 
 ### License and disclaimer ###

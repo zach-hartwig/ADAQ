@@ -5,8 +5,7 @@
 
 ADAQReadoutManager::ADAQReadoutManager()
   : ADAQFile(new TFile), ADAQFileName(""), ADAQFileOpen(false),
-    WaveformTree(new TTree), WaveformDataTree(new TTree),
-    ReadoutInformation(new ADAQReadoutInformation)
+    WaveformTree(new TTree), ReadoutInformation(new ADAQReadoutInformation)
 {;}
 
 
@@ -52,25 +51,25 @@ void ADAQReadoutManager::CreateFile(std::string Name)
   
   CreateWaveformTree();
   
-  CreateWaveformDataTree();
-  
   CreateReadoutInformation();
 }
 
 
 void ADAQReadoutManager::WriteFile()
 {
+  // This method handles the writing of all necessary objects to the
+  // open ROOT file and ensures that all objects that are necessary to
+  // define an ADAQ-formatted file are present and written to disk.
+
   if(!ADAQFileOpen)
     return;
-  
+
+  // Write necessary data to disk
   WriteMetadata();
-  
   WaveformTree->Write();
-  
-  WaveformDataTree->Write();
-  
   ReadoutInformation->Write("ReadoutInformation");
 
+  // Close the TFile and set boolean accordingly
   ADAQFile->Close();
   ADAQFileOpen = false;
 }
@@ -78,57 +77,56 @@ void ADAQReadoutManager::WriteFile()
 
 void ADAQReadoutManager::CreateWaveformTree()
 {
+  // The method creates a TTree that will be used to hold the
+  // digitized waveform and analyzed waveform data for all
+  // digitizer channels.
+
   if(!ADAQFileOpen)
     return;
   
   // Note that TTree memory is automatically freed when the TFile in
-  // which the TTree lives is deleted
-
+  // which the TTree lives is deleted so there is no need to delete
+  
   WaveformTree = new TTree("WaveformTree", 
-			   "TTree to hold digitized waveforms for ADAQ files");
+			   "TTree to hold digitized waveform data in ADAQ files");
 }  
 
 
-void ADAQReadoutManager::CreateWaveformTreeBranch(Int_t Channel, 
-						  vector<uint16_t> *ChannelWaveform)
+void ADAQReadoutManager::CreateWaveformTreeBranches(Int_t Channel, 
+						    vector<uint16_t> *Waveform,
+						    ADAQWaveformData *WaveformData)
 {
+  // This method is called for each digitizer channel for which the
+  // user desired to save data. For each channel, two branches are
+  // created in order to isolate different / encapsulate same data:
+  //
+  // 0. A branch to hold the entire digitized waveform for the
+  //    specified channel. The branch is automatically named
+  //    "WaveformChX", where X is the channel number.
+  //
+  // 1. A branch to hold an ADAQWaveformData class, which contains
+  //    analyzed waveform data for the specified channel's
+  //    waveform. The branch is automatically named "WaveformDataChX",
+  //    where X is the channel number.
+
   if(!ADAQFileOpen)
     return;
 
+  // First create a branch to hold the digitized waveform 
   std::stringstream SS;
   SS << "WaveformCh" << Channel;
-  TString BranchName = SS.str();
-  WaveformTree->Branch(BranchName, ChannelWaveform);
-}
-
-
-void ADAQReadoutManager::CreateWaveformDataTree()
-{
-  if(!ADAQFileOpen)
-    return;
+  TString WaveformBranchName = SS.str();
+  WaveformTree->Branch(WaveformBranchName, Waveform);
   
-  // Note that TTree memory is automatically freed when the TFile in
-  // which the TTree lives is deleted
-  
-  WaveformDataTree = new TTree("WaveformDataTree", 
-			       "TTree to hold analyzed waveform data for ADAQ files");
-}
-
-
-void ADAQReadoutManager::CreateWaveformDataTreeBranch(Int_t Channel, 
-						      ADAQWaveformData *ChannelWaveformData)
-{
-  if(!ADAQFileOpen)
-    return;
-  
-  std::stringstream SS;
+  // Then create a branch to hold the analyzed waveform data
+  SS.str("");
   SS << "WaveformDataCh" << Channel;
-  TString BranchName = SS.str();
-  WaveformDataTree->Branch(BranchName, 
-			   "ADAQWaveformData",
-			   ChannelWaveformData,
-			   32000,
-			   99);
+  TString WaveformDataBranchName = SS.str();
+  WaveformTree->Branch(WaveformDataBranchName, 
+		       "ADAQWaveformData",
+		       WaveformData,
+		       32000, // Buffer size [bytes]
+		       99);   // Maximum TTree splitting
 }
 
 

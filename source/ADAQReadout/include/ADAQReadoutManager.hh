@@ -24,12 +24,12 @@ public:
   ADAQReadoutManager();
   ~ADAQReadoutManager();
 
-  // Action methods for metadate objects
+  // Action methods for metadata objects
 
   void PopulateMetadata();
   void WriteMetadata();
 
-  // Action methods for the ADAQ ROOT file
+  // Action methods for the ADAQ file
   
   void CreateFile(std::string);
   void WriteFile();
@@ -38,13 +38,9 @@ public:
   
   void CreateWaveformTree();
 #ifndef __CINT__
-  void CreateWaveformTreeBranch(Int_t, vector<uint16_t> *);
+  void CreateWaveformTreeBranches(Int_t, vector<uint16_t> *, ADAQWaveformData *);
 #endif
   TTree *GetWaveformTree() {return WaveformTree;}
-  
-  void CreateWaveformDataTree();
-  void CreateWaveformDataTreeBranch(Int_t, ADAQWaveformData *);
-  TTree *GetWaveformDataTree() {return WaveformDataTree;}
   
   // Action methods for run-level data
   
@@ -54,7 +50,6 @@ public:
   // Set/Get methods for member data
   
   Bool_t GetADAQFileOpen() {return ADAQFileOpen;}
-
   TString GetMachineName() {return MachineName->GetString();}
   TString GetMachineUser() {return MachineUser->GetString();}
   TString GetFileDate() {return FileDate->GetString();}
@@ -62,7 +57,7 @@ public:
 
 private:
   
-  // ADAQ ROOT file objects
+  // ADAQ file objects
 
   TFile *ADAQFile;
   TString ADAQFileName;
@@ -76,7 +71,7 @@ private:
 
   // Objects for event-level information
 
-  TTree *WaveformTree, *WaveformDataTree;
+  TTree *WaveformTree;
   
   // Objects for run-level information
 

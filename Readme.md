@@ -87,25 +87,37 @@ libraries:
 
 
 
-### Build instructions ###
+### Obtaining and building the code ###
 
-At present, the ADAQ libraries are only supported for Linux and MacOS
-environments; no future support for Windows is foreseen at this time.
+First, a word on versioning of the ADAQ libraries. Git tags of the
+form X.Y.Z are used to indicate stable, production versions of the
+ADAQ libraries that may be deployed with confidence for general use by
+the general user. A change in the X version number indicates a major
+release that departs substantially from the previous series, while a
+change in the Y version number indicates deployment of major new code
+features. A change in the Z number is used to indicate bug fixes and
+very minor changes to the codebase. Untagged commits are considered
+development versions of the code with no guarantee of stability and
+should only be used by developers in non-production situations.
 
-First, clone into the repository from GitHub. Then, you'll need to
-build each ADAQ library individually using the GNU makefiles provided
-in each library's source directory to build and install the libraries
-into the $ADAQ_HOME/include (for headers) and $ADAQ_HOME/lib/<arch>
-(for libraries, where '<arch>' is either i686 (32-bit) or x86_64
-(64-bit)).
-
+To obtain the ADAQ libraries, you'll need to first clone the
+repository from GitHub and then switch to the appropriate git tag
+version before building the code. Then you'll need to build each ADAQ
+library individually using the GNU makefiles provided in each
+library's source directory to build and install the libraries into the
+$ADAQ_HOME/include (for headers) and $ADAQ_HOME/lib/<arch> (for
+libraries, where '<arch>' is either i686 (32-bit) or x86_64 (64-bit)).
 
 ```bash
-   # Clone the ADAQ source code
+   # Clone the ADAQ source code:
    git clone https://github.com/zach-hartwig/ADAQ.git
 
-   # Move to the ADAQ library source code 
-   cd ADAQ/source
+   # Switch to a tagged production branch. For example:
+   cd ADAQ
+   git checkout -b 1.0.0-beta
+
+   # Move to the ADAQ library source code directory:
+   cd source
 
    # Build/install each desired library. To build/install all libraries:
    cd ADAQControl; make; make install
@@ -113,7 +125,7 @@ into the $ADAQ_HOME/include (for headers) and $ADAQ_HOME/lib/<arch>
    cd ../ASIMReadout; make; make install
 
    # If desired to cleanup all build files and libraries, within each
-   # library's directory run
+   # library's directory run:
    make clean
 ```
 

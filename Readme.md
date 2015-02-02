@@ -129,12 +129,11 @@ libraries, where '<arch>' is either i686 (32-bit) or x86_64 (64-bit)).
    make clean
 ```
 
-Once the libraries have been built, the following lines should be
-added to your .bashrc file to such that the ADAQ setup script can
+Once the libraries have been built, the following line should be
+added to your .bashrc file such that the ADAQ setup script can
 configure your environment correctly:
 ```bash
-export ADAQ_HOME=/full/path/to/ADAQ
-source $ADAQ_HOME/scripts/setup.sh dev >& /dev/null
+source /full/path/to/ADAQ/scripts/setup.sh >& /dev/null
 ```
 Remember to open a new terminal for the settings to take effect!
 

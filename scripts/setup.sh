@@ -30,7 +30,7 @@ else
     export LD_LIBRARY_PATH=$ADAQHOME/lib/$HOSTTYPE:$LD_LIBRARY_PATH
     export PYTHONPATH=$ADAQHOME/lib/$HOSTTYPE:$PYTHONPATH
     
-    echo -e "\nADAQ : The environmental has been successfully configured!"
+    echo -e "\nADAQ : The environment has been successfully configured!"
     echo -e   "       --> ADAQHOME = "$ADAQHOME
-    echo -e   "       --> Libraries included in PATH, LD_LIBRARY_PATH, PYTHONPATH\n"
+    echo -e   "       --> The libraries are now included in PATH, LD_LIBRARY_PATH, PYTHONPATH\n"
 fi

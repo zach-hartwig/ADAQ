@@ -1,49 +1,36 @@
 #!/bin/bash
 #
 # name: setup.sh
-# date: 20 Mar 14
+# date: 01 Feb 15
 # auth: Zach Hartwig
-#
-# desc: Setup Bash script for the ADAQ libraries. The script sets up
-#       access for two different types of users: 'users' will have the
-#       libraries and headers from /usr/local/adaq; 'developers'
-#       require path settings relative to their top-level Git checkout
-#       directory of the ADAQ source code. The script should be
-#       sourced from the user's bashrc file with the single argument
-#       'usr' or 'dev' as appropriate.
+# desc: Bash setup script to automatically configure the user's
+#       environment to use the ADAQ libraries
 
 # The HOSTTYPE variable is used to determine whether 32 or 64 bit for
 # ADAQ and CAEN libraries should be used
 export HOSTTYPE=$(uname -m)
 
-if [ ! "$#" -eq 1 ]; then
-    echo -e "\nError! The ADAQ setup.sh script only accepts single cmd line arg!"
-    echo -e   "       'usr' to setup environment for installed libraries and headers in /usr/local/adaq"
-    echo -e   "       'dev' to setup developer environment in local Git checkout directory\n"
-fi
+if [ ! "$#" -eq 0 ]; then
+    echo -e "\nADAQ : Error! The ADAQ libraries' setup script accepts zero arguments!"
+    echo -e   "       Please rerun this setup script!\n"
+else
 
-
-if [ -z "$ROOTSYS" ]; then
-    echo -e "ADAQ : Note that while not explicitly required to use the ADAQ libraries,\n"
-    echo -e "       setting up ROOT in your environment is required to run several of\n"
-    echo -e "       the AIMS tools that use ADAQ!\n"
-fi
-
-if [ "$1" ==  'usr' ]; then
-    export ADAQUSER=user
-    export PATH=/usr/local/adaq:$PATH
-    export LD_LIBRARY_PATH=/usr/local/adaq/lib/$HOSTTYPE:$LD_LIBRARY_PATH
-
-    echo -e "ADAQ : Environment has been configured for ADAQ user!"
-
-elif [ "$1" == 'dev' ]; then
-    export ADAQUSER=developer
-
+    if [ -z "$ROOTSYS" ]; then
+	echo -e "ADAQ : Note that while the ADAQControl library does not require ROOT, the ADAQReadout and"
+	echo -e "       ASIMReadout libaries to require ROOT. It is strongly suggested that you install ROOT!\n"
+    fi
+    
+    # Automatically determine the absolute path to top-level ADAQ
+    # directory using this pro'n'shit method
     SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+    # Export necessary environmental variable values
     export ADAQHOME=${SCRIPTDIR///scripts/}
     export PATH=$ADAQHOME/bin:$PATH
     export LD_LIBRARY_PATH=$ADAQHOME/lib/$HOSTTYPE:$LD_LIBRARY_PATH
     export PYTHONPATH=$ADAQHOME/lib/$HOSTTYPE:$PYTHONPATH
-
-    echo -e "ADAQ : Environment has been configured for ADAQ developer!"
+    
+    echo -e "\nADAQ : The environmental has been successfully configured!"
+    echo -e   "       --> ADAQHOME = "$ADAQHOME
+    echo -e   "       --> Libraries included in PATH, LD_LIBRARY_PATH, PYTHONPATH\n"
 fi

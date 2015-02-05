@@ -26,6 +26,7 @@ void ADAQReadoutManager::PopulateMetadata()
   time(&RawTime);
   FileDate = new TObjString(ctime(&RawTime));
   FileVersion = new TObjString("1.0");
+  FileComment = new TObjString("");
 }
 
 

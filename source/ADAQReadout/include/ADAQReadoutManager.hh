@@ -6,6 +6,7 @@
 #include <TObjString.h>
 #include <TTree.h>
 #include <TFile.h>
+#include <TGText.h>
 
 // Boost
 #ifndef __CINT__
@@ -50,11 +51,15 @@ public:
   // Set/Get methods for member data
   
   Bool_t GetADAQFileOpen() {return ADAQFileOpen;}
+
   TString GetMachineName() {return MachineName->GetString();}
   TString GetMachineUser() {return MachineUser->GetString();}
   TString GetFileDate() {return FileDate->GetString();}
   TString GetFileVersion() {return FileVersion->GetString();}
 
+  void SetFileComment(TString T) {FileComment->SetString(T);}
+  TString GetFileComment() {return FileComment->GetString();}
+  
 private:
   
   // ADAQ file objects
@@ -67,6 +72,7 @@ private:
 
   TObjString *MachineName, *MachineUser;
   TObjString *FileDate, *FileVersion;
+  TObjString *FileComment;
   TObjString *ADAQVersion;
 
   // Objects for event-level information

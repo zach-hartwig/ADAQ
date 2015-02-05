@@ -36,6 +36,7 @@ void ADAQReadoutManager::WriteMetadata()
   MachineUser->Write("MachineUser");
   FileDate->Write("FileDate");
   FileVersion->Write("FileVersion");
+  FileComment->Write("FileComment");
 }
 
 

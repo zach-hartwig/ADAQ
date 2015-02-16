@@ -123,11 +123,15 @@ libraries, where '<arch>' is either i686 (32-bit) or x86_64 (64-bit)).
    cd ADAQControl; make; make install
    cd ../ADAQReadout; make; make install
    cd ../ASIMReadout; make; make install
+```
 
-   # If desired to cleanup all build files and libraries, within each
-   # library's directory run:
+If you want to remove the build files and local library then - from
+within each library's directory - type:
+```bash
    make clean
 ```
+Note that this will *not* remove the installed libraries, which live
+in the $ADAQ_HOME/lib/<arch>/ directory
 
 Once the libraries have been built, the following line should be
 added to your .bashrc file such that the ADAQ setup script can

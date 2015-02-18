@@ -24,6 +24,7 @@
 #define __ASIMReadoutManager_hh__ 1
 
 #include <TObject.h>
+#include <TObjString.h>
 #include <TList.h>
 #include <TString.h>
 #include <TTree.h>
@@ -86,7 +87,10 @@ public:
   TString GetMachineUser() {return MachineUser->GetString();}
   TString GetFileDate() {return FileDate->GetString();}
   TString GetFileVersion() {return FileVersion->GetString();}
-
+  
+  void SetFileComment(TString T) {FileComment->SetString(T);}
+  TString GetFileComment() {return FileComment->GetString();}
+  
   TList *GetEventTreeList() {return EventTreeList;}
   TList *GetRunList() {return RunList;}
   
@@ -104,9 +108,9 @@ private:
   std::vector<TString> SlaveFileNames;
 
   // Metadata 
-
+  
   TObjString *MachineName, *MachineUser;
-  TObjString *FileDate, *FileVersion;
+  TObjString *FileDate, *FileVersion, *FileComment;
 
   // Objects to handle event-level information
 

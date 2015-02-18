@@ -233,6 +233,7 @@ void ASIMReadoutManager::PopulateMetadata()
   time(&RawTime);
   FileDate = new TObjString(ctime(&RawTime));
   FileVersion = new TObjString("1.0");
+  FileComment = new TObjString("");
 }
 
 
@@ -242,6 +243,7 @@ void ASIMReadoutManager::WriteMetadata()
   MachineUser->Write("MachineUser");
   FileDate->Write("FileDate");
   FileVersion->Write("FileVersion");
+  FileComment->Write("FileComment");
 }
 
 

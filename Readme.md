@@ -114,15 +114,14 @@ First clone the repository:
 ```bash
 git clone https://github.com/zach-hartwig/ADAQ.git
 ```
-
-Second, add the following line to your .bashrc file:
+Then add the following line to your .bashrc file:
 ```bash
 source /full/path/to/ADAQ/scripts/setup.sh >& /dev/null
 ```
 Remember to open a new terminal for the settings to take effect!
-
 Finally, switch to a tagged production branch and build the
 libraries. In this example, we'll use the 1.0.0-beta version:
+
  ```bash
 cd /full/path/to/ADAQ/source
 git checkout -b 1.0.0-beta

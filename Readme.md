@@ -101,28 +101,36 @@ development versions of the code with no guarantee of stability and
 should only be used by developers in non-production situations.
 
 To obtain the ADAQ libraries, you'll need to first clone the
-repository from GitHub and then switch to the appropriate git tag
-version before building the code. Then you'll need to build each ADAQ
-library individually using the GNU makefiles provided in each
-library's source directory to build and install the libraries into the
-$ADAQ_HOME/include (for headers) and $ADAQ_HOME/lib/<arch> (for
-libraries, where '<arch>' is either i686 (32-bit) or x86_64 (64-bit)).
+repository from GitHub and then configure your environment via the
+'setup.sh' script. Once complete, you can then switch to a tagged
+production version to build the code. At present, you'll need to build
+each ADAQ library individually using the GNU makefiles provided in
+each library's source directory to build and install the libraries
+into the $ADAQREPO/include (for headers) and $ADAQREPO/lib/<arch>
+(for libraries, where '<arch>' is either i686 (32-bit) or x86_64
+(64-bit)).
 
+First clone the repository:
 ```bash
-   # Clone the ADAQ source code:
-   git clone https://github.com/zach-hartwig/ADAQ.git
+git clone https://github.com/zach-hartwig/ADAQ.git
+```
 
-   # Switch to a tagged production branch. For example:
-   cd ADAQ
-   git checkout -b 1.0.0-beta
+Second, add the following line to your .bashrc file:
+```bash
+source /full/path/to/ADAQ/scripts/setup.sh >& /dev/null
+```
+Remember to open a new terminal for the settings to take effect!
 
-   # Move to the ADAQ library source code directory:
-   cd source
+Finally, switch to a tagged production branch and build the
+libraries. In this example, we'll use the 1.0.0-beta version:
+ ```bash
+cd /full/path/to/ADAQ/source
+git checkout -b 1.0.0-beta
 
-   # Build/install each desired library. To build/install all libraries:
-   cd ADAQControl; make; make install
-   cd ../ADAQReadout; make; make install
-   cd ../ASIMReadout; make; make install
+# Build/install each desired library
+cd ADAQControl; make; make install
+cd ../ADAQReadout; make; make install
+cd ../ASIMReadout; make; make install
 ```
 
 If you want to remove the build files and local library then - from
@@ -130,17 +138,8 @@ within each library's directory - type:
 ```bash
    make clean
 ```
-Note that this will *not* remove the installed libraries, which live
-in the $ADAQ_HOME/lib/<arch>/ directory
-
-Once the libraries have been built, the following line should be
-added to your .bashrc file such that the ADAQ setup script can
-configure your environment correctly:
-```bash
-source /full/path/to/ADAQ/scripts/setup.sh >& /dev/null
-```
-Remember to open a new terminal for the settings to take effect!
-
+Note that this will only remove local files and *not* the installed
+libraries, which live in the $ADAQREPO/lib/<arch>/ directory
 
 
 ### Directory overview ###
@@ -150,7 +149,7 @@ The following contains an overview of the ADAQ directories:
 #### The ADAQ source directory ####
 
 Each ADAQ library lives in its own subdirectory of the
-$ADAQ_HOME/source directory. At present, each library must be
+$ADAQREPO/source directory. At present, each library must be
 built/installed separately rather by a single large GNU
 makefile. While this may change in the future, this enables the user
 to independently build the ADAQControl library without installing ROOT
@@ -161,7 +160,7 @@ The ADAQControl library serves three main functions: first, to
 automically provide the user with all necessary and up-to-date CAEN
 libraries and headers. No need to go downloading and installing them
 anymore! The CAEN libraries and headers are located *locally* within
-the $ADAQ_HOME directory, and, therefore, will not interfere with
+the $ADAQREPO directory, and, therefore, will not interfere with
 other global installations of CAEN headers and libraries.  The second
 function is to wrap all CAEN library functions with a more intuitive
 and consistent function style; third and finally, to build upon the
@@ -189,7 +188,7 @@ own experimental and simulation codes.
 
 #### CAEN directory ####
 
-The $ADAQ_HOME/ref/caen directory contains an assortment of useful CAEN
+The $ADAQREPO/ref/caen directory contains an assortment of useful CAEN
 drivers, firmware, and software that are - in most cases - required to
 work with the ADAQ libraries and - in a few cases - provided simply
 for convenience. The purpose of including the CAEN software libraries

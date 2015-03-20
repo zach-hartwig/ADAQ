@@ -42,7 +42,10 @@ ref/caen/software/CAENUpgrader-1.4.1/cvUpgrade/Makefile
 ref/caen/software/CAENUpgrader-1.4.1/cvUpgrade/src/.deps/
 ref/caen/software/CAENUpgrader-1.4.1/cvUpgrade/src/Makefile
 ref/caen/software/CAENUpgrader-1.4.1/stamp-h1
-
-
-
+ref/caen/drivers/CAENUSBdrvB-1.4/.CAENUSBdrvB.ko.cmd
+ref/caen/drivers/CAENUSBdrvB-1.4/.CAENUSBdrvB.mod.o.cmd
+ref/caen/drivers/CAENUSBdrvB-1.4/.CAENUSBdrvB.o.cmd
+ref/caen/drivers/CAENUSBdrvB-1.4/.tmp_versions/
+ref/caen/drivers/CAENUSBdrvB-1.4/CAENUSBdrvB.ko
+ref/caen/drivers/CAENUSBdrvB-1.4/CAENUSBdrvB.mod.c
 

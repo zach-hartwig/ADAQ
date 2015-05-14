@@ -132,6 +132,24 @@ void ADAQReadoutManager::CreateWaveformTreeBranches(Int_t Channel,
 }
 
 
+void ADAQReadoutManager::SetWaveformBranchStatus(Int_t Channel, Bool_t Status)
+{
+  std::stringstream SS;
+  SS << "WaveformCh" << Channel;
+  TString BranchName = SS.str();
+  WaveformTree->SetBranchStatus(BranchName, Status);
+}
+
+
+void ADAQReadoutManager::SetDataBranchStatus(Int_t Channel, Bool_t Status)
+{
+  std::stringstream SS;
+  SS << "WaveformDataCh" << Channel;
+  TString BranchName = SS.str();
+  WaveformTree->SetBranchStatus(BranchName, Status);
+}
+
+
 void ADAQReadoutManager::CreateReadoutInformation()
 {
   if(!ADAQFileOpen)

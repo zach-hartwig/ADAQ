@@ -43,12 +43,8 @@ ROOTSYS:=$(shell $(RC) --prefix)
 ROOTMAKE:=$(ROOTSYS)/etc/Makefile.arch
 include $(ROOTMAKE)
 
-# Note that CXXFLAGS now includes ROOT-based flags to we must ensure
-# to use "+=" to add more flags to CXXFLAGS after this point
-
-# Specify compilers and basic flags
-CXX = clang++
-XXFLAGS += -ferror-limit=5 -w
+# Note that at this point in the makefile CXXFLAGS now includes
+# ROOT-based flags so we must ensure to use "+=" to add more flags
 
 # Obtain CPU architecture: 32-bit ("i686") or 64-bit ("x86_64")
 ARCH=$(shell uname -m)

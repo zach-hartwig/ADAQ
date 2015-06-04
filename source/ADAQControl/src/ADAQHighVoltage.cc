@@ -97,6 +97,11 @@ ADAQHighVoltage::ADAQHighVoltage(ZBoardType Type,  // ADAQ-specific device type 
       ChannelPolarity += 1, 1, 1, 1, 1, 1;
       ChannelPolarityString += "+", "+", "+", "+", "+", "+";
       break;
+      
+    default:
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error! Unrecognized board type '" << BoardType
+	   << "!\n" << endl;
+      break;
     }
   }
   
@@ -121,6 +126,11 @@ ADAQHighVoltage::ADAQHighVoltage(ZBoardType Type,  // ADAQ-specific device type 
     case zV6534P:
       ChannelPolarity += 1, 1, 1, 1, 1, 1;
       ChannelPolarityString += "+", "+", "+", "+", "+", "+";
+      break;
+
+    default:
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error! Unrecognized board type '" << BoardType
+	   << "!\n" << endl;
       break;
     }
   }
@@ -229,7 +239,7 @@ int ADAQHighVoltage::CloseLink()
 
 
 int ADAQHighVoltage::Initialize()
-{;}
+{ return 0; }
 
 
 int ADAQHighVoltage::SetRegisterValue(uint32_t Addr32, uint16_t Data16)
@@ -304,7 +314,7 @@ bool ADAQHighVoltage::CheckChannelSteadyState(int Channel)
     return false;
   
   // If the channel is powered on then...
-  else if(ChannelPowerState[Channel] == POWERON)
+  else if(ChannelPowerState[Channel] == POWERON){
     
     // Compare the "active" voltage at the present moment to the "set"
     // voltage (value of voltage desired by the user and stored in the
@@ -315,6 +325,9 @@ bool ADAQHighVoltage::CheckChannelSteadyState(int Channel)
       return true;
     else
       return false;
+  }
+  else
+    return false;
 }
 
 
@@ -417,6 +430,8 @@ uint16_t ADAQHighVoltage::GetVoltage(int Channel)
     if(Verbose)
       cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV Voltage! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
+
+    return -1;
   }
   else{
     uint16_t VoltageGet;
@@ -473,6 +488,8 @@ uint16_t ADAQHighVoltage::GetCurrent(int Channel)
     if(Verbose)
       cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV current! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
+
+    return -1;
   }
   else{
     uint16_t CurrentGet;
@@ -546,6 +563,8 @@ uint16_t ADAQHighVoltage::GetPowerState(int Channel)
     if(Verbose)
       cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV power status! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
+
+    return -1;
   }
   else{
     uint16_t PowerGet;
@@ -564,6 +583,7 @@ int ADAQHighVoltage::GetPolarity(int Channel, uint16_t *polarityGet)
     if(Verbose)
       cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV channel polarity! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
+    return -1;
   }
   else
     CommandStatus = CAENComm_Read16(BoardHandle, POL[Channel], polarityGet);
@@ -581,6 +601,7 @@ uint16_t ADAQHighVoltage::GetPolarity(int Channel)
     if(Verbose)
       cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV channel polarity! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
+    return -1;
   }
   else{
     uint16_t PolarityGet;
@@ -599,6 +620,7 @@ string ADAQHighVoltage::GetPolarityString(int Channel)
     if(Verbose)
       cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV channel polarity string! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
+    return "";
   }
   else{
     CommandStatus = 0;
@@ -616,6 +638,7 @@ int ADAQHighVoltage::GetTemperature(int Channel, uint16_t *temperatureGet)
     if(Verbose)
       cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV channel temperature! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
+    return -1;
   }
   else
     CommandStatus = CAENComm_Read16(BoardHandle, TEMP[Channel], temperatureGet);
@@ -633,6 +656,7 @@ uint16_t ADAQHighVoltage::GetTemperature(int Channel)
     if(Verbose)
       cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV channel temperature! Channel out of range (0 <= ch <= 5)\n"
 	   << endl;
+    return -1;
   }
   else{
     uint16_t TemperatureGet;

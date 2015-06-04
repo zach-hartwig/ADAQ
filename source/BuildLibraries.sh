@@ -21,6 +21,6 @@ for lib in "${LIBS[@]}"
 do
     cd $DIR/$lib
     make clean
-    make -j$NPROC
+    make -e -j$NPROC
     make install
 done

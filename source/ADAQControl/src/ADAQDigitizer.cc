@@ -227,23 +227,27 @@ int ADAQDigitizer::CloseLink()
 
 int ADAQDigitizer::Initialize()
 {
+  CommandStatus = -42;
+  
   // Reset the board firmware
-  CAEN_DGTZ_WriteRegister(BoardHandle, CAEN_DGTZ_SW_RESET_ADD, 0x00000000);
+  CommandStatus = CAEN_DGTZ_WriteRegister(BoardHandle, CAEN_DGTZ_SW_RESET_ADD, 0x00000000);
   
   // Set the VME control: all disabled, enable BERR
-  CAEN_DGTZ_WriteRegister(BoardHandle, CAEN_DGTZ_VME_CONTROL_ADD, 0x00000010);
+  CommandStatus = CAEN_DGTZ_WriteRegister(BoardHandle, CAEN_DGTZ_VME_CONTROL_ADD, 0x00000010);
   
   // Set front panel I/O controls 
-  CAEN_DGTZ_WriteRegister(BoardHandle, CAEN_DGTZ_FRONT_PANEL_IO_CTRL_ADD, 0x00000000);
+  CommandStatus = CAEN_DGTZ_WriteRegister(BoardHandle, CAEN_DGTZ_FRONT_PANEL_IO_CTRL_ADD, 0x00000000);
   
   // Set the trigger source enable mask 
-  CAEN_DGTZ_WriteRegister(BoardHandle, CAEN_DGTZ_TRIGGER_SRC_ENABLE_ADD, 0xC0000080);
+  CommandStatus = CAEN_DGTZ_WriteRegister(BoardHandle, CAEN_DGTZ_TRIGGER_SRC_ENABLE_ADD, 0xC0000080);
   
   // Set the channel trigger enable mask
-  CAEN_DGTZ_WriteRegister(BoardHandle, CAEN_DGTZ_FP_TRIGGER_OUT_ENABLE_ADD, 0x00000000);
+  CommandStatus = CAEN_DGTZ_WriteRegister(BoardHandle, CAEN_DGTZ_FP_TRIGGER_OUT_ENABLE_ADD, 0x00000000);
   
   // Set the channel configuration
-  CAEN_DGTZ_WriteRegister(BoardHandle, CAEN_DGTZ_BROAD_CH_CTRL_ADD, 0x00000050);
+  CommandStatus = CAEN_DGTZ_WriteRegister(BoardHandle, CAEN_DGTZ_BROAD_CH_CTRL_ADD, 0x00000050);
+
+  return CommandStatus;
 }
 
 
@@ -538,7 +542,7 @@ int ADAQDigitizer::SetZLEChannelSettings(uint32_t Channel, uint32_t Threshold,
   
   // ZLE requires bit 31 == 0 (positive logic), == 1 (negative logic)
   bitset<32> Data32Bitset(Data32);
-  (PosLogic) ? Data32Bitset.set(31,0) : Data32Bitset.set(31.1);
+  (PosLogic) ? Data32Bitset.set(31,0) : Data32Bitset.set(31,1);
   
   // Convert bitset back to 32-bit integer and set register value
   Data32 = (uint32_t)Data32Bitset.to_ulong();
@@ -629,6 +633,8 @@ int ADAQDigitizer::PrintZLEEventInfo(char *Buffer,
       ZLEWaveformWordCounter++;
     }
   }
+
+  return 0;
 }
 
 

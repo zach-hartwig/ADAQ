@@ -1,7 +1,7 @@
 ######################################################################
 #
 # name: Makefile
-# date: 26 Jan 15
+# date: 03 Jun 15
 # auth: Zach Hartwig
 # mail: hartwig@psfc.mit.edu
 #
@@ -11,22 +11,30 @@
 #       for programming, running, and acquiring data with CAEN data
 #       acquisition and high voltage hardware. In this makefile, "CXX"
 #       refers to C++ specific objects; "PY" refers to Python specific
-#       objects. During a "make", the target libraries are built
-#       locally in lib/<arch>/; during a "make install", the headers
-#       (libraries) are copied into $ADAQHOME/include
-#       ($ADAQHOME/lib/<arch>), where <arch> is either i686 (32-bit)
-#       or x86_64 (64-bit).
+#       objects.
+#
+#       C++ and Python libraries can be built separately; by default,
+#       only the C++ library is built (See instruction below). A 'make
+#       install' command will copy the headers (libraries) are copied
+#       into $ADAQHOME/include ($ADAQHOME/lib/<arch>), where <arch> is
+#       either i686 (32-bit) or x86_64 (64-bit). Note that the
+#       $ADAQHOME variable should point to the top-level ADAQ
+#       directory and should be set by the ADAQ setup script if things
+#       are correctly configued.
 #
 # dpnd: The ADAQControl libraries have three main dependencies:
-#       -- The CAEN Libraries (most recent version):
-#          -> CAENDigitizer (v.2.6.0)
+#       0. The CAEN Libraries (mandatory)
+#          -> CAENDigitizer (v.2.6.5)
 #          -> CAENVMELib (v2.41.0)
 #          -> CAENComm (v1.2.0)
-#       -- Python (headers and libraries)
-#       -- Boost.Python (compiled library)
+#       1. Python (headers and libraries) (optional)
+#       2. Boost.Python (compiled library) (optional)
 #
-# 2run: To build both C++ and Python libraries:
+# 2run: To build the C++ library:
 #       $ make
+#
+#       To build the Python library:
+#       $ make python
 # 
 #       To install ADAQ libraries in $ADAQHOME/lib/<arch>/:
 #       $ make install
@@ -39,9 +47,6 @@
 #***************************#
 #**** MACRO DEFINITIONS ****#
 #***************************#
-
-# Specify compilers and basic flags
-CXX = g++
 
 # WARNING: At present (02 Oct 14) building the ADAQ libraries with
 # LLVM/clang compilers (kernel 3.14.19-100.fc19.x86_64) succeeds but
@@ -120,11 +125,16 @@ else
   BOOSTLIB= -lboost_python
 endif
 
-# Targets are C++ and Python shared o	bject libraries
+# Targets are C++ and Python shared object libraries
 CXXTARGET=$(BUILDDIR)/libADAQControl.so	
 PYTARGET=$(BUILDDIR)/libPyADAQControl.so	
 
-all: $(CXXTARGET) $(PYTARGET)
+# Specify to build C++ or Python library target
+ifdef BUILD_PYTHON_LIB
+  all: $(PYTARGET)
+else
+  all: $(CXXTARGET)
+endif
 
 
 #***************#
@@ -135,7 +145,7 @@ all: $(CXXTARGET) $(PYTARGET)
 #******************************#
 # Build C++ shared object libary 
 
-$(CXXTARGET) : $(OBJS) $(INCLS)
+$(CXXTARGET) : $(OBJS)
 	@echo -e "\nBuilding $@ ..."
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -g -shared $^ -o $@
 	@echo -e "\n$@ build is complete!\n"
@@ -168,7 +178,10 @@ clean:
 # Install libs and headers to general directory
 install:
 	@echo -e "\nInstalling ADAQ libraries in $(ADAQHOME)/lib/$(ARCH) ..."
-	@cp -v $(CXXTARGET) $(PYTARGET) $(ADAQHOME)/lib/$(ARCH)
+	@cp -v $(BUILDDIR)/*.so $(ADAQHOME)/lib/$(ARCH)
 	@echo -e "\nInstalling ADAQ headers in $ADAQ/include ..."
 	@cp -v include/* $(ADAQHOME)/include
 	@echo -e ""
+
+python:
+	make BUILD_PYTHON_LIB=1

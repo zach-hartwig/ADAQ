@@ -188,7 +188,7 @@ int ADAQBridge::CloseLink()
 
 
 int ADAQBridge::Initialize()
-{;}
+{ return 0; }
 
 
 // Method to set a value to an individual register of the V1718. Note

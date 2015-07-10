@@ -119,8 +119,11 @@ public:
   int SInDisarmAcquisition();
   
   // Readout
+  
+  int GetChannelBufferStatus(bool *);
+  int GetBufferStatus(int, bool &);
+  int GetBufferLevel(double &);
 
-  int CheckBufferStatus(bool *);
   int GetNumFPGAEvents(uint32_t *);
   
   int GetZLEWaveform(char *, int, vector<vector<uint16_t> > &);

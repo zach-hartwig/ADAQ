@@ -55,6 +55,7 @@
 #include <cmath>
 #include <unistd.h>
 #include <bitset>
+#include <map>
 
 // CAEN
 extern "C" {
@@ -100,6 +101,13 @@ namespace ZLE{
   const uint32_t ZLESampleBBitShift = 16;
 };
 using namespace ZLE;
+
+
+namespace BlockMgmt{
+  
+
+}
+using namespace BlockMgmt;
 
 
 ADAQDigitizer::ADAQDigitizer(ZBoardType Type,  // ADAQ-specific device type identifier
@@ -729,23 +737,25 @@ int ADAQDigitizer::GetZLEWaveform(char *Buffer,
 // Readout methods //
 /////////////////////
 
-int ADAQDigitizer::CheckBufferStatus(bool *BufferStatus)
+int ADAQDigitizer::GetChannelBufferStatus(bool *BufferStatus)
 {
-  // bit[0] : 0 = memory not full; 1 = memory full
-  // bit[1] : 0 = memory not empty; 1 = memory empty
-  // bit[2] : 0 = DAC not busy; 1 = DAC busy
-  // bit[3] : Reserved
-  // bit[4] : Reserved
-  // bit[5] : Buffer free error
 
-  CommandStatus = -42;
+  // The following bitmap for digitizer register 0x1n88 contains the
+  // channel's FPGA RAM buffer memory full status in bit[0]: 
+  //  -- if bit[0] == 0 then memory is not full
+  //  -- if bit[0] == 1 then memory is full.
+  //
+  // However, note that for record lengths below ~285 samples, bit[0]
+  // is always forced to be 0 because the number of events waiting for
+  // readout in 0x1n94 is always 1 short of full (.e.g 0x3FF = 1023
+  // instead of 0x400 = 1024). This problem must be address with CAEN.
 
   // Channel register addresses and channel-to-channel increment
   uint32_t Start = CAEN_DGTZ_CHANNEL_STATUS_BASE_ADDRESS;
   uint32_t Offset = 0x0100;
-
+  
   for(int ch=0; ch<NumChannels; ch++){
-
+    
     uint32_t Addr32 = Start + Offset*ch;
     uint32_t Data32 = 0;
     int Status = 0;
@@ -759,7 +769,57 @@ int ADAQDigitizer::CheckBufferStatus(bool *BufferStatus)
     // BufferFull flag to true
     CommandStatus = CAEN_DGTZ_ReadRegister(BoardHandle, Addr32, &Data32);
     (Data32 & (1 << 0)) ? BufferStatus[ch] = true : BufferStatus[ch] = false;
+    
   }
+  return CommandStatus;
+}
+
+
+int ADAQDigitizer::GetBufferStatus(int Channel, bool &BufferStatus)
+{
+  CommandStatus = -42;
+  return CommandStatus;
+}
+
+
+int ADAQDigitizer::GetBufferLevel(double &BufferLevel)
+{
+  // The following variable maps the return value from digitizer
+  // register 0x800C to the number of blocks into which the FPGA
+  // channel memory is divided. The default is 0x0A = 1024 blocks.
+  
+  map<uint32_t, uint32_t> BlockSizeMap;
+  BlockSizeMap[0x00] = 1;
+  BlockSizeMap[0x01] = 2;
+  BlockSizeMap[0x02] = 4;
+  BlockSizeMap[0x03] = 8;
+  BlockSizeMap[0x04] = 16;
+  BlockSizeMap[0x05] = 32;
+  BlockSizeMap[0x06] = 64;
+  BlockSizeMap[0x07] = 128;
+  BlockSizeMap[0x08] = 256;
+  BlockSizeMap[0x09] = 512;
+  BlockSizeMap[0x0A] = 1024;
+  
+  // Get the register value from 0x800C in order to determine the
+  // number of blocks in segmented memory.
+  
+  uint32_t Addr32 = CAEN_DGTZ_BROAD_NUM_BLOCK_ADD;
+  uint32_t Data32 = 0;
+  
+  CommandStatus = CAEN_DGTZ_ReadRegister(BoardHandle, Addr32, &Data32);
+  uint32_t MemoryBlocks = BlockSizeMap.at(Data32);
+  
+  // Get the number of filled blocks (i.e. events) waiting in the FPGA
+  // buffer memory to be readout and and use it to calculate the
+  // buffer level (percentage of filled blocks)
+  
+  Addr32 = CAEN_DGTZ_EVENT_STORED_ADD;
+  Data32 = 0;
+  
+  CommandStatus = CAEN_DGTZ_ReadRegister(BoardHandle, Addr32, &Data32);
+  BufferLevel = Data32 * 1. / MemoryBlocks;
+  
   return CommandStatus;
 }
   
@@ -770,4 +830,3 @@ int ADAQDigitizer::GetNumFPGAEvents(uint32_t *Data32)
 				   Data32);
   return CommandStatus;
 }
-

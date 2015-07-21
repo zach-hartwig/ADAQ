@@ -13,7 +13,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 // name: ADAQHighVoltage.hh
-// date: 17 Oct 14
+// date: 21 Jul 15
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 //
@@ -24,15 +24,21 @@
 //       inherits all the general member data and methods contained in
 //       ADAQVBoard.
 //
-//       CAEN did provide any API for their VME high voltage boards
-//       (at least at the time this code began to be developed in
-//       2012...); thus, one had to be written and this is the
+//       CAEN did not provide any API for their VME high voltage
+//       boards (at least at the time this code began to be developed
+//       in 2012...); thus, one had to be written and this is the
 //       result. The methods provide fairly straightforward control of
 //       what are typically relatively simple boards, as well as some
 //       safety features since we are dealing with high voltage after
 //       all. The class is intended to be completely adaptaptable to
 //       any VME high voltage board (see the ZBoardTypes enumerator in
 //       ADAQVBoard for presently supported types).
+//
+//       Presently supported CAEN high voltage units:
+//
+//       - VME V6533{Mixed, Negative, Positive} : 4 kV, 3 mA, 6 ch
+//       - VME V6534{Mixed, Negative, Positive} : 6 kV, 1 mA, 6 ch
+//       - Desktop DT5790{Mixed, Negative, Positive} : 4kV, 3mA, 2 ch
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -56,8 +62,24 @@ class ADAQHighVoltage : public ADAQVBoard
 {
   
 public:
+
+  ////////////////////////////////
+  // Constructors / destructors //
+  ////////////////////////////////
+  
   ADAQHighVoltage(ZBoardType, int, uint32_t, int, int = 0);
   ~ADAQHighVoltage();
+
+private:
+
+  ////////////////////////////////////
+  // Internal configuration methods //
+  ////////////////////////////////////
+
+  void ConfigureVariables();
+  void MapRegisters();
+
+public:
   
   /////////////////////////////////////////////////
   // Mandatory implementation of virtual methods //
@@ -70,7 +92,7 @@ public:
   int GetRegisterValue(uint32_t, uint16_t *);
   bool CheckRegisterForWriting(uint32_t);
 
-  
+    
   ///////////////////////////////////////////
   // Enhanced high voltage control methods //
   ///////////////////////////////////////////
@@ -121,10 +143,24 @@ public:
   int GetMaxCurrent() {return MaxCurrent;}
   
 private:
+
+  // CAEN-specific constants for voltage/current setting
+
+  const int volts2input, microamps2input;
+
+  // HV-unit specific description variables
+
   int NumChannels, MinChannel, MaxChannel;
   int MaxVoltage, MaxCurrent;
-  
-  const int volts2input, microamps2input;
+
+  // HV-unit specific register variables
+
+  uint32_t FirmRel;
+  vector<uint32_t> VMax, IMax, Status;
+  vector<uint32_t> VSet, ISet, VMon, IMon, Pw, Pol, Temp;
+  uint16_t PowerOn, PowerOff;
+
+  // Containers to hold present-state of HV settings
   
   vector<uint16_t> ChannelSetVoltage; // [V]
   vector<uint16_t> ChannelSetCurrent; // [uA]

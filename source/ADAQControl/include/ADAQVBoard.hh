@@ -39,17 +39,23 @@ enum ZBoardType{
   // VME-USB boards
   zV1718,
 
-  // Digitizer boards
+  // VME Digitizer boards
   zV1720,
   zV1724,
+  
+  // Desktop digitizers
   zDT5720,
   zDT5730,
-  
-  // High voltage boards
+
+  // Desktop digitizer + high voltage boards
+  zDT5790M,
+  zDT5790N,
+  zDT5790P,
+
+  // VME High voltage boards
   zV6533M,
   zV6533N,
   zV6533P,
-  
   zV6534M,
   zV6534N,
   zV6534P

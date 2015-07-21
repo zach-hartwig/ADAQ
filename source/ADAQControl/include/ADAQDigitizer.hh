@@ -322,14 +322,17 @@ public:
 
   // Event and waveform memory handling
 
+  int MallocDPPEvents(CAEN_DGTZ_DPP_PSD_Event_t **events, uint32_t *allocatedSize)
+  {return CAEN_DGTZ_MallocDPPEvents(BoardHandle, (void**)events, allocatedSize);}
+
   int MallocDPPEvents(void **events, uint32_t *allocatedSize)
   {return CAEN_DGTZ_MallocDPPEvents(BoardHandle, events, allocatedSize);}
 
   int FreeDPPEvents(void **events)
   {return CAEN_DGTZ_FreeDPPEvents(BoardHandle, events);}
 
-  int MallocDPPWaveforms(void **waveforms, uint32_t *allocatedSize)
-  {return CAEN_DGTZ_MallocDPPWaveforms(BoardHandle, waveforms, allocatedSize);}
+  int MallocDPPWaveforms(CAEN_DGTZ_DPP_PSD_Waveforms_t **waveforms, uint32_t *allocatedSize)
+  {return CAEN_DGTZ_MallocDPPWaveforms(BoardHandle, (void **)waveforms, allocatedSize);}
 
   int FreeDPPWaveforms(void *waveforms)
   {return CAEN_DGTZ_FreeDPPWaveforms(BoardHandle, waveforms);}

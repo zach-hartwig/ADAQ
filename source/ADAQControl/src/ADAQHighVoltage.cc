@@ -57,12 +57,12 @@ using namespace boost::assign;
 // CAEN
 extern "C" {
 #include "CAENComm.h"
+#include "CAENDigitizer.h"
 }
 
 // ADAQ
 #include "ADAQHighVoltage.hh"
 #include "ADAQHighVoltageRegisters.hh"
-using namespace V653X;
 
 
 ADAQHighVoltage::ADAQHighVoltage(ZBoardType Type,  // ADAQ-specific device type identifier
@@ -101,6 +101,8 @@ void ADAQHighVoltage::ConfigureVariables()
     MaxChannel = NumChannels-1;
     MaxVoltage = 4000; // [V]
     MaxCurrent = 3000; // [uA]
+    IsV653X = true;
+    IsDT5790 = false;
 
     switch(BoardType){
     case zV6533M:
@@ -129,6 +131,8 @@ void ADAQHighVoltage::ConfigureVariables()
     MaxChannel = NumChannels-1;
     MaxVoltage = 6000; // [V]
     MaxCurrent = 1000; // [uA]
+    IsV653X = true;
+    IsDT5790 = false;
     
     switch(BoardType){
     case zV6534M:
@@ -156,7 +160,9 @@ void ADAQHighVoltage::ConfigureVariables()
     MaxChannel = NumChannels-1;
     MaxVoltage = 4000; // [V]
     MaxCurrent = 3000; // [uA]
-
+    IsV653X = false;
+    IsDT5790 = true;
+    
     switch(BoardType){
     case zDT5790M:
       ChannelPolarity += 1, -1;
@@ -183,7 +189,7 @@ void ADAQHighVoltage::ConfigureVariables()
 	 << "'!\n" << endl;
   }
 
-  // Provide std::map to convert ZBoardType to string name
+  // Provide std::map to convert ZBoardType to string name 
 
   insert(TypeToName)
     ((int)zV6533M,"V6533M") ((int)zV6533N,"V6533N") ((int)zV6533P,"V6533P")
@@ -203,8 +209,7 @@ void ADAQHighVoltage::ConfigureVariables()
 
 void ADAQHighVoltage::MapRegisters()
 {
-  if(BoardType == zV6533M or BoardType == zV6533N or BoardType == zV6533P or
-     BoardType == zV6534M or BoardType == zV6534N or BoardType == zV6534P){
+  if(IsV653X){
     
     FirmRel = V653X::FIRMREL;
     
@@ -224,7 +229,7 @@ void ADAQHighVoltage::MapRegisters()
     PowerOn = V653X::POWERON;
     PowerOff = V653X::POWEROFF;
   }
-  else if(BoardType == zDT5790M or BoardType == zDT5790N or BoardType == zDT5790P){
+  else if(IsDT5790){
     
     FirmRel = -1; // Unavailable for DT5790 unit
     
@@ -250,42 +255,54 @@ void ADAQHighVoltage::MapRegisters()
 int ADAQHighVoltage::OpenLink()
 {
   CommandStatus = -42;
- 
+  
   if(LinkEstablished){
     if(Verbose)
       cout << "ADAQHighVoltage: Error opening link! Link is already open!"
 	   << endl;
   }
   else{
-    CommandStatus = CAENComm_OpenDevice(CAENComm_USB, 
-					0, 
-					0, 
-					BoardAddress, 
-					&BoardHandle);
+
+    if(IsV653X)
+      CommandStatus = CAENComm_OpenDevice(CAENComm_USB, 
+					  0, 
+					  0, 
+					  BoardAddress, 
+					  &BoardHandle);
+    else if(IsDT5790){
+      CommandStatus = CAENComm_Success;
+    }
   }
   
   if(CommandStatus == CAENComm_Success){
-
+    
     LinkEstablished = true;
     
     if(Verbose){
       cout << "ADAQHighVoltage[" << BoardID << "] : Link successfully established!\n"
-	   << "--> Type      : " << TypeToName[BoardType] << "\n"
-	   << "--> Address   : 0x" << setw(8) << setfill('0') << hex << BoardAddress << "\n"
-	   << "--> User ID   : " << dec << BoardID << "\n"
-	   << "--> Handle    : " << BoardHandle << "\n"
-	   << "--> Channels  : " << NumChannels << "\n"
-	   << "--> VMax [V]  : " << MaxVoltage << "\n"
-	   << "--> IMax [uA] : " << MaxCurrent << "\n"
-	   << "--> Polarity  : [";
+	   << "--> Type     : " << TypeToName[BoardType] << "\n"
+	   << "--> Channels : " << NumChannels << "\n"
+	   << "--> VMax     : " << MaxVoltage << " V\n"
+	   << "--> IMax     : " << MaxCurrent << " uA\n"
+	   << "--> Polarity : [";
       
       for(int ch=0; ch<NumChannels; ch++){
 	cout << ChannelPolarityString[ch] << flush;
-	if(ch < 5)
+	if(ch < (NumChannels-1))
 	  cout << "," << flush;
 	else
 	  cout << "]" << endl;
       }
+      
+      cout << "--> Address  : 0x" << setw(8) << setfill('0') << hex << BoardAddress << "\n"
+	   << "--> User ID  : " << dec << BoardID << "\n"
+	   << "--> Handle   : " << BoardHandle << flush;
+      
+      if(IsDT5790)
+	cout << " (must be identical to ADAQDigitizer handle!)\n";
+      else
+	cout << "\n";
+      
       cout << endl;
     }
   }
@@ -334,18 +351,19 @@ int ADAQHighVoltage::SetRegisterValue(uint32_t Addr32, uint16_t Data16)
 {
   CommandStatus = -42;
   
-  // Ensure the user-specified register is OK to be written to
-  // (i.e. prevent overwriting critical registers)
   if(CheckRegisterForWriting(Addr32))
-    CommandStatus =  CAENComm_Write16(BoardHandle, Addr32, Data16); 
+    CommandStatus =  CAENComm_Write16(BoardHandle, Addr32, Data16);
   
   return CommandStatus;
 }
 
 
 int ADAQHighVoltage::GetRegisterValue(uint32_t Addr32, uint16_t *Data16)
-{ 
-  CommandStatus = CAENComm_Read16(BoardHandle, Addr32, Data16); 
+{
+  CommandStatus = -42;
+  
+  CommandStatus = CAENComm_Read16(BoardHandle, Addr32, Data16);
+  
   return CommandStatus;
 }
 
@@ -358,9 +376,7 @@ bool ADAQHighVoltage::CheckRegisterForWriting(uint32_t Addr32)
   // 'true' if proposed write address (Addr32) refers to an acceptable
   // register for user writing; else return 'false'
 
-  if(BoardType == zV6533M or BoardType == zV6533N or BoardType == zV6533P or
-     BoardType == zV6534M or BoardType == zV6534N or BoardType == zV6534P){
-
+  if(IsV653X){
     if((Addr32 <= 0x004c) or
        (Addr32 >= 0x0060 and Addr32 <=0x007c) or
        (Addr32 >= 0x00b4 and Addr32 <=0x00fc) or
@@ -377,9 +393,7 @@ bool ADAQHighVoltage::CheckRegisterForWriting(uint32_t Addr32)
     else
       return true;
   }
-
-  else if(BoardType == zDT5790M or BoardType == zDT5790N or BoardType == zDT5790P){
-
+  else if(IsDT5790){
     if((Addr32 <= 0x121f) or
        (Addr32 >= 0x1245 and Addr32 <= 0x131f) or
        (Addr32 >= 0x1345)){
@@ -418,11 +432,11 @@ int ADAQHighVoltage::SetToSafeState()
 bool ADAQHighVoltage::CheckChannelSteadyState(int Channel)
 {
   // If the channel is not powered on then return false
-  if(ChannelPowerState[Channel] == POWEROFF)
+  if(ChannelPowerState[Channel] == PowerOff)
     return false;
   
   // If the channel is powered on then...
-  else if(ChannelPowerState[Channel] == POWERON){
+  else if(ChannelPowerState[Channel] == PowerOn){
     
     // Compare the "active" voltage at the present moment to the "set"
     // voltage (value of voltage desired by the user and stored in the
@@ -466,24 +480,36 @@ int ADAQHighVoltage::PrintStatus()
     cout << "     CH[" << ch << "] voltage : " << sign << dec << (Voltage/volts2input) << " V\n"
 	 << "     CH[" << ch << "] current : " << dec <<(ChannelSetCurrent[ch]/microamps2input) << " uA\n";
     
-    if(PowerState == POWEROFF)
+    if(PowerState == PowerOff)
       cout << "     CH[" << ch << "] power : OFF\n"
 	   << "     CH[" << ch << "] advice : No worries!\n"
 	   << endl;
-    else if(PowerState == POWERON)
+    else if(PowerState == PowerOn)
       cout << "     CH[" << ch << "] power :  ON\n"
 	   << "     CH[" << ch << "] advice : Achtung! Hochspannung!\n"
 	   << endl;
-  }
 
-  uint16_t BoardStatus;
-  CAENComm_Read16(BoardHandle, STATUS, &BoardStatus);
-  if(BoardStatus==0)
-    cout << "     Board status OK!\n" << endl;
-  else
-    cout << "     Board status ERROR! Register(0x0058) = 0x" 
-	 << setw(8) << setfill('0') << hex << BoardStatus << "\n"
-	 << endl;
+    uint16_t BoardStatus;
+    CAENComm_Read16(BoardHandle, Status[ch], &BoardStatus);
+    
+    if(BoardType == zV6533M or BoardType == zV6533N or BoardType == zV6533P or
+       BoardType == zV6534M or BoardType == zV6534N or BoardType == zV6534P){
+      
+      if(BoardStatus == 0)
+	cout << "     Board status OK!\n" << endl;
+      else
+	cout << "     Board status ERROR!\n" << endl;
+    }
+    
+    else if(BoardType == zDT5790M or BoardType == zDT5790N or BoardType == zDT5790P){
+      
+      if(BoardStatus == 0)
+	cout << "     Channel[" << ch << "] status OK!\n" << endl;
+      else
+	cout << "     Channel[" << ch << "] status ERROR!\n" << endl;
+    }
+  }
+  
   return 0;
 }
 
@@ -505,7 +531,7 @@ int ADAQHighVoltage::SetVoltage(int Channel, uint16_t VoltageSet)
   else{
     ChannelSetVoltage[Channel] = VoltageSet;
     VoltageSet*=volts2input;
-    CommandStatus = CAENComm_Write16(BoardHandle, VSET[Channel], VoltageSet);
+    CommandStatus = CAENComm_Write16(BoardHandle, VSet[Channel], VoltageSet);
   }
   return CommandStatus;
 }
@@ -522,7 +548,7 @@ int ADAQHighVoltage::GetVoltage(int Channel, uint16_t *VoltageGet)
 	   << endl;
   }
   else{
-    CommandStatus = CAENComm_Read16(BoardHandle, VMON[Channel], VoltageGet);
+    CommandStatus = CAENComm_Read16(BoardHandle, VMon[Channel], VoltageGet);
     (*VoltageGet/=volts2input);
   }
   return CommandStatus;
@@ -543,7 +569,7 @@ uint16_t ADAQHighVoltage::GetVoltage(int Channel)
   }
   else{
     uint16_t VoltageGet;
-    CommandStatus = CAENComm_Read16(BoardHandle, VMON[Channel], &VoltageGet);
+    CommandStatus = CAENComm_Read16(BoardHandle, VMon[Channel], &VoltageGet);
     VoltageGet /= volts2input;
     return VoltageGet;
   }
@@ -563,7 +589,7 @@ int ADAQHighVoltage::SetCurrent(int Channel, uint16_t CurrentSet)
   else{
     ChannelSetCurrent[Channel] = CurrentSet;
     CurrentSet*=microamps2input;
-    CommandStatus = CAENComm_Write16(BoardHandle, ISET[Channel], CurrentSet);
+    CommandStatus = CAENComm_Write16(BoardHandle, ISet[Channel], CurrentSet);
   }
   return CommandStatus;
 }
@@ -580,7 +606,7 @@ int ADAQHighVoltage::GetCurrent(int Channel, uint16_t *CurrentGet)
 	   << endl;
   }
   else{
-    CommandStatus = CAENComm_Read16(BoardHandle, IMON[Channel], CurrentGet);
+    CommandStatus = CAENComm_Read16(BoardHandle, IMon[Channel], CurrentGet);
     (*CurrentGet)/=microamps2input;
   }
   return CommandStatus;
@@ -601,7 +627,7 @@ uint16_t ADAQHighVoltage::GetCurrent(int Channel)
   }
   else{
     uint16_t CurrentGet;
-    CommandStatus = CAENComm_Read16(BoardHandle, IMON[Channel], &CurrentGet);
+    CommandStatus = CAENComm_Read16(BoardHandle, IMon[Channel], &CurrentGet);
     CurrentGet/=microamps2input;
     return CurrentGet;
   }
@@ -620,8 +646,8 @@ int ADAQHighVoltage::SetPowerOn(int Channel)
     return -1;
   }
   else{
-    ChannelPowerState[Channel] = POWERON;
-    CommandStatus = CAENComm_Write16(BoardHandle, PW[Channel], POWERON);
+    ChannelPowerState[Channel] = PowerOn;
+    CommandStatus = CAENComm_Write16(BoardHandle, Pw[Channel], PowerOn);
   }
   return CommandStatus;
 }
@@ -638,8 +664,8 @@ int ADAQHighVoltage::SetPowerOff(int Channel)
 	   << endl;
   }
   else{
-    ChannelPowerState[Channel] = POWEROFF;
-    CommandStatus = CAENComm_Write16(BoardHandle, PW[Channel], POWEROFF);
+    ChannelPowerState[Channel] = PowerOff;
+    CommandStatus = CAENComm_Write16(BoardHandle, Pw[Channel], PowerOff);
   }
   return CommandStatus;
 }
@@ -656,7 +682,7 @@ int ADAQHighVoltage::GetPowerState(int Channel, uint16_t *powerGet)
 	   << endl;
   }
   else
-    CommandStatus = CAENComm_Read16(BoardHandle, PW[Channel], powerGet);
+    CommandStatus = CAENComm_Read16(BoardHandle, Pw[Channel], powerGet);
   
   return CommandStatus;
 }
@@ -676,7 +702,7 @@ uint16_t ADAQHighVoltage::GetPowerState(int Channel)
   }
   else{
     uint16_t PowerGet;
-    CommandStatus = CAENComm_Read16(BoardHandle, PW[Channel], &PowerGet);
+    CommandStatus = CAENComm_Read16(BoardHandle, Pw[Channel], &PowerGet);
     return PowerGet;
   }
 }
@@ -694,7 +720,7 @@ int ADAQHighVoltage::GetPolarity(int Channel, uint16_t *polarityGet)
     return -1;
   }
   else
-    CommandStatus = CAENComm_Read16(BoardHandle, POL[Channel], polarityGet);
+    CommandStatus = CAENComm_Read16(BoardHandle, Pol[Channel], polarityGet);
   
   return CommandStatus;
 }
@@ -713,7 +739,7 @@ uint16_t ADAQHighVoltage::GetPolarity(int Channel)
   }
   else{
     uint16_t PolarityGet;
-    CommandStatus = CAENComm_Read16(BoardHandle, POL[Channel], &PolarityGet);
+    CommandStatus = CAENComm_Read16(BoardHandle, Pol[Channel], &PolarityGet);
     return PolarityGet;
   }
 }
@@ -749,7 +775,7 @@ int ADAQHighVoltage::GetTemperature(int Channel, uint16_t *temperatureGet)
     return -1;
   }
   else
-    CommandStatus = CAENComm_Read16(BoardHandle, TEMP[Channel], temperatureGet);
+    CommandStatus = CAENComm_Read16(BoardHandle, Temp[Channel], temperatureGet);
   
   return CommandStatus;
 }
@@ -768,7 +794,7 @@ uint16_t ADAQHighVoltage::GetTemperature(int Channel)
   }
   else{
     uint16_t TemperatureGet;
-    CommandStatus = CAENComm_Read16(BoardHandle, TEMP[Channel], &TemperatureGet);
+    CommandStatus = CAENComm_Read16(BoardHandle, Temp[Channel], &TemperatureGet);
     return TemperatureGet;
   }
 }

@@ -152,6 +152,7 @@ private:
 
   int NumChannels, MinChannel, MaxChannel;
   int MaxVoltage, MaxCurrent;
+  bool IsV653X, IsDT5790;
 
   // HV-unit specific register variables
 

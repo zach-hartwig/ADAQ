@@ -131,7 +131,10 @@ ADAQDigitizer::ADAQDigitizer(ZBoardType Type,  // ADAQ-specific device type iden
     (zV1720, 250)
     (zV1724, 100)
     (zDT5720, 250)
-    (zDT5730, 500);
+    (zDT5730, 500)
+    (zDT5790M, 250)
+    (zDT5790N, 250)
+    (zDT5790P, 250);
 }
 
 
@@ -273,7 +276,7 @@ int ADAQDigitizer::SetRegisterValue(uint32_t Addr32, uint32_t Data32)
 int ADAQDigitizer::GetRegisterValue(uint32_t Addr32, uint32_t *Data32)
 {
   CommandStatus = -42;
-  
+
   if(CheckRegisterForWriting(Addr32))
     CommandStatus = CAEN_DGTZ_ReadRegister(BoardHandle, Addr32, Data32);
   

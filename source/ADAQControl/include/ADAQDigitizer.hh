@@ -264,6 +264,9 @@ public:
 
   int SetRecordLength(uint32_t length) {return CAEN_DGTZ_SetRecordLength(BoardHandle, length);}
   int GetRecordLength(uint32_t *length) {return CAEN_DGTZ_GetRecordLength(BoardHandle, length);}
+
+  int SetRecordLength(uint32_t length, int ch) {return CAEN_DGTZ_SetRecordLength(BoardHandle, length, ch);}
+  int GetRecordLength(uint32_t *length, int ch) {return CAEN_DGTZ_GetRecordLength(BoardHandle, length, ch);}
   
   int SetRunSynchronizationMode(CAEN_DGTZ_RunSyncMode_t mode) {return CAEN_DGTZ_SetRunSynchronizationMode(BoardHandle, mode);}
   int GetRunSynchronizationMode(CAEN_DGTZ_RunSyncMode_t *mode) {return CAEN_DGTZ_GetRunSynchronizationMode(BoardHandle, mode);}
@@ -325,9 +328,6 @@ public:
   int MallocDPPEvents(CAEN_DGTZ_DPP_PSD_Event_t **events, uint32_t *allocatedSize)
   {return CAEN_DGTZ_MallocDPPEvents(BoardHandle, (void**)events, allocatedSize);}
 
-  int MallocDPPEvents(void **events, uint32_t *allocatedSize)
-  {return CAEN_DGTZ_MallocDPPEvents(BoardHandle, events, allocatedSize);}
-
   int FreeDPPEvents(void **events)
   {return CAEN_DGTZ_FreeDPPEvents(BoardHandle, events);}
 
@@ -351,10 +351,16 @@ public:
   int GetDPPTriggerMode(CAEN_DGTZ_DPP_TriggerMode_t *mode)
   {return CAEN_DGTZ_GetDPPTriggerMode(BoardHandle, mode);}
 
+  int SetDPPPreTriggerSize(int channel, int samples)
+  {return CAEN_DGTZ_SetDPPPreTriggerSize(BoardHandle, channel, samples);}
+
+  int GetDPPPreTriggerSize(int channel, uint32_t *samples)
+  {return CAEN_DGTZ_GetDPPPreTriggerSize(BoardHandle, channel, samples);}
+
   // Event control and readout
   
-  int GetDPPEvents(char *buffer,uint32_t buffsize, void **events, uint32_t *numEventsArray)
-  {return CAEN_DGTZ_GetDPPEvents(BoardHandle, buffer, buffsize, events, numEventsArray);}
+  int GetDPPEvents(char *buffer, uint32_t buffsize, CAEN_DGTZ_DPP_PSD_Event_t **events, uint32_t *numEventsArray)
+  {return CAEN_DGTZ_GetDPPEvents(BoardHandle, buffer, buffsize, (void **)events, numEventsArray);}
   
   int DecodeDPPWaveforms(void *event, void *waveforms)
   {return CAEN_DGTZ_DecodeDPPWaveforms(BoardHandle, event, waveforms);}

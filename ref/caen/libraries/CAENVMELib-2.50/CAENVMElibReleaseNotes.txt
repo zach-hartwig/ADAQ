@@ -1,0 +1,292 @@
+  -----------------------------------------------------------------------------
+
+                   --- CAEN SpA - Computing Systems Division --- 
+
+  -----------------------------------------------------------------------------
+
+  CAENVME Library Release Notes
+
+  -----------------------------------------------------------------------------
+  Rel. 2.50 	- June	    2015
+  Rel. 2.41 	- March	    2013
+  Rel. 2.30.2 	- November  2011
+  Rel. 2.30 	- May	    2011
+  Rel. 2.22 	- December  2010
+  Rel. 2.21 	- November  2010
+  Rel. 2.20 	- November  2010
+  Rel. 2.13 	- August    2010
+  Rel. 2.12 	- February  2010
+  Rel. 2.11 	- April     2009
+  Rel. 2.10 	- October   2008
+  Rel. 2.9  	- July      2008
+  Rel. 2.7  	- September 2007
+  Rel. 2.6  	- March     2007
+  Rel. 2.5  	- October   2006
+  Rel. 2.4  	- January   2006
+  Rel. 2.3  	- August    2005
+  Rel. 2.2  	- May       2005
+  Rel. 2.1  	- December  2004
+  Rel. 1.1  	- June      2004
+  Rel. 1.0  	- March     2004
+
+  -----------------------------------------------------------------------------
+
+
+  Description
+  -----------
+
+  This document is updated for every official release of the CAENVMElib Library
+  and it contains various information specific to this software which can not be
+  found in the User's Manual, available together with the software or on the CAEN
+  web site: http://www.caen.it.
+
+
+ System Requirements
+ -------------------
+
+  - CAEN V1718 USB-VME Bridge and/or CAEN V2718 PCI-VME Bridge
+  - Linux kernel 2.4 or 2.6 and GNU C/C++ compiler
+
+   What's New in Rel. 2.50
+  --------------------------
+   
+   New Features and Important Notes
+   --------------------------------
+  - Fix Bug on CAENVME_Init with a2818/a3818 installed together into pc
+  - Fixed memoryleak for windows USB devices.
+  
+  What's New in Rel. 2.41
+  --------------------------
+
+   New Features and Important Notes
+   --------------------------------
+  - Fix bug on CAENVME_Init
+  - Improuved ReadFlashPage function using verified usleep functions
+ 
+  What's New in Rel. 2.3.2
+  --------------------------
+ 
+   New Features and Important Notes
+   --------------------------------
+  - Fix bug on ReadRegister
+  - Fix bug on CAENVME_Init
+  
+  What's New in Rel. 2.30
+  --------------------------
+ 
+   New Features and Important Notes
+   --------------------------------
+  - Add support for A3818 under Microsoft windows platform
+  - Fix bug on shared access on same optical link  
+  
+  What's New in Rel. 2.23
+  --------------------------
+ 
+   New Features and Important Notes
+   --------------------------------
+  - add possibility to open the same link from different process
+  - improuved the VME IRQ management
+  
+   What's New in Rel. 2.22
+  --------------------------
+ 
+   New Features and Important Notes
+   --------------------------------
+  - Fix bug on CAENVME_ReadRegister, CAENVME_WriteRegister and CAENVME_Init when used with more than one A2818 boards
+  - Add support for VME Irq with A3818. 
+  
+  What's New in Rel. 2.21
+  --------------------------
+ 
+   New Features and Important Notes
+   --------------------------------
+  - Bug Fix on CAENVME_Init. It failed to open multiple connection with device under windows 
+  
+   What's New in Rel. 2.20
+  --------------------------
+  - Add support to the new PCIe A3818 Board
+  
+  What's New in Rel. 2.11
+  --------------------------
+  - fix buf in BLTWriteCycle introduced with version 2.10
+  - removed driver folder. (It has been create a standalone package)
+
+  What's New in Rel. 2.10
+  --------------------------
+   - a2718 driver: Version 1.11:
+       -- Added SAFE_MODE to avoid system hang with concurrent processes accessing 
+	        more than one A2818 in the same PC.
+   - a2718 driver: Version 1.10:
+       -- Added conditional compiler directive to comply with kernel versions >= 2.6.23
+
+  What's New in Rel. 2.9
+  --------------------------
+
+   New Features and Important Notes
+   --------------------------------
+   
+   - samples: CAENVMEDemo 1.2: added script engine (VME Script Language)
+   - CAENVMELib rev. 2.9: Fixed bug on MAX_BLOCK_CMD size: MultiWrite failed with large buffer 
+       sizes on Linux
+  
+  What's New in Rel. 2.8
+  --------------------------
+
+   New Features and Important Notes
+   --------------------------------
+
+   - CAENVME_DecodeError: Added missing case cvTimeoutError
+   - Fixed bug on removesem (Linux version only): removing semaphore caused a 
+      system freeze on multiprocess applications
+   - a2718 driver: Version 1.9:
+      -- a2818_link_reset: modified udelay value to 10 msec to comply with CAENLink devices
+      -- BUGFIX on a2818_init_board: s->timeout was setted to a fixed jiffes number: 
+            now the timeout value is setted in msecs and converted to jiffes
+      -- Substitution of milliseconds udelay's calls with mdelay once
+
+  What's New in Rel. 2.7
+  --------------------------
+
+   New Features and Important Notes
+   --------------------------------
+
+   - Really nothing new in this revision fo Linux platform. 
+     All the changes are related to Windows platform.
+
+  What's New in Rel. 2.6
+  --------------------------
+
+   New Features and Important Notes
+   --------------------------------
+
+   - Changed return value for the IRQEnable/Disable functions.
+   - CAENVMEtypes.h: added cvTimeoutError return value.
+   - CAENVME_IRQWait: now returns cvTimeoutError on timeout error
+   - a2718 driver: 
+      -- Bug fixed on device register: now device is registered only if HW is 
+	        present otherwise the kernel crashes with a cat /proc/devices
+      -- ioctl:A2818_IOCTL_IRQ_WAIT now returns ETIMEDOUT instead of -ETIMEDOUT, 
+	        in order to give to CAENVMElib a chance to detect IRQ timeout errors
+
+  What's New in Rel. 2.5
+  --------------------------
+
+   New Features and Important Notes
+   --------------------------------
+
+   - Fixed bug on controlling the DW in BLTReadCycleEx, BLTWriteCycleEx
+       and BLTReadAsyncEx.
+   - Fixed bug on upgrade program
+   - Port to 64-bit architectures
+   - Added CAENVME_DeviceReset: Implemented for A2818, A2719, V2718 only 
+   - a2818_load.2.4, a2818_load.2.6, v1718_load.2.4, v1718_load.2.6 updated:
+      -- inodes' number extended to 32
+	  -- Fixed bug: executing script no more requires to enter the script's 
+	       directory (i.e. you can execute script from any directory)
+
+  What's New in Rel. 2.4
+  --------------------------
+
+   New Features and Important Notes
+   --------------------------------
+
+   - Fixed multithreading support for daisy chained boards.
+   - Fixed multiprocess support for V2718.
+   - Bug fixed on init failure: resources are now correctly released.
+   - Added CAENVME_DriverRelease: get device drivers release 
+      ( requires: a2818 driver rev. >= 1.5 , v1718 driver rev. >= 0.2).
+   - Added driver for 2.6 kernel series.
+
+
+
+  What's New in Rel. 2.3
+  --------------------------
+
+   New Features and Important Notes
+   --------------------------------
+
+   - SMP support for the V2718 device driver.
+   - New function CAENVME_DecodeError that permit to obtain a string
+     description given an error code.
+   - Bug fixed in CAENVME_IACKCycle function.
+   - Some data types changes in function parameters to obtain more homogeneus
+     typing.
+   - Bug fixed in CAENVME_BLTWrite function.
+   - New functions CAENVME_FIFOBLTReadCycle, CAENVME_FIFOMBLTReadCycle,
+     CAENVME_FIFOBLTWriteCycle, CAENVME_FIFOMBLTWriteCycle that permit to
+     execute BLT cycles without the address increment.
+   - Fixed the automatic link reset after a VME crate power cycle.
+
+
+  What's New in Rel. 2.2
+  --------------------------
+
+   New Features and Important Notes
+   --------------------------------
+
+   - Fixed minor bugs in V2718 device driver .
+   - New functions CAENVME_MultiRead and CAENVME_MultiWrite that permit to 
+     issue many single accesses with a single command.
+   - It is no more needed to reload the V2718 device driver after a VME crate
+     power cycle.
+   - Added the byte swapping capability.
+     
+           
+  What's New in Rel. 2.1
+  --------------------------
+
+   New Features and Important Notes
+   --------------------------------
+
+   - Support for CAEN V2718 PCI-VME Bridge.
+   - Some speed improvements.
+   
+   Note: This software release is compatible only with CAEN V1718/V2718 
+   	 equipped with firmware release later than 0.11. Be sure to upgrade 
+   	 your hardware BEFORE installing the software contained in this 
+   	 package.
+
+ 
+  What's New in Rel. 1.2
+  --------------------------
+
+   New Features and Important Notes
+   --------------------------------
+
+   - Fixed the support for large read and write Block Transfers.      
+   - Fixed the locking logic to allows access to non-root users.
+         
+  What's New in Rel. 1.1
+  --------------------------
+
+   New Features and Important Notes
+   --------------------------------
+
+   - Support for large read and write Block Transfers.      
+   - Support for LabView.
+           
+ 
+  What's New in Rel. 1.0
+  --------------------------
+
+   New Features and Important Notes
+   --------------------------------
+
+   - First release.
+
+ 
+  Determining Your Software Release
+  ---------------------------------
+
+  To determine the complete software release of the CAENVMElib Library
+  installed in your machine, you must write a program and use the
+  CAENVME_SWRelease API function.
+
+
+  How to get support
+  ------------------
+
+  Our Software Support Group is available for questions, support and any other 
+  software related issue concerning CAEN Power Supplies; for software support
+  visit the page www.caen.it/computing/support.php.
+

@@ -1,0 +1,15 @@
+#!/bin/sh
+#=============================================================================
+#
+#             --- CAEN SpA - Computing Systems Division ---
+#
+#  Library installation script.
+#
+#
+#
+#=============================================================================
+
+install x86/libCAENVME.so.2.50 /usr/lib
+ln -sf /usr/lib/libCAENVME.so.2.50 /usr/lib/libCAENVME.so
+/sbin/ldconfig
+cp ../include/* /usr/include/

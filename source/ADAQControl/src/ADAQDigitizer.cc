@@ -426,12 +426,12 @@ int ADAQDigitizer::SetTriggerCoincidence(bool Enable, int Level)
 int ADAQDigitizer::SetAcquisitionControl(string AcqControl)
 { 
   CommandStatus = -42;
-
+  
   if(AcqControl == "Software")
     CommandStatus = SetAcquisitionMode(CAEN_DGTZ_SW_CONTROLLED);
   else if(AcqControl == "Gated (NIM)" or AcqControl == "Gated (TTL)"){
     //CommandStatus = SetAcquisitionMode(CAEN_DGTZ_S_IN_CONTROLLED);
-
+    
     uint32_t Data32 = 0;
     CommandStatus = GetRegisterValue(CAEN_DGTZ_FRONT_PANEL_IO_CTRL_ADD, &Data32);
     

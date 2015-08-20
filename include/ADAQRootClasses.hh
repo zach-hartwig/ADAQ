@@ -86,7 +86,7 @@ public:
     fComboBox->Resize(100,20);
     fComboBox->ChangeOptions(fComboBox->GetOptions() | kFixedSize | kSunkenFrame);
     AddFrame(fComboBox, new TGLayoutHints(kLHintsLeft));
-    AddFrame(new TGLabel(this,label), new TGLayoutHints(kLHintsCenterY,7,5,3,5));
+    AddFrame(new TGLabel(this,label), new TGLayoutHints(kLHintsCenterY,5,5,3,5));
   }
   TGComboBox *GetComboBox() const {return fComboBox;}
 };

@@ -44,17 +44,7 @@ public:
   void SetDGFWType(TString FWT) {DGFWType = FWT;}
   TString GetDGFWType() {return DGFWType;}
 
-
-  // Global acquisition settings
-
-  void SetRecordLength(Int_t RL) {RecordLength = RL;}
-  Int_t GetRecordLength() {return RecordLength;}
-
-  void SetPostTrigger(Int_t RL) {PostTrigger = RL;}
-  Int_t GetPostTrigger() {return PostTrigger;}
-
-  void SetCoincidenceLevel(Int_t RL) {CoincidenceLevel = RL;}
-  Int_t GetCoincidenceLevel() {return CoincidenceLevel;}
+  // Global settings
 
   void SetTriggerType(TString TT) {TriggerType = TT;}
   TString GetTriggerType() {return TriggerType;}
@@ -64,7 +54,7 @@ public:
 
   void SetAcquisitionType(TString TT) {AcquisitionType = TT;}
   TString GetAcquisitionType() {return AcquisitionType;}
-
+  
   void SetDataReductionMode(Bool_t DRM) {DataReductionMode = DRM;}
   Bool_t GetDataReductionMode() {return DataReductionMode;}
 
@@ -77,11 +67,16 @@ public:
   void SetAcquisitionTime(Int_t AT) {AcquisitionTime = AT;}
   Int_t GetAcquisitionTime() {return AcquisitionTime;}
 
+  void SetCoincidenceLevel(Int_t RL) {CoincidenceLevel = RL;}
+  Int_t GetCoincidenceLevel() {return CoincidenceLevel;}
 
-  // Channel-specific acquisition settings
-
+  // CAEN firmware-agnostic channel-specific settings
+  
   void SetChannelEnable(vector<Bool_t> T) {ChannelEnable = T;}
   vector<Bool_t> GetChannelEnable() {return ChannelEnable;}
+
+  void SetDCOffset(vector<Int_t> T) {DCOffset = T;}
+  vector<Int_t> GetDCOffset() {return DCOffset;}
 
   void SetTrigger(vector<Int_t> T) {Trigger = T;}
   vector<Int_t> GetTrigger() {return Trigger;}
@@ -91,18 +86,6 @@ public:
 
   void SetBaselineCalcMax(vector<Int_t> T) {BaselineCalcMax = T;}
   vector<Int_t> GetBaselineCalcMax() {return BaselineCalcMax;}
-
-  void SetDCOffset(vector<Int_t> T) {DCOffset = T;}
-  vector<Int_t> GetDCOffset() {return DCOffset;}
-  
-  void SetZLEFwd(vector<Int_t> T) {ZLEFwd = T;}
-  vector<Int_t> GetZLEFwd() {return ZLEFwd;}
-  
-  void SetZLEBck(vector<Int_t> T) {ZLEBck = T;}
-  vector<Int_t> GetZLEBck() {return ZLEBck;}
-  
-  void SetZLEThreshold(vector<Int_t> T) {ZLEThreshold = T;}
-  vector<Int_t> GetZLEThreshold() {return ZLEThreshold;}
   
   void SetPSDTotalStart(vector<Int_t> T) {PSDTotalStart = T;}
   vector<Int_t> GetPSDTotalStart() {return PSDTotalStart;}
@@ -115,6 +98,52 @@ public:
   
   void SetPSDTailStop(vector<Int_t> T) {PSDTailStop = T;}
   vector<Int_t> GetPSDTailStop() {return PSDTailStop;}
+
+  // CAEN standard firmware specific settings
+
+  void SetRecordLength(Int_t RL) {RecordLength = RL;}
+  Int_t GetRecordLength() {return RecordLength;}
+
+  void SetPostTrigger(Int_t RL) {PostTrigger = RL;}
+  Int_t GetPostTrigger() {return PostTrigger;}
+  
+  void SetZLEFwd(vector<Int_t> T) {ZLEFwd = T;}
+  vector<Int_t> GetZLEFwd() {return ZLEFwd;}
+  
+  void SetZLEBck(vector<Int_t> T) {ZLEBck = T;}
+  vector<Int_t> GetZLEBck() {return ZLEBck;}
+
+  void SetZLEThreshold(vector<Int_t> T) {ZLEThreshold = T;}
+  vector<Int_t> GetZLEThreshold() {return ZLEThreshold;}
+
+  // CAEN DPP-PSD firmware specific settings
+
+  void SetChRecordLength(vector<Int_t> CRL) {ChRecordLength = CRL;}
+  vector<Int_t> GetChRecordLength() {return ChRecordLength;}
+
+  void SetChChargeSensitivity(vector<Int_t> CCS) {ChChargeSensitivity = CCS;}
+  vector<Int_t> GetChChargeSensitivity() {return ChChargeSensitivity;}
+
+  void SetChPSDCut(vector<Int_t> CRL) {ChPSDCut = CRL;}
+  vector<Int_t> GetChPSDCut() {return ChPSDCut;}
+  
+  void SetChTriggerConfig(vector<Int_t> CRL) {ChTriggerConfig = CRL;}
+  vector<Int_t> GetChTriggerConfig() {return ChTriggerConfig;}
+  
+  void SetChTriggerValidation(vector<Int_t> CRL) {ChTriggerValidation = CRL;}
+  vector<Int_t> GetChTriggerValidation() {return ChTriggerValidation;}
+  
+  void SetChShortGate(vector<Int_t> CRL) {ChShortGate = CRL;}
+  vector<Int_t> GetChShortGate() {return ChShortGate;}
+  
+  void SetChLongGate(vector<Int_t> CRL) {ChLongGate = CRL;}
+  vector<Int_t> GetChLongGate() {return ChLongGate;}
+  
+  void SetChPreTrigger(vector<Int_t> CRL) {ChPreTrigger = CRL;}
+  vector<Int_t> GetChPreTrigger() {return ChPreTrigger;}
+  
+  void SetChGateOffset(vector<Int_t> CRL) {ChGateOffset = CRL;}
+  vector<Int_t> GetChGateOffset() {return ChGateOffset;}
   
 
   //////////////////////////////////////////////////
@@ -158,6 +187,7 @@ private:
   ///////////////////////////
   
   // Device information
+
   TString DGModelName;
   Int_t DGSerialNumber;
   Int_t DGNumChannels;
@@ -167,22 +197,41 @@ private:
   TString DGAMCFWRevision;
   TString DGFWType;
 
-  // Global acquisition settings
-  Int_t RecordLength, CoincidenceLevel;
-  Double_t PostTrigger;
+  // Global settings
+
   TString TriggerType, TriggerEdge, AcquisitionType;
   Bool_t DataReductionMode, ZeroSuppressionMode;
   Bool_t AcquisitionTimer;
   Int_t AcquisitionTime;
-  
-  // Channel specific acquisition settings
+  Int_t CoincidenceLevel;
+
+  // CAEN firmware-agnostic channel-specific settings
+
   vector<Bool_t> ChannelEnable;
-  vector<Int_t> Trigger, BaselineCalcMin, BaselineCalcMax;
-  vector<Int_t> DCOffset;
-  vector<Int_t> ZLEFwd, ZLEBck, ZLEThreshold;
+  vector<Int_t> DCOffset, Trigger;
+  vector<Int_t> BaselineCalcMin, BaselineCalcMax;
   vector<Int_t> PSDTotalStart, PSDTotalStop;
   vector<Int_t> PSDTailStart, PSDTailStop;
-  
+
+  // CAEN standard firmware specific settings
+
+  Int_t RecordLength;
+  Double_t PostTrigger;
+  vector<Int_t> ZLEFwd, ZLEBck, ZLEThreshold;
+
+  // CAEN DPP-PSD firmware specific settings
+
+  vector<Int_t> ChRecordLength;
+  vector<Int_t> ChChargeSensitivity;
+  vector<Int_t> ChPSDCut;
+  vector<Int_t> ChTriggerConfig;
+  vector<Int_t> ChTriggerValidation;
+  vector<Int_t> ChShortGate;
+  vector<Int_t> ChLongGate;
+  vector<Int_t> ChPreTrigger;
+  vector<Int_t> ChGateOffset;
+
+  Int_t PSDMode;
  
   //////////////////////////////
   // High voltage information //

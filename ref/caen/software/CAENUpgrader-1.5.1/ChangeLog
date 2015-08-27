@@ -9,7 +9,7 @@
 
   -----------------------------------------------------------------------------
   
-  Version 1.5.0 - March 2014
+  Version 1.5.1 - March 2015
 
   -----------------------------------------------------------------------------
  
@@ -24,6 +24,11 @@
  
   - Linux, 32/64-bit
   - Java JRE 6 or later
+  
+    What's New in version 1.5.1
+  ---------------------------
+  - increased number of available link in GUI
+  - Fix minor bugs
   
    What's New in version 1.5.0
   ---------------------------

@@ -112,7 +112,7 @@ int ADAQBridge::OpenLinkViaDigitizer(uint32_t DigitizerHandle,
   CommandStatus = -42;
 
   if(!DigitizerLinkEstablished){
-    cout << "ADAQBridge[" << BoardID << "] : Error opening link! A link must be first established with the V1720 board!\n"
+    cout << "ADAQBridge[" << BoardID << "] : Error opening link! A link must be first established with the VME digitizer board!\n"
 	 << endl;
     return CommandStatus;
   }
@@ -135,7 +135,7 @@ int ADAQBridge::OpenLinkViaDigitizer(uint32_t DigitizerHandle,
   }
   else
     if(Verbose)
-      cout << "ADAQBridge: Error opening link through V1720 digitizer! Link is already open!\n"
+      cout << "ADAQBridge: Error opening link through the VME digitizer! Link is already open!\n"
 	   << endl;
 
   // Set the LinkEstablished bool to indicate that a valid link nto
@@ -145,9 +145,9 @@ int ADAQBridge::OpenLinkViaDigitizer(uint32_t DigitizerHandle,
     LinkEstablished = true;
 
     if(Verbose)
-      cout << "ADAQBridge[" << BoardID << "] : Link successfully established through V1720 digitizer!\n"
+      cout << "ADAQBridge[" << BoardID << "] : Link successfully established through the VME digitizer!\n"
 	   << "--> Type    : " << BoardName << " (" << ConnectionName << ")\n"
-	   << "--> Address : Not applicable; set automatically via digitizer\n"
+	   << "--> Address : Not applicable; set automatically via the VME digitizer\n"
 	   << "--> User ID : " << BoardID << "\n"
 	   << endl;
   }

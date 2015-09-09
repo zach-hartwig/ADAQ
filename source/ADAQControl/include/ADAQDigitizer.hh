@@ -368,8 +368,8 @@ public:
   int SetNumEventsPerAggregate(uint32_t numEvents)
   {return CAEN_DGTZ_SetNumEventsPerAggregate(BoardHandle, numEvents);}
   
-  int GetNumEventsPerAggregate(uint32_t *numEvents)
-  {return CAEN_DGTZ_GetNumEventsPerAggregate(BoardHandle, numEvents);}
+  int SetNumEventsPerAggregate(uint32_t numEvents, int channel)
+  {return CAEN_DGTZ_SetNumEventsPerAggregate(BoardHandle, numEvents, channel);}
   
   int SetDPPEventAggregation(int threshold, int maxSize)
   {return CAEN_DGTZ_SetDPPEventAggregation(BoardHandle, threshold, maxSize);}

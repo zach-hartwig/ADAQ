@@ -76,6 +76,10 @@ ADAQHighVoltage::ADAQHighVoltage(ZBoardType Type,  // ADAQ-specific device type 
     // The desired channel voltage (in volts) must be set in the
     // registers as (V[volts]*10). Here define a conversion value.
     volts2input(10),
+
+    // The desired maximum channel voltage (in volts) must be set in
+    // the regsisters as (V[volts]/20). Here define a conversion value.
+    maxVolts2input(1./20),
     
     // The desired channel current (in microamps) must be set in the
     // registers as (I[microamps]*50). Here define a conversion value.
@@ -278,6 +282,13 @@ int ADAQHighVoltage::OpenLink()
     
     LinkEstablished = true;
     
+    // For the DT5790X units, set each channels' maximum voltage to
+    // the highest value to correct unpredictable default settings
+    if(BoardType == zDT5790M or BoardType == zDT5790N or BoardType == zDT5790P){
+      for(int ch=0; ch<NumChannels; ch++)
+	SetMaxVoltage(ch, MaxVoltage);
+    }
+    
     if(Verbose){
       cout << "ADAQHighVoltage[" << BoardID << "] : Link successfully established!\n"
 	   << "--> Type     : " << TypeToName[BoardType] << "\n"
@@ -386,7 +397,7 @@ bool ADAQHighVoltage::CheckRegisterForWriting(uint32_t Addr32)
        (Addr32 >= 0x01b4 and Addr32 <=0x02fc) or
        (Addr32 >= 0x0334 and Addr32 <=0x037c)){
       if(Verbose)
-	cout << "ADAQHighVoltage [" << BoardID << "] : Error attempting to access a protected register address\n"
+	cout << "ADAQHighVoltage [" << BoardID << "] : Error! Attempted access to a protected register address.\n"
 	     << endl;
       return false;
     }
@@ -398,7 +409,7 @@ bool ADAQHighVoltage::CheckRegisterForWriting(uint32_t Addr32)
        (Addr32 >= 0x1245 and Addr32 <= 0x131f) or
        (Addr32 >= 0x1345)){
       if(Verbose)
-	cout << "ADAQHighVoltage [" << BoardID << "] : Error attempting to access a protected register address\n"
+	cout << "ADAQHighVoltage [" << BoardID << "] : Error! Attempted access to a protected register address.\n"
 	     << endl;
       return false;
     }
@@ -525,7 +536,7 @@ int ADAQHighVoltage::SetVoltage(int Channel, uint16_t VoltageSet)
  
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage [" << BoardID << "] : Error setting HV Voltage! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error setting voltage! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
 	   << endl;
   }
   else{
@@ -544,7 +555,7 @@ int ADAQHighVoltage::GetVoltage(int Channel, uint16_t *VoltageGet)
   
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV Voltage! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting voltage! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
 	   << endl;
   }
   else{
@@ -562,7 +573,7 @@ uint16_t ADAQHighVoltage::GetVoltage(int Channel)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV Voltage! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting voltage! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
 	   << endl;
 
     return -1;
@@ -576,6 +587,63 @@ uint16_t ADAQHighVoltage::GetVoltage(int Channel)
 }
 
 
+// Method to set the maximum allowable channel voltage
+int ADAQHighVoltage::SetMaxVoltage(int Channel, uint16_t MaxVoltageSet)
+{
+  CommandStatus = -42;
+  
+  if(Channel>MaxChannel or Channel<MinChannel){
+    if(Verbose)
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error setting maximum voltage! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
+	   << endl;
+  }
+  else{
+    MaxVoltageSet *= maxVolts2input;
+    CommandStatus = CAENComm_Write16(BoardHandle, VMax[Channel], MaxVoltageSet);
+  }
+  return CommandStatus;
+}
+
+
+// Method to get the maximum allowable channel voltage
+int ADAQHighVoltage::GetMaxVoltage(int Channel, uint16_t *MaxVoltageGet)
+{
+  CommandStatus = -42;
+  
+  if(Channel>MaxChannel or Channel<MinChannel){
+    if(Verbose)
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting maximum voltage! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
+	   << endl;
+  }
+  else{
+    CommandStatus = CAENComm_Read16(BoardHandle, VMax[Channel], MaxVoltageGet);
+    (*MaxVoltageGet/=maxVolts2input);
+  }
+  return CommandStatus;
+}
+
+
+// Method to get the maximum allowable channel voltage. 
+uint16_t ADAQHighVoltage::GetMaxVoltage(int Channel)
+{
+  CommandStatus = -42;
+
+  if(Channel>MaxChannel or Channel<MinChannel){
+    if(Verbose)
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting maximum voltage! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
+	   << endl;
+
+    return -1;
+  }
+  else{
+    uint16_t MaxVoltageGet;
+    CommandStatus = CAENComm_Read16(BoardHandle, VMax[Channel], &MaxVoltageGet);
+    MaxVoltageGet /= maxVolts2input;
+    return MaxVoltageGet;
+  }
+}
+
+
 // Method to set individual channel max current
 int ADAQHighVoltage::SetCurrent(int Channel, uint16_t CurrentSet)
 {
@@ -583,7 +651,7 @@ int ADAQHighVoltage::SetCurrent(int Channel, uint16_t CurrentSet)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage [" << BoardID << "] : Error setting HV current! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error setting current! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
 	   << endl;
   }
   else{
@@ -602,7 +670,7 @@ int ADAQHighVoltage::GetCurrent(int Channel, uint16_t *CurrentGet)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV current! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting current! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
 	   << endl;
   }
   else{
@@ -620,7 +688,7 @@ uint16_t ADAQHighVoltage::GetCurrent(int Channel)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV current! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting current! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
 	   << endl;
 
     return -1;
@@ -641,7 +709,7 @@ int ADAQHighVoltage::SetPowerOn(int Channel)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage [" << BoardID << "] : Error setting HV power on! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error setting power on! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
 	   << endl;
     return -1;
   }
@@ -660,7 +728,7 @@ int ADAQHighVoltage::SetPowerOff(int Channel)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage [" << BoardID << "] : Error setting HV power off! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error setting power off! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
 	   << endl;
   }
   else{
@@ -678,7 +746,7 @@ int ADAQHighVoltage::GetPowerState(int Channel, uint16_t *powerGet)
   
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV power status! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting power status! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
 	   << endl;
   }
   else
@@ -695,7 +763,7 @@ uint16_t ADAQHighVoltage::GetPowerState(int Channel)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV power status! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting power status! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
 	   << endl;
 
     return -1;
@@ -715,7 +783,7 @@ int ADAQHighVoltage::GetPolarity(int Channel, uint16_t *polarityGet)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV channel polarity! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting channel polarity! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
 	   << endl;
     return -1;
   }
@@ -733,7 +801,7 @@ uint16_t ADAQHighVoltage::GetPolarity(int Channel)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV channel polarity! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting channel polarity! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
 	   << endl;
     return -1;
   }
@@ -752,7 +820,7 @@ string ADAQHighVoltage::GetPolarityString(int Channel)
   
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV channel polarity string! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting channel polarity string! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
 	   << endl;
     return "";
   }
@@ -770,7 +838,7 @@ int ADAQHighVoltage::GetTemperature(int Channel, uint16_t *temperatureGet)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV channel temperature! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting channel temperature! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
 	   << endl;
     return -1;
   }
@@ -788,7 +856,7 @@ uint16_t ADAQHighVoltage::GetTemperature(int Channel)
 
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
-      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting HV channel temperature! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error getting channel temperature! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
 	   << endl;
     return -1;
   }

@@ -110,6 +110,11 @@ public:
   int SetVoltage(int, uint16_t);
   int GetVoltage(int, uint16_t *);
   uint16_t GetVoltage(int);
+
+  // Set/get the maximum allowable voltages
+  int SetMaxVoltage(int, uint16_t);
+  int GetMaxVoltage(int, uint16_t *);
+  uint16_t GetMaxVoltage(int);
   
   // Set/get individual channel max. currents
   int SetCurrent(int, uint16_t);
@@ -139,14 +144,13 @@ public:
   /////////////////////////////////////////
   
   int GetNumChannels() {return NumChannels;}
-  int GetMaxVoltage() {return MaxVoltage;}
   int GetMaxCurrent() {return MaxCurrent;}
   
 private:
 
   // CAEN-specific constants for voltage/current setting
 
-  const int volts2input, microamps2input;
+  const int volts2input, maxVolts2input, microamps2input;
 
   // HV-unit specific description variables
 

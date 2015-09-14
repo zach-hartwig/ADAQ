@@ -50,6 +50,3 @@ mail: hartwig@psfc.mit.edu
 
  - Adding a Bash script to automate building and installing all three
    ADAQ libraries
-
-
-

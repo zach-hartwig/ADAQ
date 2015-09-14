@@ -8,6 +8,18 @@ mail: hartwig@psfc.mit.edu
 
 ## Version 1.2 Series
 
+### 1.2.1  
+
+ - Fixed time stamp readout type from a signed 32-bit integer to a 64-bit
+   unsigned integer. Now correctly stores long-duration time stamps
+
+ - Adding channel-specific event aggregation settings for DPP-PSD
+
+ - Enabling setting of high voltage maximum for devices that have
+   software rather than hardware VMAX limits (e.g. DT5790X)
+
+ - Automatically set software high voltage max for DT5790X devices
+ 
 ### 1.2.0
 
  - Implemented ability to control digitizer and high voltage functions

@@ -3,12 +3,14 @@
 
 #include <TObject.h>
 
+#include <iostream>
+
 class ADAQWaveformData : public TObject
 {
 public:
   ADAQWaveformData();
   ~ADAQWaveformData();
-
+  
   void Initialize();
 
   void SetPulseHeight(Double_t PH) {PulseHeight = PH;}
@@ -25,19 +27,18 @@ public:
 
   void SetPSDTailIntegral(Double_t PTI) {PSDTailIntegral = PTI;}
   Double_t GetPSDTailIntegral() {return PSDTailIntegral;}
-
-  void SetTimeStamp(Int_t TS) {TimeStamp = TS;}
-  Int_t GetTimeStamp() {return TimeStamp;}
+  
+  void SetTimeStamp(ULong64_t TS) {TimeStamp = TS;}
+  ULong64_t GetTimeStamp() {return TimeStamp;}
   
   void SetChannelID(Int_t CID) {ChannelID = CID;}
   Int_t GetChannelID() {return ChannelID;}
-
+  
   void SetBoardID(Int_t BID) {BoardID = BID;}
   Int_t GetBoardID() {return BoardID;}
-
-
+  
 private:
-
+  
   // Analyzed waveform data
   
   Double_t PulseHeight, PulseArea, Baseline;
@@ -45,11 +46,10 @@ private:
   
   // Standard waveform data
   
-  Int_t TimeStamp;
+  ULong64_t TimeStamp;
   Int_t ChannelID, BoardID;
   
   ClassDef(ADAQWaveformData, 1);
 };
-
 
 #endif

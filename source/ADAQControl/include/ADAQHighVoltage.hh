@@ -150,7 +150,8 @@ private:
 
   // CAEN-specific constants for voltage/current setting
 
-  const int volts2input, maxVolts2input, microamps2input;
+  const int volts2input, microamps2input;
+  const double maxVolts2input;
 
   // HV-unit specific description variables
 

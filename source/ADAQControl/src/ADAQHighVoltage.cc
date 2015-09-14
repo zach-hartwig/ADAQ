@@ -87,7 +87,7 @@ ADAQHighVoltage::ADAQHighVoltage(ZBoardType Type,  // ADAQ-specific device type 
 {
   // Configure member data based on HV unit type
   ConfigureVariables();
-
+  
   // Configure register mapping based on HV unit type
   MapRegisters();
 }
@@ -627,16 +627,16 @@ int ADAQHighVoltage::GetMaxVoltage(int Channel, uint16_t *MaxVoltageGet)
 uint16_t ADAQHighVoltage::GetMaxVoltage(int Channel)
 {
   CommandStatus = -42;
-
+  
   if(Channel>MaxChannel or Channel<MinChannel){
     if(Verbose)
       cout << "ADAQHighVoltage [" << BoardID << "] : Error getting maximum voltage! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
 	   << endl;
-
+    
     return -1;
   }
   else{
-    uint16_t MaxVoltageGet;
+    uint16_t MaxVoltageGet = -1;
     CommandStatus = CAENComm_Read16(BoardHandle, VMax[Channel], &MaxVoltageGet);
     MaxVoltageGet /= maxVolts2input;
     return MaxVoltageGet;

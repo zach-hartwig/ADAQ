@@ -40,6 +40,9 @@
 #**** MACRO DEFINITIONS ****#
 #***************************#
 
+# Obtain CPU architecture: 32-bit ("i686") or 64-bit ("x86_64")
+ARCH=$(shell uname -m)
+
 # Include the Makefile for ROOT-based projects
 RC:=root-config
 ROOTSYS:=$(shell $(RC) --prefix)
@@ -49,20 +52,23 @@ include $(ROOTMAKE)
 # Note that at this point in the makefile CXXFLAGS now includes
 # ROOT-based flags so we must ensure to use "+=" to add more flags
 
-# Obtain CPU architecture: 32-bit ("i686") or 64-bit ("x86_64")
-ARCH=$(shell uname -m)
+# Include the Geant4 header files and libraries
+GC:=geant4-config
+G4SYS:=$(shell $(GC) --prefix)
+G4INCLDIR=$(G4SYS)/include/Geant4
+G4LIBS=$(shell $(GC) --libs)
+CXXFLAGS += -I$(G4INCLDIR)
 
 # Specify header files directory. Note that this must be an absolute
 # path to ensure the ROOT dictionary files can find the headers
 INCLDIR = $(PWD)/include
+CXXFLAGS += -I$(INCLDIR)/
 
 # Specify the build and source directories
 BUILDDIR = build
 SRCDIR = src
 
-CXXFLAGS += -I$(INCLDIR)/
-
-# Specify all the ADAQ header files
+# List all of the ADAQ header files
 INCLS = $(wildcard $(INCLDIR)/*.hh)
 
 # Specify all object files (to be built in the build/ directory)
@@ -119,8 +125,8 @@ clean:
 
 # Install libs and headers into top-level ADAQ directory
 install:
-	@echo -e "\nInstalling ADAQ libraries in $ADAQ/lib/$(ARCH) ..."
+	@echo -e "\nInstalling the ASIM library into $ADAQ/lib/$(ARCH) ..."
 	@cp -v $(TARGET) $(DESTLIB)
-	@echo -e "\nInstalling ADAQ headers in $ADAQ/include ..."
+	@echo -e "\nInstalling the ASIM headers into $ADAQ/include ..."
 	@cp -v include/*.hh $(DESTINCL)
 	@echo -e ""

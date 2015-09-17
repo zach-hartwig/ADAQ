@@ -23,5 +23,6 @@
 #pragma link C++ class ASIMEvent+;
 #pragma link C++ class ASIMRun+;
 #pragma link C++ class ASIMReadoutManager+;
+#pragma link C++ class ASIMStorageManager+;
 
 #endif

@@ -1,134 +1,153 @@
-/////////////////////////////////////////////////////////////////////////////////
-//
-// name: ASIMReadoutManager.hh
-// date: 23 Dec 14
-// auth: Zach Hartwig
-// mail: hartwig@psfc.mit.edu
-// 
-// desc: The ASIMReadoutManager class provides a framework for
-//       reading out simulated detector data into event- and run-level
-//       information class containers. The primary purpose is to
-//       provide a standardized, flexible method for high efficiency
-//       detector data persistency and post-simulation data analysis
-//       using software tools (e.g. the ADAQAnalysis program). The
-//       class combines the ADAQSimulationEvent and ADAQSimultionRun
-//       classes for containerized data storage with ROOT TCollection
-//       objects to facilitate data storage. The class is primarily
-//       developed for use with Geant4 "Sensitive Detectors" but in
-//       principle could be used by any Monte Carlo simulation that
-//       can be integrated with the ROOT toolkit.
-//
-/////////////////////////////////////////////////////////////////////////////////
+#ifndef ASIMReadoutManager_hh
+#define ASIMReadoutManager_hh 1
 
-#ifndef __ASIMReadoutManager_hh__
-#define __ASIMReadoutManager_hh__ 1
+// Geant4
+#include "G4Event.hh"
+#include "G4Run.hh"
 
-#include <TObject.h>
-#include <TObjString.h>
-#include <TList.h>
-#include <TString.h>
-#include <TTree.h>
-#include <TFile.h>
+// ROOT
+#include "TFile.h"
+#include "TTree.h"
 
-#include <string>
-#include <map>
-#include <ctime>
+// C++
+#include <vector>
+using namespace std;
 
-#include "ASIMEvent.hh"
-#include "ASIMRun.hh"
+// ASIM
+#include "ASIMReadoutManager.hh"
+#include "ASIMReadoutMessenger.hh"
 
-class ASIMReadoutManager : public TObject
+class ASIMReadoutManager
 {
 public:
-  ASIMReadoutManager();
+  ASIMReadoutManager(G4bool);
   ~ASIMReadoutManager();
 
-  // Methods for ASIM file handling //
-
-  void CreateSequentialFile(std::string);
-  void CreateParallelFile(std::string, Int_t, Int_t);
-  void GenerateSlaveFileNames();
-  void WriteSequentialFile();
-  void WriteParallelFile();
-  void PopulateMetadata();
-  void WriteMetadata();
-
-  // Methods for handling ASIM events
-
-  ASIMEvent *CreateEventTree(Int_t, TString, TString);
-  void AddEventTree(Int_t, TTree *);
-  void ListEventTrees();
-  TTree *GetEventTree(std::string);
-  TTree *GetEventTree(Int_t);
-  Int_t GetEventTreeID(std::string);
-  std::string GetEventTreeName(Int_t);
-  Int_t GetNumberOfEventTrees();
-  void RemoveEventTree(std::string);
-  void RemoveEventTree(Int_t);
-  void WriteEventTrees();
-
-  // Methods for handling ASIM runs
-
-  void AddRun(ASIMRun *);
-  ASIMRun *GetRun(Int_t);
-  Int_t GetNumberOfRuns();
-  void ListRuns();
-  void WriteRuns();
-
-  // Methods for 
-
-
-
-
+  static ASIMReadoutManager *GetInstance();
   
+  void InitializeASIMFile();
+  void WriteASIMFile(G4bool emergencyWrite=false);
+  void FillEventTrees(const G4Event *);
+  void IncrementRunLevelData(vector<G4bool> &);
+  void FillRunSummary(const G4Run *);
+  void GenerateFileNames();
+  void ReduceSlaveValuesToMaster();
+  void InitializeForRun();
 
-  // Set/Get methods for class member data
+  // Set/Get methods for member data. First arg is always readout
+  // number to account for multiple readout channels
+
+  void SetActiveReadout(G4int);
+  G4int GetActiveReadout();
   
-  Bool_t GetASIMFileOpen() {return ASIMFileOpen;}
+  void SetReadoutEnabled(G4bool);
+  G4bool GetReadoutEnabled(G4int);
+
+  G4int GetSingleHits();
+  G4int GetDoubleHits();
+  G4int GetTripleHits();
   
-  TString GetMachineName() {return MachineName->GetString();}
-  TString GetMachineUser() {return MachineUser->GetString();}
-  TString GetFileDate() {return FileDate->GetString();}
-  TString GetFileVersion() {return FileVersion->GetString();}
+  void SetIncidents(G4int);
+  G4int GetIncidents(G4int);
+
+  void SetHits(G4int);
+  G4int GetHits(G4int);
+
+  void SetRunEDep(G4double);
+  G4double GetRunEDep(G4int);
+
+  void SetPhotonsCreated(G4int);
+  G4int GetPhotonsCreated(G4int);
+
+  void SetPhotonsCounted(G4int);
+  G4int GetPhotonsCounted(G4int);
+
+  void SetEnergyBroadeningStatus(G4bool);
+  G4bool GetEnergyBroadeningStatus(G4int);
+
+  void SetEnergyResolution(G4double);
+  G4double GetEnergyResolution(G4int);
+
+  void SetEnergyEvaluation(G4double);
+  G4double GetEnergyEvaluation(G4int);
+
+  void EnableEnergyThresholds();
+  G4bool GetUseEnergyThresholds(G4int);
+
+  void EnablePhotonThresholds();
+  G4bool GetUsePhotonThresholds(G4int);
+
+  void SetLowerEnergyThreshold(G4double);
+  G4double GetLowerEnergyThreshold(G4int);
+
+  void SetUpperEnergyThreshold(G4double);
+  G4double GetUpperEnergyThreshold(G4int);
+
+  void SetLowerPhotonThreshold(G4int);
+  G4int GetLowerPhotonThreshold(G4int);
   
-  void SetFileComment(TString T) {FileComment->SetString(T);}
-  TString GetFileComment() {return FileComment->GetString();}
+  void SetUpperPhotonThreshold(G4int);
+  G4int GetUpperPhotonThreshold(G4int);
+
+  void SetDetectorPSDStatus(G4bool){};
+  G4bool GetDetectorPSDStatus(){return false;}
+
+  void SetDetectorPSDParticle(G4String){};
+  G4String GetDetectorPSDParticle(){return "";}
   
-  TList *GetEventTreeList() {return EventTreeList;}
-  TList *GetRunList() {return RunList;}
-  
+  void SetCoincidentReadoutStatus(G4bool);
+  G4bool GetCoincidentReadoutStatus();
+
+  G4int GetASIMNumReadouts() {return ASIMNumReadouts;}
+    
+  void SetFileName(G4String FN) {ASIMFileName = FN;}
+  G4String GetFileName() {return ASIMFileName;}
+
+  G4bool CheckForOpenASIMFile() {return ASIMReadoutMgr->GetASIMFileOpen(); }
+
+
 private:
+  static ASIMReadoutManager *ASIMReadoutMgr;
+  G4bool parallelArchitecture;
+  G4int MPI_Rank, MPI_Size;
 
-  // ASIM file objects
+  G4int ActiveReadout;
+  vector<G4bool> ReadoutEnabled;
+
+  vector<G4int> Incidents;
+  vector<G4int> Hits;
+  vector<G4double> RunEDep;
+  vector<G4int> PhotonsCreated, PhotonsCounted;
   
-  TFile *ASIMFile;
-  TString ASIMFileName;
-  Bool_t ASIMFileOpen;
+  vector<G4bool> EnergyBroadeningEnable;
+  vector<G4double> EnergyResolution, EnergyEvaluation;
+  vector<G4bool> UseEnergyThresholds;
+  vector<G4double> LowerEnergyThreshold, UpperEnergyThreshold;
+  vector<G4bool> UsePhotonThresholds;
+  vector<G4int> LowerPhotonThreshold, UpperPhotonThreshold;
+
+  vector<G4double> EventEDep;
+  vector<G4bool> EventActivated;
   
-  // Objects to handle optional parallel processing
+  G4String fileName;
+  std::vector<G4String> slaveFileNames;
 
-  Int_t MPI_Rank, MPI_Size;
-  std::vector<TString> SlaveFileNames;
+  vector<G4String> SDNames;
 
-  // Metadata 
+  // Variables for SD readout into an ASIM file
+
+  G4String ASIMFileName;
+  ASIMStorageManager *ASIMStorageMgr;
+  ASIMRun *ASIMRunSummary;
+
+  G4int ASIMNumReadouts;
   
-  TObjString *MachineName, *MachineUser;
-  TObjString *FileDate, *FileVersion, *FileComment;
+  vector<ASIMEvent *> ASIMEvents;
+  vector<G4int> ASIMTreeID;
+  vector<G4String> ASIMTreeName, ASIMTreeDesc;
 
-  // Objects to handle event-level information
-
-  TList *EventTreeList;
-  std::map<Int_t, std::string> EventTreeNameMap;
-  std::map<std::string, Int_t> EventTreeIDMap;
-
-  // Objects to handle run-level information;
-
-  TList *RunList;
-
-  // Objects to handle readout registration
-  Int_t ReadoutID;
-
-  ClassDef(ASIMReadoutManager, 1);
+  // Messenger class for runtime command
+  ASIMReadoutMessenger *theMessenger;
 };
 
 #endif

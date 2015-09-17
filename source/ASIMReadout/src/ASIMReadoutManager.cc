@@ -1,380 +1,509 @@
-/////////////////////////////////////////////////////////////////////////////////
-//
-// name: ASIMReadoutManager.cc
-// date: 23 Dec 14
-// auth: Zach Hartwig
-// mail: hartwig@psfc.mit.edu
-// 
-// desc: The ASIMReadoutManager class provides a framework for reading
-//       out simulated detector data into a standardized format ROOT
-//       file (called an ASIM file). THe primary purpose is to provide
-//       a standardized, flexible method for high efficiency detector
-//       data persistency and post-simulation data analysis using
-//       software tools (e.g. the ADAQAnalysis program). The class
-//       utilizes the ADAQSimulationEvent and ADAQSimultionRun classes
-//       for containerized data storage with ROOT TCollection objects
-//       to facilitate data storage. The class is primarily developed
-//       for use with Geant4 "Sensitive Detectors" but in principle
-//       could be used by any Monte Carlo simulation that can be
-//       integrated with the ROOT toolkit.
-//
-/////////////////////////////////////////////////////////////////////////////////
+// Geant4
+#include "G4SDManager.hh"
+#include "G4ParticleTypes.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4PhysicalConstants.hh"
+#include "G4RunManager.hh"
+#include "Randomize.hh"
 
-#include <TChain.h>
+// ROOT 
+#include "TChain.h"
 
-#include <iostream>
+// C++
 #include <sstream>
-#include <unistd.h>
-#include <cstdlib>
 
+// SWS
+#include "ASIMScintillatorSD.hh"
+#include "ASIMOpticalReadoutSD.hh"
 #include "ASIMReadoutManager.hh"
+#include "ASIMReadoutManagerMessenger.hh"
+#include "MPIManager.hh"
 
-ASIMReadoutManager::ASIMReadoutManager()
-  : ASIMFile(new TFile), ASIMFileName(""), ASIMFileOpen(false), 
-    MPI_Rank(0), MPI_Size(0),
-    EventTreeList(new TList), RunList(new TList)
-{ PopulateMetadata(); }
+ASIMReadoutManager *ASIMReadoutManager::ASIMReadoutMgr = 0;
+
+
+ASIMReadoutManager *ASIMReadoutManager::GetInstance()
+{ return ASIMReadoutMgr; }
+
+
+ASIMReadoutManager::ASIMReadoutManager(G4bool arch)
+  : parallelArchitecture(!arch), MPI_Rank(0), MPI_Size(1)
+{
+  if(ASIMReadoutMgr)
+    G4Exception("ASIMReadoutManager::ASIMReadoutManager()", 
+		"RSMException011", 
+		FatalException, 
+		"The ASIMReadoutManager was constructed twice!");
+  else
+    ASIMReadoutMgr = this;
+
+  // Initialize ASIM readout classes
+  
+  ASIMFileName = "Sparrow.asim.root";
+  ASIMStorageMgr = new ASIMStorageManager;
+  ASIMRunSummary = new ASIMRun;
+
+  ASIMNumReadouts = 3;
+  
+  for(int r=0; r<ASIMNumReadouts; r++)
+    ASIMEvents.push_back(new ASIMEvent);
+
+  ASIMTreeID.push_back(0);
+  ASIMTreeName.push_back("CoreEventTree");
+  ASIMTreeDesc.push_back("Sparrow detector: core scintillator event tree");
+
+  ASIMTreeID.push_back(1);
+  ASIMTreeName.push_back("WestEventTree");
+  ASIMTreeDesc.push_back("Sparrow detector: west perimeter scintillator event tree");
+
+  ASIMTreeID.push_back(2);
+  ASIMTreeName.push_back("EastEventTree");
+  ASIMTreeDesc.push_back("Sparrow detector: east perimeter scintillator event tree");
+  
+  SDNames.push_back("CoreScintSDCollection");
+  SDNames.push_back("WestPerimeterScintSDCollection");
+  SDNames.push_back("EastPerimeterScintSDCollection");
+
+  ActiveReadout = 0;
+  
+  
+  for(G4int r=0; r<ASIMNumReadouts; r++){
+    ReadoutEnabled.push_back(0);
+
+    Incidents.push_back(0);
+    Hits.push_back(0);
+    RunEDep.push_back(0.);
+    PhotonsCreated.push_back(0);
+    PhotonsCounted.push_back(0);
+
+    EnergyBroadeningEnable.push_back(false);
+    EnergyResolution.push_back(0.);
+    EnergyEvaluation.push_back(0.);
+    UseEnergyThresholds.push_back(true);
+    LowerEnergyThreshold.push_back(0.);
+    UpperEnergyThreshold.push_back(1.*TeV);
+    UsePhotonThresholds.push_back(true);
+    LowerPhotonThreshold.push_back(0);
+    UpperPhotonThreshold.push_back(1000000000);
+
+    EventEDep.push_back(0.);
+    EventActivated.push_back(false);
+
+    ASIMEvents.at(r) = ASIMStorageMgr->CreateEventTree(ASIMTreeID.at(r),
+						       ASIMTreeName.at(r),
+						       ASIMTreeDesc.at(r));
+  }
+  
+  theMessenger = new ASIMReadoutManagerMessenger(this);
+}
 
 
 ASIMReadoutManager::~ASIMReadoutManager()
 {
-  delete RunList;
-  delete EventTreeList;
-  delete ASIMFile;
+  delete theMessenger;
+  
+  for(G4int r=0; r<ASIMNumReadouts; r++)
+    delete ASIMEvents.at(r);
+  delete ASIMRunSummary;
+  delete ASIMStorageMgr;
 }
 
 
-//////////////////////////////////////
-// Methods for ASIM file management //
-//////////////////////////////////////
-
-void ASIMReadoutManager::CreateSequentialFile(std::string Name)
+void ASIMReadoutManager::InitializeASIMFile()
 {
-  if(ASIMFileOpen){
-    std::cout << "ASIMReadoutManager::CreateSequentialFile():\n"
-	      << "  An ASIM file is presently open for data output! A new ASIM file\n"
-	      << "  cannot be opened until the existing ASIM file is written to disk\n"
-	      << "  and closed. Nothing to be done.\n"
-	      << std::endl;
+  if(ASIMStorageMgr->GetASIMFileOpen()){
+    G4cout << "\nASIMReadoutManager : An ASIM file is presently open for data output! A new file cannot be opened\n"
+	   <<   "                     until the existing ASIM file is written to disk via the /ASIM/write command.\n"
+	   << G4endl;
     
     return;
   }
   
-  ASIMFileName = Name;
+#ifdef SWS_MPI_ENABLED
+  MPIManager *theMPIManager = MPIManager::GetInstance();
+  MPI_Rank = theMPIManager->GetRank();
+  MPI_Size = theMPIManager->GetSize();
+#endif
   
-  // Recreate a new ROOT TFile for the ASIM file
-  if(ASIMFile) delete ASIMFile;
-  ASIMFile = new TFile(ASIMFileName, "recreate");
-  
-  ASIMFileOpen = true;
+  if(parallelArchitecture)
+    ASIMStorageMgr->CreateParallelFile(ASIMFileName, MPI_Rank, MPI_Size);
+  else
+    ASIMStorageMgr->CreateSequentialFile(ASIMFileName);
 }
-
-
-void ASIMReadoutManager::CreateParallelFile(std::string Name,
-					    Int_t Rank,
-					    Int_t Size)
+  
+  
+void ASIMReadoutManager::WriteASIMFile(G4bool EmergencyWrite)
 {
-  if(ASIMFileOpen){
-    std::cout << "ASIMReadoutManager::CreateParallelFile():\n"
-	      << "  An ASIM file is presently open for data output! A new ASIM file\n"
-	      << "  cannot be opened until the existing ASIM file is written to disk\n"
-	      << "  and closed. Nothing to be done.\n"
-	      << std::endl;
+  if(!ASIMStorageMgr->GetASIMFileOpen()){
+    G4cout << "\nASIMReadoutManager : There is no valid ASIM file presently open for writing! A new ASIM file should\n"
+           <<   "                     first be created via the /ASIM/init command.\n"
+	   << G4endl;
     
     return;
   }
   
-  // Set MPI rank and size class members
-  MPI_Rank = Rank;
-  MPI_Size = Size;
-
-  // Generate names for all slaves ASIM files based on rank
-  std::stringstream SS;
-  SS << Name << ".slave" << Rank;
-  ASIMFileName = SS.str();
-  GenerateSlaveFileNames();
+  if(EmergencyWrite)
+    G4cout << "\nASIMReadoutManager : The ASIM file that presently exists with data is being written to disk in\n"
+           <<   "                     emergency fashion to avoid losing critical data before the simulation\n"
+	   <<   "                     terminates. Please issue the /ASIM/write command before exiting next time!\n"
+	   << G4endl;
   
-  // Recreate slave ASIM files
-  if(ASIMFile) delete ASIMFile;
-  ASIMFile = new TFile(ASIMFileName, "recreate");
-  
-  ASIMFileOpen = true;
-}
+  // Parallel readout to the ASIM file
+  if(parallelArchitecture)
+    ASIMStorageMgr->WriteParallelFile();
+  else
+    ASIMStorageMgr->WriteSequentialFile();
+}  
 
 
-void ASIMReadoutManager::GenerateSlaveFileNames()
+void ASIMReadoutManager::FillEventTrees(const G4Event *currentEvent)
 {
-  if(ASIMFileOpen)
-    return;
+  G4int TheCollectionID = -1;
+  G4SDManager *TheSDManager = G4SDManager::GetSDMpointer();
   
-  SlaveFileNames.clear();
-  for(Int_t rank=0; rank<MPI_Size; rank++){
-
-    std::string Name = ASIMFileName.Data();
-    std::stringstream SS;
+  for(G4int r=0; r<ASIMNumReadouts; r++){
     
-    size_t pos = Name.find("slave");
-    if(pos != std::string::npos){
-      SS << Name.substr(0,pos) << "slave" << rank;
-      SlaveFileNames.push_back((TString)SS.str());
-    }
-    else
-      // Should generate exception
-      {}
-  }
-}
-
-
-void ASIMReadoutManager::WriteSequentialFile()
-{
-  if(!ASIMFileOpen)
-    return;
-
-
-  // Write the metadata
-  WriteMetadata();
-  
-  // Write out each individual tree in the EventTreeList
-  EventTreeList->Write();
-  
-  // Write out each of the run objects in the RunList
-  WriteRuns();
-
-  ASIMFile->Close();
-
-  ASIMFileOpen = false;
-}
-
-
-void ASIMReadoutManager::WriteParallelFile()
-{
-  if(!ASIMFileOpen)
-    return;
-
-  std::string Name = ASIMFileName.Data();
-
-  // All slaves should write out the event TTrees contained on each
-  // slave node to a node-specific ROOT file and then close the file
-  EventTreeList->Write();
-  ASIMFile->Close();
-
-  // Only a single process (the master) should handle the aggregation
-  // of slave ROOT files containing the event treesinto a single
-  // master ASIM file that contains all event- and run-level data
-
-  if(MPI_Rank == 0){
-    // Create the master ASIM file name
-    TString FinalFileName = Name.substr(0, Name.find(".slave"));
+    G4HCofThisEvent *HCE = currentEvent->GetHCofThisEvent();
     
-    // Create a TChain for all existing event TTrees by iterating over
-    // the TTree names stored in the std::map. Because the slave
-    // ASIMFiles have been written and closed at this point, the
-    // TTrees have been purged from ROOT memory so it's easier to just
-    // grab the names from the std::map.
-
-    std::map<Int_t, std::string>::iterator It0;
-    Int_t Index = 0;
-    for(It0 = EventTreeNameMap.begin(); It0!=EventTreeNameMap.end(); It0++){
-
-      TChain *EventTreeChain = new TChain(It0->second.c_str());
-
-      std::vector<TString>::iterator It1;
-      for(It1 = SlaveFileNames.begin(); It1 != SlaveFileNames.end(); It1++)
-	EventTreeChain->Add((*It1));
+    ASIMEvents[r]->Initialize();
+    ASIMEvents[r]->SetEventID(currentEvent->GetEventID());
+    ASIMEvents[r]->SetRunID(G4RunManager::GetRunManager()->GetCurrentRun()->GetRunID());
+    
+    G4int HCEntries = TheSDManager->GetHCtable()->entries();
+    for(G4int hc=0; hc<HCEntries; hc++){
       
-      // The following method enables multiple TChains to be written
-      // to the final ASIM ROOT file without overwriting each other
+      G4String CollectionName = TheSDManager->GetHCtable()->GetHCname(hc);
+      TheCollectionID = TheSDManager->GetCollectionID(CollectionName);
       
-      if(Index == 0)
-	EventTreeChain->Merge(FinalFileName);
-      else{
-	TFile *FinalFile = new TFile(FinalFileName, "update");
-	EventTreeChain->Merge(FinalFile, 0);
+      if(CollectionName == SDNames[r]){
+
+	/////////////////////////
+	// The scintillator SD //
+	/////////////////////////
+	
+	ASIMScintillatorSDHitCollection const *ScintillatorHC = 
+	  dynamic_cast<ASIMScintillatorSDHitCollection *>(HCE->GetHC(TheCollectionID));
+	
+	// Iterate through entries in the hit collection (HC). 
+	// - If the particle is an optical photon then increment the counter
+	// - If the particle is not an optical photon then sum the energy
+	//   deposited  during this hit into event-level sum EDep
+
+	EventEDep[r] = 0.;
+	EventActivated[r] = false;
+	
+	if(ScintillatorHC->entries() > 0)
+	  Incidents[r]++;
+	
+	for(G4int i=0; i<ScintillatorHC->entries(); i++){
+	  if( (*ScintillatorHC)[i]->GetIsOpticalPhoton() )
+	    ASIMEvents[r]->IncrementPhotonsCreated();
+	  else
+	    EventEDep[r] += (*ScintillatorHC)[i]->GetEnergyDep();
+	}
+
+	// Enable artificial gaussian energy broadening
+	if(EnergyBroadeningEnable[r]){
+	  
+	  // For simplicity, convert energy deposition to eV to ensure we
+	  // can use a simple algorithm with integers
+	  
+	  // Compute the energy scale based on the desired resolution and
+	  // evaluation energy
+	  G4double energyScale = EnergyResolution[r]/100 * sqrt(EnergyEvaluation[r]/eV) / 2.35;
+	  
+	  // Compute the necessary sigma 
+	  G4double energySigma = energyScale * std::sqrt(EventEDep[r]/eV);
+	  
+	  // Compute the assigned energy value
+	  EventEDep[r] = G4int(G4RandGauss::shoot(EventEDep[r]/eV, energySigma)) * eV;
+	}
+	ASIMEvents[r]->SetEnergyDep(EventEDep[r]/MeV);
       }
-      
-      delete EventTreeChain;
 
-      Index++;
+
+      /////////////////////////////////
+      // The scintillator readout SD //
+      /////////////////////////////////
+      /*      
+      if(CollectionName == ""){
+
+	  ASIMOpticalReadoutSDHitCollection const *ReadoutHC =
+	  dynamic_cast<ASIMOpticalReadoutSDHitCollection *>(HCE->GetHC(TheCollectionID));
+	
+	  for(G4int i=0; i<ReadoutHC->entries(); i++)
+	  ASIMEvents.at(r)->IncrementPhotonsDetected();
+      }
+      */
     }
-
-    // Update the master ASIM file with file metadata and run-level
-    // data, which is not dependent on the slave ASIM files
-    TFile *FinalFile = new TFile(FinalFileName, "update");
-    WriteMetadata();
-    WriteRuns();
-
-    // Write, close, and delete the master ASIM TFile object
-    FinalFile->Close();
-    delete FinalFile;
+    
+    ///////////////
+    // Data readout
+    
+    if(UseEnergyThresholds[r]){
       
-    // Delete the node-specific ASIM files from the operating system
+      // Use the lower/upper energy threshold to determine whether or
+      // not to count the event as a "hit" on the detectors, which
+      // will be used in runAction to calculate intrinsic efficiency
+      if(EventEDep[r] > LowerEnergyThreshold[r] and
+	 EventEDep[r] < UpperEnergyThreshold[r]){
+	
+	// Activate the detector for this event
+	EventActivated[r] = true;
+	
+	// Fill detector trees if output to ASIM has been activated
+	if(ASIMStorageMgr->GetASIMFileOpen())
+	  ASIMStorageMgr->GetEventTree(ASIMTreeID[r])->Fill();
+      }
+    }
+    
+    else if(UsePhotonThresholds[r]){
+      if(ASIMEvents[r]->GetPhotonsDetected() > LowerPhotonThreshold[r] and
+	 ASIMEvents[r]->GetPhotonsDetected() < UpperPhotonThreshold[r]){
 
-    std::vector<TString>::iterator It2;
-    for(It2 = SlaveFileNames.begin(); It2 != SlaveFileNames.end(); It2++){
-      std::string FileName = (*It2).Data();
-      std::string RemoveSlaveFileCmd = "rm -f " + FileName;
-      system(RemoveSlaveFileCmd.c_str());
+	// Activate the detector for this event
+	EventActivated[r] = true;
+	
+	// Fill detector trees if output to ASIM has been activated
+	if(ASIMStorageMgr->GetASIMFileOpen() and)
+	  ASIMStorageMgr->GetEventTree(ASIMTreeID[r])->Fill();
+      }
     }
   }
-  ASIMFileOpen = false;
-}
-
-
-void ASIMReadoutManager::PopulateMetadata()
-{
-  char Host[128], User[128];
-  gethostname(Host, sizeof Host);
-  getlogin_r(User, sizeof User);
-
-  MachineName = new TObjString(Host);
-  MachineUser = new TObjString(User);
-
-  time_t RawTime;
-  time(&RawTime);
-  FileDate = new TObjString(ctime(&RawTime));
-  FileVersion = new TObjString("1.0");
-  FileComment = new TObjString("");
-}
-
-
-void ASIMReadoutManager::WriteMetadata()
-{
-  MachineName->Write("MachineName");
-  MachineUser->Write("MachineUser");
-  FileDate->Write("FileDate");
-  FileVersion->Write("FileVersion");
-  FileComment->Write("FileComment");
-}
-
-
-///////////////////////////////////
-// Methods for ASIMEvent objects //
-///////////////////////////////////
-
-ASIMEvent *ASIMReadoutManager::CreateEventTree(Int_t ID,
-					       TString Name,
-					       TString Desc)
-{
-  ASIMEvent *Event = new ASIMEvent;
-
-  TTree *T = new TTree(Name, Desc);
-  T->Branch("ASIMEventBranch", "ASIMEvent", Event, 32000, 99);
   
-  EventTreeIDMap[(std::string)Name] = ID;
-  EventTreeNameMap[ID] = (std::string)Name;
+  // Handle incrementing run-level information
+  IncrementRunLevelData(EventActivated);
+}
+
+
+void ASIMReadoutManager::IncrementRunLevelData(vector<G4bool> &EventActivated)
+{
+  G4int EventSum = 0;
   
-  EventTreeList->Add(T);
+  for(G4int r=0; r<ASIMNumReadouts; r++){
 
-  return Event;
-}
-
-void ASIMReadoutManager::AddEventTree(Int_t ID,
-				      TTree *T)
-{
-  EventTreeIDMap[T->GetName()] = ID;
-  EventTreeNameMap[ID] = T->GetName();
-  
-  EventTreeList->Add(T);
-}
-
-
-void ASIMReadoutManager::RemoveEventTree(std::string Name)
-{
-  TTree *T = (TTree *)EventTreeList->FindObject(Name.c_str());
-  EventTreeList->Remove(T);
-}
-
-
-void ASIMReadoutManager::RemoveEventTree(Int_t ID)
-{ RemoveEventTree(EventTreeNameMap[ID]); }
-
-
-TTree *ASIMReadoutManager::GetEventTree(std::string Name)
-{
-  TTree *T = (TTree *)EventTreeList->FindObject(Name.c_str());
-  return T;
-}
-
-
-TTree *ASIMReadoutManager::GetEventTree(Int_t ID)
-{ return GetEventTree(EventTreeNameMap[ID]); }
-
-
-void ASIMReadoutManager::ListEventTrees()
-{
-  TIter It(EventTreeList);
-  TTree *T;
-  while((T = (TTree *)It.Next())){
-    std::cout << "Tree name: " << T->GetName() << std::endl;
+    EventSum += EventActivated[r];
+    
+    if(EventActivated[r]){
+      Hits[r]++;
+      RunEDep[r] += EventEDep[r];
+      PhotonsCreated[r] += ASIMEvents[r]->GetPhotonsCreated();
+      PhotonsCounted[r] += ASIMEvents[r]->GetPhotonsDetected();
+    }
   }
 }
 
 
-void ASIMReadoutManager::WriteEventTrees()
+void ASIMReadoutManager::FillRunSummary(const G4Run *currentRun)
 {
-  if(!ASIMFileOpen)
-    return;
+  if(parallelArchitecture)
+    ReduceSlaveValuesToMaster();
+
+  // In sequential or in parallel on the master node, add a class with
+  // information from this run...
+
+  if(ASIMStorageMgr->GetASIMFileOpen() and MPI_Rank == 0){
+
+    ASIMRun *ASIMRunSummary = new ASIMRun;
+
+    // Fill class with run-level data
+
+    ASIMRunSummary->SetRunID( currentRun->GetRunID() );
+
+#ifdef SWS_MPI_ENABLED
+    if(parallelArchitecture)
+      ASIMRunSummary->SetTotalEvents( MPIManager::GetInstance()->GetTotalEvents() );
+    else
+#endif
+      ASIMRunSummary->SetTotalEvents( currentRun->GetNumberOfEvent() );
+    
+    /*
+      ASIMRunSummary->SetParticlesIncident( detectorIncidents );
+      ASIMRunSummary->SetParticlesBetweenThresholds( detectorHits );
+      ASIMRunSummary->SetDetectorLowerThresholdInMeV( detectorEnergyLowerThreshold/MeV );
+      ASIMRunSummary->SetDetectorUpperThresholdInMeV( detectorEnergyUpperThreshold/MeV );
+      ASIMRunSummary->SetPhotonsCreated( detectorPhotonsCreated );
+      ASIMRunSummary->SetPhotonsDetected( detectorPhotonsCounted );
+    */
+
+    // Add the run class to the list for later readout
+    ASIMStorageMgr->AddRun(ASIMRunSummary);
+  }
+}
+
+
+void ASIMReadoutManager::InitializeForRun()
+{
+  for(G4int r=0; r<ASIMNumReadouts; r++){
+    Incidents[r] = 0;
+    Hits[r] = 0;
+    RunEDep[r] = 0;
+    PhotonsCreated[r] = 0;
+    PhotonsCounted[r] = 0;
+
+    SingleHits = 0;
+    DoubleHits = 0;
+    TripleHits = 0;
+  }
+}
+
+
+void ASIMReadoutManager::ReduceSlaveValuesToMaster()
+{
+#ifdef SPARROW_MPI_ENABLED
   
-  TIter It(EventTreeList);
-  TTree *T;
-  while((T = (TTree *)It.Next()))
-    T->Write();
+  G4cout << "\nASIMReadoutManager : Beginning the MPI reduction of data to the master!"
+	 << G4endl;
+
+  MPIManager *theMPImanager = MPIManager::GetInstance();
+
+  /*
+  detectorIncidents = theMPImanager->SumDoublesToMaster(detectorIncidents);
+  detectorHits = theMPImanager->SumDoublesToMaster(detectorHits);
+  detectorPhotonsCreated = theMPImanager->SumDoublesToMaster(detectorPhotonsCreated);
+  detectorPhotonsCounted = theMPImanager->SumDoublesToMaster(detectorPhotonsCounted);
+  */
+  G4cout << "\nASIMReadoutManager : Finished the MPI reduction of values to the master!\n"
+	 << G4endl;
+#endif
 }
 
 
-Int_t ASIMReadoutManager::GetNumberOfEventTrees()
-{ return EventTreeList->GetSize(); }
-
-
-Int_t ASIMReadoutManager::GetEventTreeID(std::string Name)
-{ return EventTreeIDMap[Name]; }
-
-
-std::string ASIMReadoutManager::GetEventTreeName(Int_t ID)
-{ return EventTreeNameMap[ID]; }
-
-
-/////////////////////////////////
-// Methods for ASIMRun objects //
-/////////////////////////////////
-
-
-void ASIMReadoutManager::AddRun(ASIMRun *Run)
-{ RunList->Add(Run); }
-
-
-ASIMRun *ASIMReadoutManager::GetRun(Int_t ID)
-{ return (ASIMRun *)RunList->At(ID); }
-
-
-Int_t ASIMReadoutManager::GetNumberOfRuns()
-{ return RunList->GetSize(); }
-
-
-void ASIMReadoutManager::ListRuns()
+void ASIMReadoutManager::SetActiveReadout(G4int R)
 {
-  TIter It(RunList);
-  ASIMRun *R;
-  while((R = (ASIMRun *)It.Next())){
-  }
+  if(R<ASIMNumReadouts)
+    ActiveReadout = R;
+  else
+    G4cout << "\nASIMReadoutManager : Error! Specified readout number does not exist!\n"
+	   << G4endl;
 }
 
-void ASIMReadoutManager::WriteRuns()
+
+G4int ASIMReadoutManager::GetActiveReadout()
+{ return ActiveReadout;}
+
+
+void ASIMReadoutManager::SetReadoutEnabled(G4bool RE)
+{ ReadoutEnabled.at(ActiveReadout) = RE; }
+
+
+G4bool ASIMReadoutManager::GetReadoutEnabled(G4int R)
+{ return ReadoutEnabled.at(R); }
+
+
+void ASIMReadoutManager::SetIncidents(G4int I)
+{ Incidents.at(ActiveReadout) = I; }
+
+
+G4int ASIMReadoutManager::GetIncidents(G4int R)
+{ return Incidents.at(R); }
+
+
+void ASIMReadoutManager::SetHits(G4int H)
+{ Hits.at(ActiveReadout) = H; }
+
+
+G4int ASIMReadoutManager::GetHits(G4int R)
+{ return Hits.at(R); }
+
+
+void ASIMReadoutManager::SetRunEDep(G4double E)
+{ RunEDep.at(ActiveReadout) = E; }
+
+
+G4double ASIMReadoutManager::GetRunEDep(G4int R)
+{ return RunEDep.at(R); }
+
+
+void ASIMReadoutManager::SetPhotonsCreated(G4int P)
+{ PhotonsCreated.at(ActiveReadout) = P; }
+
+
+G4int ASIMReadoutManager::GetPhotonsCreated(G4int R)
+{ return PhotonsCreated.at(R); }
+
+
+void ASIMReadoutManager::SetPhotonsCounted(G4int P)
+{ PhotonsCounted.at(ActiveReadout) = P; }
+
+
+G4int ASIMReadoutManager::GetPhotonsCounted(G4int R)
+{ return PhotonsCounted.at(R); }
+
+
+void ASIMReadoutManager::SetEnergyBroadeningStatus(G4bool B)
+{ EnergyBroadeningEnable.at(ActiveReadout) = B; }
+
+
+G4bool ASIMReadoutManager::GetEnergyBroadeningStatus(G4int R)
+{ return EnergyBroadeningEnable.at(R); }
+
+
+void ASIMReadoutManager::SetEnergyResolution(G4double E)
+{ EnergyResolution.at(ActiveReadout) = E; }
+
+
+G4double ASIMReadoutManager::GetEnergyResolution(G4int R)
+{ return EnergyResolution.at(R); }
+
+
+void ASIMReadoutManager::SetEnergyEvaluation(G4double E)
+{ EnergyEvaluation.at(ActiveReadout) = E; }
+
+
+G4double ASIMReadoutManager::GetEnergyEvaluation(G4int R)
+{ return EnergyEvaluation.at(R); }
+
+
+void ASIMReadoutManager::EnableEnergyThresholds()
 {
-  if(!ASIMFileOpen)
-    return;
-
-  TIter It(RunList);
-  ASIMRun *R;
-  while((R = (ASIMRun *)It.Next())){
-    std::stringstream SS;
-    SS << "Run" << R->GetRunID();
-    TString Name = SS.str();
-    R->Write(Name);
-  }
+  UseEnergyThresholds.at(ActiveReadout) = true;
+  UsePhotonThresholds.at(ActiveReadout) = false;
 }
 
 
-////////////////////////////////////
-// Methods for simulation readout //
-////////////////////////////////////
+G4bool ASIMReadoutManager::GetUseEnergyThresholds(G4int R)
+{ return UseEnergyThresholds.at(R); }
+
+
+void ASIMReadoutManager::EnablePhotonThresholds()
+{
+  UseEnergyThresholds.at(ActiveReadout) = false;
+  UsePhotonThresholds.at(ActiveReadout) = true;
+}
+
+
+G4bool ASIMReadoutManager::GetUsePhotonThresholds(G4int R)
+{ return UsePhotonThresholds.at(R); }
+
+
+void ASIMReadoutManager::SetLowerEnergyThreshold(G4double LET)
+{ LowerEnergyThreshold.at(LET); }
+
+
+G4double ASIMReadoutManager::GetLowerEnergyThreshold(G4int R)
+{ return LowerEnergyThreshold.at(R); }
+
+
+void ASIMReadoutManager::SetUpperEnergyThreshold(G4double UET)
+{ UpperEnergyThreshold.at(UET); }
+
+
+G4double ASIMReadoutManager::GetUpperEnergyThreshold(G4int R)
+{ return UpperEnergyThreshold.at(R); }
+
+
+void ASIMReadoutManager::SetLowerPhotonThreshold(G4int LPT)
+{ LowerPhotonThreshold.at(LPT); }
+
+
+G4int ASIMReadoutManager::GetLowerPhotonThreshold(G4int R)
+{ return LowerPhotonThreshold.at(R); }
+
+
+void ASIMReadoutManager::SetUpperPhotonThreshold(G4int UPT)
+{ UpperPhotonThreshold.at(UPT); }
+
+
+G4int ASIMReadoutManager::GetUpperPhotonThreshold(G4int R)
+{ return UpperPhotonThreshold.at(R); }

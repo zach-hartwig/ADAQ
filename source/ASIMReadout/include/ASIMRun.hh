@@ -52,11 +52,11 @@ public:
   void AddToParticlesBetweenThresholds(Int_t PBT) {ParticlesBetweenThresholds += PBT;}
   Int_t GetParticlesBetweenThresholds() {return ParticlesBetweenThresholds;}
 
-  void SetDetectorLowerThresholdInMeV(Double_t DLT) {DetectorLowerThresholdInMeV = DLT;}
-  Double_t GetDetectorLowerThresholdInMeV() {return DetectorLowerThresholdInMeV;}
+  void SetLowerThresholdInMeV(Double_t LT) {LowerThresholdInMeV = LT;}
+  Double_t GetLowerThresholdInMeV() {return LowerThresholdInMeV;}
   
-  void SetDetectorUpperThresholdInMeV(Double_t DUT) {DetectorUpperThresholdInMeV = DUT;}
-  Double_t GetDetectorUpperThresholdInMeV() {return DetectorUpperThresholdInMeV;}
+  void SetUpperThresholdInMeV(Double_t UT) {UpperThresholdInMeV = UT;}
+  Double_t GetUpperThresholdInMeV() {return UpperThresholdInMeV;}
   
   void SetPhotonsCreated(Int_t PC) {PhotonsCreated = PC;}
   void AddToPhotonsCreated(Int_t PC) {PhotonsCreated += PC;}
@@ -69,7 +69,7 @@ public:
 private:
   Int_t RunID, TotalEvents;
   Int_t ParticlesIncident, ParticlesBetweenThresholds;
-  Double_t DetectorLowerThresholdInMeV, DetectorUpperThresholdInMeV;
+  Double_t LowerThresholdInMeV, UpperThresholdInMeV;
   Int_t PhotonsCreated, PhotonsDetected;
   
   ClassDef(ASIMRun, 1);

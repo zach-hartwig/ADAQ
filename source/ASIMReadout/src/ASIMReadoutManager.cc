@@ -373,3 +373,8 @@ void ASIMReadoutManager::WriteRuns()
     R->Write(Name);
   }
 }
+
+
+////////////////////////////////////
+// Methods for simulation readout //
+////////////////////////////////////

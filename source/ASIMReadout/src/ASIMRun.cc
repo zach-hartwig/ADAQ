@@ -23,7 +23,7 @@
 ASIMRun::ASIMRun()
   : RunID(0), TotalEvents(0),
     ParticlesIncident(0), ParticlesBetweenThresholds(0),
-    DetectorLowerThresholdInMeV(0.), DetectorUpperThresholdInMeV(1000000.),
+    LowerThresholdInMeV(0.), UpperThresholdInMeV(1.),
     PhotonsCreated(0), PhotonsDetected(0)
 {;}
 
@@ -45,7 +45,7 @@ Double_t ASIMRun::GetDetectorEfficiency()
   if(ParticlesIncident == 0)
     return 0.;
   else
-    return (ParticlesBetweenThresholds * 1.0 / ParticlesIncident);
+    return (ParticlesBetweenThresholds * 1. / ParticlesIncident);
 }
 
 
@@ -54,5 +54,5 @@ Double_t ASIMRun::GetOpticalEfficiency()
   if(PhotonsCreated == 0)
     return 0.;
   else
-    return (PhotonsDetected * 1.0 / PhotonsCreated);
+    return (PhotonsDetected * 1. / PhotonsCreated);
 }

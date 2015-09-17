@@ -43,21 +43,17 @@ public:
   ASIMReadoutManager();
   ~ASIMReadoutManager();
 
-  // Action methods for the ROOT TFile
+  // Methods for ASIM file handling //
 
   void CreateSequentialFile(std::string);
   void CreateParallelFile(std::string, Int_t, Int_t);
   void GenerateSlaveFileNames();
-  
   void WriteSequentialFile();
   void WriteParallelFile();
-
-  // Action methods for metadata objects
-
   void PopulateMetadata();
   void WriteMetadata();
 
-  // Action methods for the Event TTrees
+  // Methods for handling ASIM events
 
   ASIMEvent *CreateEventTree(Int_t, TString, TString);
   void AddEventTree(Int_t, TTree *);
@@ -71,13 +67,20 @@ public:
   void RemoveEventTree(Int_t);
   void WriteEventTrees();
 
-  // Action methods for the Runs
+  // Methods for handling ASIM runs
 
   void AddRun(ASIMRun *);
   ASIMRun *GetRun(Int_t);
   Int_t GetNumberOfRuns();
   void ListRuns();
   void WriteRuns();
+
+  // Methods for 
+
+
+
+
+  
 
   // Set/Get methods for class member data
   
@@ -96,7 +99,7 @@ public:
   
 private:
 
-  // ASIM ROOT file objects
+  // ASIM file objects
   
   TFile *ASIMFile;
   TString ASIMFileName;
@@ -121,6 +124,9 @@ private:
   // Objects to handle run-level information;
 
   TList *RunList;
+
+  // Objects to handle readout registration
+  Int_t ReadoutID;
 
   ClassDef(ASIMReadoutManager, 1);
 };

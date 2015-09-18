@@ -72,7 +72,7 @@ SRCDIR = src
 INCLS = $(wildcard $(INCLDIR)/*.hh)
 
 # List of headers necessary for ROOT dictionary generation
-ROOTDICTINCLS = $(INCLDIR)/ASIMEvent.hh $(INCLDIR)/ASIMRun.hh
+ROOTDICTINCLS = $(INCLDIR)/ASIMEvent.hh $(INCLDIR)/ASIMRun.hh $(INCLDIR)/ASIMStorageManager.hh
 
 # Specify all object files (to be built in the build/ directory)
 SRCS = $(wildcard $(SRCDIR)/*.cc)

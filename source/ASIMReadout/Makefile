@@ -71,6 +71,9 @@ SRCDIR = src
 # List all of the ADAQ header files
 INCLS = $(wildcard $(INCLDIR)/*.hh)
 
+# List of headers necessary for ROOT dictionary generation
+ROOTDICTINCLS = $(INCLDIR)/ASIMEvent.hh $(INCLDIR)/ASIMRun.hh
+
 # Specify all object files (to be built in the build/ directory)
 SRCS = $(wildcard $(SRCDIR)/*.cc)
 TMP = $(patsubst %.cc,%.o,$(SRCS))
@@ -109,7 +112,7 @@ $(BUILDDIR)/ASIMReadoutDict.o : $(BUILDDIR)/ASIMReadoutDict.cc
 	@echo -e "\nBuilding '$@' ..."
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-$(BUILDDIR)/ASIMReadoutDict.cc : $(INCLS) $(INCLDIR)/RootLinkDef.h
+$(BUILDDIR)/ASIMReadoutDict.cc : $(ROOTDICTINCLS) $(INCLDIR)/RootLinkDef.h
 	@echo -e "\nGenerating ROOT dictionary '$@' ..."
 	rootcint -f $@ -c -I$(ADAQHOME)/source/extensions/root/ASIMReadout/$(INCLDIR) $^ 
 

@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
-// name: ASIMReadoutManager.cc
+// name: ASIMStorageManager.cc
 // date: 23 Dec 14
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 // 
-// desc: The ASIMReadoutManager class provides a framework for reading
+// desc: The ASIMStorageManager class provides a framework for reading
 //       out simulated detector data into a standardized format ROOT
 //       file (called an ASIM file). THe primary purpose is to provide
 //       a standardized, flexible method for high efficiency detector
@@ -27,16 +27,16 @@
 #include <unistd.h>
 #include <cstdlib>
 
-#include "ASIMReadoutManager.hh"
+#include "ASIMStorageManager.hh"
 
-ASIMReadoutManager::ASIMReadoutManager()
+ASIMStorageManager::ASIMStorageManager()
   : ASIMFile(new TFile), ASIMFileName(""), ASIMFileOpen(false), 
     MPI_Rank(0), MPI_Size(0),
     EventTreeList(new TList), RunList(new TList)
 { PopulateMetadata(); }
 
 
-ASIMReadoutManager::~ASIMReadoutManager()
+ASIMStorageManager::~ASIMStorageManager()
 {
   delete RunList;
   delete EventTreeList;
@@ -48,10 +48,10 @@ ASIMReadoutManager::~ASIMReadoutManager()
 // Methods for ASIM file management //
 //////////////////////////////////////
 
-void ASIMReadoutManager::CreateSequentialFile(std::string Name)
+void ASIMStorageManager::CreateSequentialFile(std::string Name)
 {
   if(ASIMFileOpen){
-    std::cout << "ASIMReadoutManager::CreateSequentialFile():\n"
+    std::cout << "ASIMStorageManager::CreateSequentialFile():\n"
 	      << "  An ASIM file is presently open for data output! A new ASIM file\n"
 	      << "  cannot be opened until the existing ASIM file is written to disk\n"
 	      << "  and closed. Nothing to be done.\n"
@@ -70,12 +70,12 @@ void ASIMReadoutManager::CreateSequentialFile(std::string Name)
 }
 
 
-void ASIMReadoutManager::CreateParallelFile(std::string Name,
+void ASIMStorageManager::CreateParallelFile(std::string Name,
 					    Int_t Rank,
 					    Int_t Size)
 {
   if(ASIMFileOpen){
-    std::cout << "ASIMReadoutManager::CreateParallelFile():\n"
+    std::cout << "ASIMStorageManager::CreateParallelFile():\n"
 	      << "  An ASIM file is presently open for data output! A new ASIM file\n"
 	      << "  cannot be opened until the existing ASIM file is written to disk\n"
 	      << "  and closed. Nothing to be done.\n"
@@ -102,7 +102,7 @@ void ASIMReadoutManager::CreateParallelFile(std::string Name,
 }
 
 
-void ASIMReadoutManager::GenerateSlaveFileNames()
+void ASIMStorageManager::GenerateSlaveFileNames()
 {
   if(ASIMFileOpen)
     return;
@@ -125,7 +125,7 @@ void ASIMReadoutManager::GenerateSlaveFileNames()
 }
 
 
-void ASIMReadoutManager::WriteSequentialFile()
+void ASIMStorageManager::WriteSequentialFile()
 {
   if(!ASIMFileOpen)
     return;
@@ -146,7 +146,7 @@ void ASIMReadoutManager::WriteSequentialFile()
 }
 
 
-void ASIMReadoutManager::WriteParallelFile()
+void ASIMStorageManager::WriteParallelFile()
 {
   if(!ASIMFileOpen)
     return;
@@ -220,7 +220,7 @@ void ASIMReadoutManager::WriteParallelFile()
 }
 
 
-void ASIMReadoutManager::PopulateMetadata()
+void ASIMStorageManager::PopulateMetadata()
 {
   char Host[128], User[128];
   gethostname(Host, sizeof Host);
@@ -237,7 +237,7 @@ void ASIMReadoutManager::PopulateMetadata()
 }
 
 
-void ASIMReadoutManager::WriteMetadata()
+void ASIMStorageManager::WriteMetadata()
 {
   MachineName->Write("MachineName");
   MachineUser->Write("MachineUser");
@@ -251,7 +251,7 @@ void ASIMReadoutManager::WriteMetadata()
 // Methods for ASIMEvent objects //
 ///////////////////////////////////
 
-ASIMEvent *ASIMReadoutManager::CreateEventTree(Int_t ID,
+ASIMEvent *ASIMStorageManager::CreateEventTree(Int_t ID,
 					       TString Name,
 					       TString Desc)
 {
@@ -268,7 +268,7 @@ ASIMEvent *ASIMReadoutManager::CreateEventTree(Int_t ID,
   return Event;
 }
 
-void ASIMReadoutManager::AddEventTree(Int_t ID,
+void ASIMStorageManager::AddEventTree(Int_t ID,
 				      TTree *T)
 {
   EventTreeIDMap[T->GetName()] = ID;
@@ -278,29 +278,29 @@ void ASIMReadoutManager::AddEventTree(Int_t ID,
 }
 
 
-void ASIMReadoutManager::RemoveEventTree(std::string Name)
+void ASIMStorageManager::RemoveEventTree(std::string Name)
 {
   TTree *T = (TTree *)EventTreeList->FindObject(Name.c_str());
   EventTreeList->Remove(T);
 }
 
 
-void ASIMReadoutManager::RemoveEventTree(Int_t ID)
+void ASIMStorageManager::RemoveEventTree(Int_t ID)
 { RemoveEventTree(EventTreeNameMap[ID]); }
 
 
-TTree *ASIMReadoutManager::GetEventTree(std::string Name)
+TTree *ASIMStorageManager::GetEventTree(std::string Name)
 {
   TTree *T = (TTree *)EventTreeList->FindObject(Name.c_str());
   return T;
 }
 
 
-TTree *ASIMReadoutManager::GetEventTree(Int_t ID)
+TTree *ASIMStorageManager::GetEventTree(Int_t ID)
 { return GetEventTree(EventTreeNameMap[ID]); }
 
 
-void ASIMReadoutManager::ListEventTrees()
+void ASIMStorageManager::ListEventTrees()
 {
   TIter It(EventTreeList);
   TTree *T;
@@ -310,7 +310,7 @@ void ASIMReadoutManager::ListEventTrees()
 }
 
 
-void ASIMReadoutManager::WriteEventTrees()
+void ASIMStorageManager::WriteEventTrees()
 {
   if(!ASIMFileOpen)
     return;
@@ -322,15 +322,15 @@ void ASIMReadoutManager::WriteEventTrees()
 }
 
 
-Int_t ASIMReadoutManager::GetNumberOfEventTrees()
+Int_t ASIMStorageManager::GetNumberOfEventTrees()
 { return EventTreeList->GetSize(); }
 
 
-Int_t ASIMReadoutManager::GetEventTreeID(std::string Name)
+Int_t ASIMStorageManager::GetEventTreeID(std::string Name)
 { return EventTreeIDMap[Name]; }
 
 
-std::string ASIMReadoutManager::GetEventTreeName(Int_t ID)
+std::string ASIMStorageManager::GetEventTreeName(Int_t ID)
 { return EventTreeNameMap[ID]; }
 
 
@@ -339,19 +339,19 @@ std::string ASIMReadoutManager::GetEventTreeName(Int_t ID)
 /////////////////////////////////
 
 
-void ASIMReadoutManager::AddRun(ASIMRun *Run)
+void ASIMStorageManager::AddRun(ASIMRun *Run)
 { RunList->Add(Run); }
 
 
-ASIMRun *ASIMReadoutManager::GetRun(Int_t ID)
+ASIMRun *ASIMStorageManager::GetRun(Int_t ID)
 { return (ASIMRun *)RunList->At(ID); }
 
 
-Int_t ASIMReadoutManager::GetNumberOfRuns()
+Int_t ASIMStorageManager::GetNumberOfRuns()
 { return RunList->GetSize(); }
 
 
-void ASIMReadoutManager::ListRuns()
+void ASIMStorageManager::ListRuns()
 {
   TIter It(RunList);
   ASIMRun *R;
@@ -359,7 +359,7 @@ void ASIMReadoutManager::ListRuns()
   }
 }
 
-void ASIMReadoutManager::WriteRuns()
+void ASIMStorageManager::WriteRuns()
 {
   if(!ASIMFileOpen)
     return;

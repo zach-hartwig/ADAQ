@@ -16,8 +16,8 @@
 #include "ASIMScintillatorSD.hh"
 #include "ASIMOpticalReadoutSD.hh"
 #include "ASIMReadoutManager.hh"
-#include "ASIMReadoutManagerMessenger.hh"
-#include "MPIManager.hh"
+#include "ASIMReadoutMessenger.hh"
+//#include "MPIManager.hh"
 
 ASIMReadoutManager *ASIMReadoutManager::ASIMReadoutMgr = 0;
 
@@ -94,7 +94,7 @@ ASIMReadoutManager::ASIMReadoutManager(G4bool arch)
 						       ASIMTreeDesc.at(r));
   }
   
-  theMessenger = new ASIMReadoutManagerMessenger(this);
+  theMessenger = new ASIMReadoutMessenger(this);
 }
 
 
@@ -119,7 +119,7 @@ void ASIMReadoutManager::InitializeASIMFile()
     return;
   }
   
-#ifdef SWS_MPI_ENABLED
+#ifdef ASIM_MPI_ENABLED
   MPIManager *theMPIManager = MPIManager::GetInstance();
   MPI_Rank = theMPIManager->GetRank();
   MPI_Size = theMPIManager->GetSize();
@@ -265,7 +265,7 @@ void ASIMReadoutManager::FillEventTrees(const G4Event *currentEvent)
 	EventActivated[r] = true;
 	
 	// Fill detector trees if output to ASIM has been activated
-	if(ASIMStorageMgr->GetASIMFileOpen() and)
+	if(ASIMStorageMgr->GetASIMFileOpen())
 	  ASIMStorageMgr->GetEventTree(ASIMTreeID[r])->Fill();
       }
     }
@@ -310,7 +310,7 @@ void ASIMReadoutManager::FillRunSummary(const G4Run *currentRun)
 
     ASIMRunSummary->SetRunID( currentRun->GetRunID() );
 
-#ifdef SWS_MPI_ENABLED
+#ifdef ASIM_MPI_ENABLED
     if(parallelArchitecture)
       ASIMRunSummary->SetTotalEvents( MPIManager::GetInstance()->GetTotalEvents() );
     else
@@ -340,10 +340,6 @@ void ASIMReadoutManager::InitializeForRun()
     RunEDep[r] = 0;
     PhotonsCreated[r] = 0;
     PhotonsCounted[r] = 0;
-
-    SingleHits = 0;
-    DoubleHits = 0;
-    TripleHits = 0;
   }
 }
 

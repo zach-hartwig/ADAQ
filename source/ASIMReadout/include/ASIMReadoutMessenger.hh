@@ -15,9 +15,9 @@ class ASIMReadoutManager;
 
 class ASIMReadoutMessenger : public G4UImessenger
 {
-
+  
 public:
-  ASIMReadoutMessenger(rootStorageManager *);
+  ASIMReadoutMessenger(ASIMReadoutManager *);
   ~ASIMReadoutMessenger();
   
   void SetNewValue(G4UIcommand *, G4String);
@@ -25,7 +25,7 @@ public:
 private:
   ASIMReadoutManager *theManager;
   
-  G4UIdirectory *asimDirectory, *detectorDirectory;
+  G4UIdirectory *asimDirectory;
   
   G4UIcmdWithAString *asimFileNameCmd;
   G4UIcmdWithoutParameter *asimInitCmd;

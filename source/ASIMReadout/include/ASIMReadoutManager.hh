@@ -14,8 +14,10 @@
 using namespace std;
 
 // ASIM
-#include "ASIMReadoutManager.hh"
+#include "ASIMStorageManager.hh"
 #include "ASIMReadoutMessenger.hh"
+#include "ASIMEvent.hh"
+#include "ASIMRun.hh"
 
 class ASIMReadoutManager
 {
@@ -103,7 +105,7 @@ public:
   void SetFileName(G4String FN) {ASIMFileName = FN;}
   G4String GetFileName() {return ASIMFileName;}
 
-  G4bool CheckForOpenASIMFile() {return ASIMReadoutMgr->GetASIMFileOpen(); }
+  G4bool CheckForOpenASIMFile() {return ASIMStorageMgr->GetASIMFileOpen(); }
 
 
 private:

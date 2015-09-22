@@ -22,8 +22,9 @@
 #       by other codes. Note that $ARCH specifies the system
 #       architecture (32- or 64-bit)
 #
-# dpnd: The library has only a single dependency:
-#       -- The ROOT toolkit
+# dpnd: The library has the following dependencies:
+#       -- The ROOT toolkit (v5.34.30 latest tested)
+#       -- The Geant4 toolkit (v10.01 latest tested)
 #
 # 2run: To build libASIMReadout.so locally
 #       $ make

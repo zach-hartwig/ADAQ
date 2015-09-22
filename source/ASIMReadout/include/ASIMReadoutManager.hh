@@ -11,6 +11,7 @@
 
 // C++
 #include <vector>
+#include <map>
 using namespace std;
 
 // ASIM
@@ -22,19 +23,23 @@ using namespace std;
 class ASIMReadoutManager
 {
 public:
-  ASIMReadoutManager(G4bool);
+  ASIMReadoutManager(G4bool SequentialArchitecture=true);
   ~ASIMReadoutManager();
 
   static ASIMReadoutManager *GetInstance();
   
   void InitializeASIMFile();
   void WriteASIMFile(G4bool emergencyWrite=false);
-  void FillEventTrees(const G4Event *);
-  void IncrementRunLevelData(vector<G4bool> &);
-  void FillRunSummary(const G4Run *);
-  void GenerateFileNames();
-  void ReduceSlaveValuesToMaster();
+
+  void RegisterReadout(G4String, G4String);
+
   void InitializeForRun();
+  void ReadoutEvent(const G4Event *);
+  void FillRunSummary(const G4Run *);
+  void IncrementRunLevelData(vector<G4bool> &);
+  
+  void ReduceSlaveValuesToMaster();
+
 
   // Set/Get methods for member data. First arg is always readout
   // number to account for multiple readout channels
@@ -45,10 +50,6 @@ public:
   void SetReadoutEnabled(G4bool);
   G4bool GetReadoutEnabled(G4int);
 
-  G4int GetSingleHits();
-  G4int GetDoubleHits();
-  G4int GetTripleHits();
-  
   void SetIncidents(G4int);
   G4int GetIncidents(G4int);
 

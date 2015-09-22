@@ -28,6 +28,7 @@
 #include <cstdlib>
 
 #include "ASIMStorageManager.hh"
+#include "ASIMReadoutManager.hh"
 
 ASIMStorageManager::ASIMStorageManager()
   : ASIMFile(new TFile), ASIMFileName(""), ASIMFileOpen(false), 

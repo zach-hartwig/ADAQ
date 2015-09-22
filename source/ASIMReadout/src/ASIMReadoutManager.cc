@@ -19,7 +19,7 @@
 #include "ASIMReadoutMessenger.hh"
 //#include "MPIManager.hh"
 
-ASIMReadoutManager *ASIMReadoutManager::ASIMReadoutMgr = 0;
+ASIMReadoutManager *ASIMReadoutManager::ASIMReadoutMgr = NULL;
 
 
 ASIMReadoutManager *ASIMReadoutManager::GetInstance()
@@ -27,72 +27,22 @@ ASIMReadoutManager *ASIMReadoutManager::GetInstance()
 
 
 ASIMReadoutManager::ASIMReadoutManager(G4bool arch)
-  : parallelArchitecture(!arch), MPI_Rank(0), MPI_Size(1)
+  : parallelArchitecture(!arch), MPI_Rank(0), MPI_Size(1),
+    ASIMNumReadouts(0)
 {
-  if(ASIMReadoutMgr)
+  if(ASIMReadoutMgr != NULL)
     G4Exception("ASIMReadoutManager::ASIMReadoutManager()", 
 		"RSMException011", 
 		FatalException, 
 		"The ASIMReadoutManager was constructed twice!");
-  else
+  else 
     ASIMReadoutMgr = this;
 
   // Initialize ASIM readout classes
   
-  ASIMFileName = "Sparrow.asim.root";
+  ASIMFileName = "ASIMReadoutDefault.asim.root";
   ASIMStorageMgr = new ASIMStorageManager;
   ASIMRunSummary = new ASIMRun;
-
-  ASIMNumReadouts = 3;
-  
-  for(int r=0; r<ASIMNumReadouts; r++)
-    ASIMEvents.push_back(new ASIMEvent);
-
-  ASIMTreeID.push_back(0);
-  ASIMTreeName.push_back("CoreEventTree");
-  ASIMTreeDesc.push_back("Sparrow detector: core scintillator event tree");
-
-  ASIMTreeID.push_back(1);
-  ASIMTreeName.push_back("WestEventTree");
-  ASIMTreeDesc.push_back("Sparrow detector: west perimeter scintillator event tree");
-
-  ASIMTreeID.push_back(2);
-  ASIMTreeName.push_back("EastEventTree");
-  ASIMTreeDesc.push_back("Sparrow detector: east perimeter scintillator event tree");
-  
-  SDNames.push_back("CoreScintSDCollection");
-  SDNames.push_back("WestPerimeterScintSDCollection");
-  SDNames.push_back("EastPerimeterScintSDCollection");
-
-  ActiveReadout = 0;
-  
-  
-  for(G4int r=0; r<ASIMNumReadouts; r++){
-    ReadoutEnabled.push_back(0);
-
-    Incidents.push_back(0);
-    Hits.push_back(0);
-    RunEDep.push_back(0.);
-    PhotonsCreated.push_back(0);
-    PhotonsCounted.push_back(0);
-
-    EnergyBroadeningEnable.push_back(false);
-    EnergyResolution.push_back(0.);
-    EnergyEvaluation.push_back(0.);
-    UseEnergyThresholds.push_back(true);
-    LowerEnergyThreshold.push_back(0.);
-    UpperEnergyThreshold.push_back(1.*TeV);
-    UsePhotonThresholds.push_back(true);
-    LowerPhotonThreshold.push_back(0);
-    UpperPhotonThreshold.push_back(1000000000);
-
-    EventEDep.push_back(0.);
-    EventActivated.push_back(false);
-
-    ASIMEvents.at(r) = ASIMStorageMgr->CreateEventTree(ASIMTreeID.at(r),
-						       ASIMTreeName.at(r),
-						       ASIMTreeDesc.at(r));
-  }
   
   theMessenger = new ASIMReadoutMessenger(this);
 }
@@ -102,9 +52,11 @@ ASIMReadoutManager::~ASIMReadoutManager()
 {
   delete theMessenger;
   
-  for(G4int r=0; r<ASIMNumReadouts; r++)
+  for(size_t r=0; r<ASIMEvents.size(); r++)
     delete ASIMEvents.at(r);
+
   delete ASIMRunSummary;
+
   delete ASIMStorageMgr;
 }
 
@@ -153,10 +105,65 @@ void ASIMReadoutManager::WriteASIMFile(G4bool EmergencyWrite)
     ASIMStorageMgr->WriteParallelFile();
   else
     ASIMStorageMgr->WriteSequentialFile();
-}  
+}
 
 
-void ASIMReadoutManager::FillEventTrees(const G4Event *currentEvent)
+void ASIMReadoutManager::RegisterReadout(G4String ReadoutName,
+					 G4String ReadoutDesc)
+{
+  G4int ReadoutID = ASIMNumReadouts;
+
+  ASIMNumReadouts++;
+
+  ASIMTreeID.push_back(ASIMNumReadouts-1);
+  ASIMTreeName.push_back(ReadoutName);
+  ASIMTreeDesc.push_back(ReadoutDesc);
+  
+  ASIMEvents.push_back(ASIMStorageMgr->CreateEventTree(ReadoutID,
+						       ReadoutName,
+						       ReadoutDesc));
+  string SDName = ReadoutName + "Collection";
+  SDNames.push_back(SDName);
+  
+  ReadoutEnabled.push_back(0);
+
+  // Event-level variables
+  EventEDep.push_back(0.);
+  EventActivated.push_back(false);
+
+  // Run-level aggregators
+  Incidents.push_back(0);
+  Hits.push_back(0);
+  RunEDep.push_back(0.);
+  PhotonsCreated.push_back(0);
+  PhotonsCounted.push_back(0);
+
+  // Readout settings
+  EnergyBroadeningEnable.push_back(false);
+  EnergyResolution.push_back(0.);
+  EnergyEvaluation.push_back(0.);
+  UseEnergyThresholds.push_back(true);
+  LowerEnergyThreshold.push_back(0.);
+  UpperEnergyThreshold.push_back(1.*TeV);
+  UsePhotonThresholds.push_back(true);
+  LowerPhotonThreshold.push_back(0);
+  UpperPhotonThreshold.push_back(1000000000);
+}
+
+
+void ASIMReadoutManager::InitializeForRun()
+{
+  for(G4int r=0; r<ASIMNumReadouts; r++){
+    Incidents[r] = 0;
+    Hits[r] = 0;
+    RunEDep[r] = 0;
+    PhotonsCreated[r] = 0;
+    PhotonsCounted[r] = 0;
+  }
+}
+
+
+void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
 {
   G4int TheCollectionID = -1;
   G4SDManager *TheSDManager = G4SDManager::GetSDMpointer();
@@ -220,7 +227,7 @@ void ASIMReadoutManager::FillEventTrees(const G4Event *currentEvent)
 	}
 	ASIMEvents[r]->SetEnergyDep(EventEDep[r]/MeV);
       }
-
+      
 
       /////////////////////////////////
       // The scintillator readout SD //
@@ -328,18 +335,6 @@ void ASIMReadoutManager::FillRunSummary(const G4Run *currentRun)
 
     // Add the run class to the list for later readout
     ASIMStorageMgr->AddRun(ASIMRunSummary);
-  }
-}
-
-
-void ASIMReadoutManager::InitializeForRun()
-{
-  for(G4int r=0; r<ASIMNumReadouts; r++){
-    Incidents[r] = 0;
-    Hits[r] = 0;
-    RunEDep[r] = 0;
-    PhotonsCreated[r] = 0;
-    PhotonsCounted[r] = 0;
   }
 }
 

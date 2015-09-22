@@ -1,22 +1,19 @@
+#include "G4SystemOfUnits.hh"
+#include "G4PhysicalConstants.hh"
 #include "G4PVPlacement.hh"
 #include "G4RotationMatrix.hh"
 #include "G4ThreeVector.hh"
 #include "G4VisAttributes.hh"
 #include "G4Colour.hh"
-#include "G4SystemOfUnits.hh"
-#include "G4PhysicalConstants.hh"
 #include "G4NistManager.hh"
-#include "G4UserLimits.hh"
 #include "G4SDManager.hh"
-#include "G4RunManager.hh"
-#include "G4UImanager.hh"
 
-#include <sstream>
+#include "ASIMScintillatorSD.hh"
 
 #include "geometryConstruction.hh"
-//#include "ASIMScintillatorSD.hh"
 
-geometryConstruction::geometryConstruction(G4bool UV)
+
+geometryConstruction::geometryConstruction()
 {
   // Parameters for the world volume
   WorldX = 5.*cm;
@@ -85,11 +82,11 @@ G4VPhysicalVolume *geometryConstruction::Construct()
   ScintillatorVisAtt->SetForceSolid(true);
   Scintillator_L->SetVisAttributes(ScintillatorVisAtt);
   
-  //  Scintillator_SD = new ASIMScintillatorSD("ScintillatorSD",
-  //					   new G4Colour(1.0, 1.0, 0.0, 0.4),
-  //					   8); 
-  //  G4SDManager::GetSDMpointer()->AddNewDetector(Scintillator_SD);
-  //  Scintillator_L->SetSensitiveDetector(Scintillator_SD);
+  ASIMScintillatorSD *Scintillator_SD = new ASIMScintillatorSD("ScintillatorSD",
+							       new G4Colour(1.0, 1.0, 0.0, 0.4),
+							       8); 
+  G4SDManager::GetSDMpointer()->AddNewDetector(Scintillator_SD);
+  Scintillator_L->SetSensitiveDetector(Scintillator_SD);
   
   return World_P;
 }

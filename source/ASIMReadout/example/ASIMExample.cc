@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 
   G4RunManager* theRunManager = new G4RunManager;
   
-  theRunManager->SetUserInitialization(new geometryConstruction(visualization));
+  theRunManager->SetUserInitialization(new geometryConstruction);
   theRunManager->SetUserInitialization(new physicsList(false, false));
   theRunManager->SetUserAction(new PGA);
   theRunManager->Initialize();
@@ -127,8 +127,11 @@ int main(int argc, char *argv[])
     
     // As Gallagher famously said: "STYYYYYYYYYYYYYLE!!"
     G4cout << "\n\n \t ******************************************************************\n"
-	   <<     " \t ****                                                          ****\n"
-	   <<     " \t **             Welcome to the ASIMExample simulation            **\n\n";
+	   <<     " \t ******                                                      ******\n"
+	   <<     " \t ****           Welcome to the ASIMExample simulation          ****\n"
+	   <<     " \t **                                                              **\n"
+	   <<     " \t ******************************************************************\n"
+	   << G4endl;
     
     session->SessionStart();
 

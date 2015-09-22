@@ -32,4 +32,9 @@ void runAction::BeginOfRunAction(const G4Run *)
 void runAction::EndOfRunAction(const G4Run *)
 {
   G4RunManager *theRunManager = G4RunManager::GetRunManager();
+
+  G4cout << "\n\n"
+	 << "\n======================= ASIMExample run-level results =======================\n"
+	 << "\n=============================================================================\n\n"
+	 <<  G4endl;
 }

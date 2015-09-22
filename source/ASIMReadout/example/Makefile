@@ -116,8 +116,10 @@ lib/ASIMExampleDict.cc : $(ACRO_ROOT_FILES) include/RootLinkDef.hh
 
 # The ADAQ Simulation Readout (ASIM) library is used for readout of
 # detector data into persistent ROOT simulation (*.asim.root) files
-CPPFLAGS += -I$(ADAQHOME)/include
-LDLIBS += -L$(ADAQHOME)/lib/$(HOSTTYPE) -lASIMReadout
+# CPPFLAGS += -I$(ADAQHOME)/include
+# LDLIBS += -L$(ADAQHOME)/lib/$(HOSTTYPE) -lASIMReadout
+CPPFLAGS += -I../include
+LDLIBS += -L../build -lASIMReadout
 
 
 #########################

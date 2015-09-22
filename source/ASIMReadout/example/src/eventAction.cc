@@ -34,7 +34,7 @@ void eventAction::BeginOfEventAction(const G4Event *currentEvent)
   if(event==0){
     G4cout << "\n\n"
 	   << "\n***************************************************************************\n"
-	   <<   "****  SWS STATUS: Tracking Events!  **************************************\n***" 
+	   <<   "****  G4 STATUS: Tracking Events!  ****************************************\n***" 
 	   << G4endl;
 
     totalEventsToRun = 

@@ -1,0 +1,13 @@
+#################################################################################
+#
+# name: ASIMExample.gps
+# date: 22 Sep 15
+# auth: Zach Hartwig
+# mail: hartwig@psfc.mit.edu
+# desc: Default GPS macro executed at ASIMExample startup
+#
+#################################################################################
+#
+/gps/particle gamma
+/gps/ene/mono 0.662 MeV
+/gps/pos/centre 0 0 4.5 cm

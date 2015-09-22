@@ -1,0 +1,11 @@
+#################################################################################
+#
+# name: ASIMExample.mac
+# date: 22 Sep 15
+# auth; Zach Hartwig
+# mail: hartwig@psfc.mit.edu
+# desc: Standard utility macro for automating ASIMExample runs. Place
+#       commands here and then run from the G4 command line by using
+#       the alias '{mac}' to execute this macro
+#
+#################################################################################

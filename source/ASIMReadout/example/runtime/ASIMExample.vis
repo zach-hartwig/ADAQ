@@ -1,0 +1,36 @@
+#################################################################################
+#
+# name: ASIMExample.vis
+# date: 22 Sep 15
+# auth: Zach Hartwig
+# mail: hartwig@psfc.mit.edu
+# desc: Geant4 visualization macro
+#
+#################################################################################
+#
+# Note that the viewer is opened from with ASIMExample.cc depending on
+# whether Qt is being used in the visualziation or not
+#
+# Quiet autorefresh and verbosity during setup
+/vis/viewer/set/autoRefresh false
+/vis/verbose errors
+#
+# Draw the geometry
+/vis/drawVolume
+#
+# Specify viewing parameters
+/vis/viewer/set/viewpointThetaPhi 45 45 deg
+/vis/viewer/set/projection p
+/vis/viewer/set/auxiliaryEdge true
+/vis/viewer/set/lineSegmentsPerCircle 100
+#
+# Handle particle trajectories and sensitive detector hits
+/vis/scene/add/trajectories smooth
+/tracking/storeTrajectory 1
+/vis/scene/add/hits
+/vis/scene/endOfEventAction accumulate -1
+#
+/vis/viewer/set/autoRefresh true
+/vis/verbose warnings
+#
+/vis/viewer/flush

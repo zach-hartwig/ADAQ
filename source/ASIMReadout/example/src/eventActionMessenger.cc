@@ -8,10 +8,10 @@
 eventActionMessenger::eventActionMessenger(eventAction *EA)
   : EventAction(EA)
 {
-  detDataDirectory = new G4UIdirectory("/Sparrow/dataOutput/");
+  detDataDirectory = new G4UIdirectory("/ASIMExample/dataOutput/");
   detDataDirectory->SetGuidance("SWS data output control");
   
-  eventFreqCmd = new G4UIcmdWithAnInteger("/Sparrow/dataOutput/setEventInfoFreq",this);
+  eventFreqCmd = new G4UIcmdWithAnInteger("/ASIMExample/dataOutput/setEventInfoFreq",this);
   eventFreqCmd->SetGuidance("Sets how often event information is printed to terminal");
   eventFreqCmd->SetGuidance("Event will print every <int> events");
   eventFreqCmd->AvailableForStates(G4State_Idle, G4State_PreInit);

@@ -9,23 +9,23 @@
 //
 /////////////////////////////////////////////////////////////////////////////////
 
+// Geant4
 #include "G4RunManager.hh" 
 #include "G4VisManager.hh"
 #include "G4UImanager.hh"
 #include "G4UIterminal.hh"
 #include "G4UItcsh.hh"
-
-#ifdef G4VIS_USE
 #include "G4VisExecutive.hh"
 #include "G4TrajectoryDrawByParticleID.hh"
-#endif
-
-#ifdef G4UI_USE
 #include "G4UIExecutive.hh"
-#endif
 
+// C++
 #include <ctime>
 
+// ASIM
+#include <ASIMReadoutManager.hh>
+
+// ASIMExample
 #include "geometryConstruction.hh"
 #include "physicsList.hh"
 #include "PGA.hh"
@@ -37,6 +37,10 @@
 
 int main(int argc, char *argv[])
 {
+  ////////////////////////////////
+  // Parse command line options //
+  ////////////////////////////////
+  
   G4bool visualization = false;
   G4bool visQt = false;
   if(argc>1){
@@ -55,10 +59,26 @@ int main(int argc, char *argv[])
       CLHEP::HepRandom::setTheSeed(time(0));
   }
 
+
+  /////////////////////////////////////////////////
+  // Initialize the singleton ASIMStorageManager //
+  /////////////////////////////////////////////////
+
+  ASIMReadoutManager *theReadoutManager = new ASIMReadoutManager;
+
+
+  //////////////////////////////////////////////////
+  // Initialize mandatory and option user classes //
+  //////////////////////////////////////////////////
+
+  G4bool UseNeutronHPPhysics = false;
+  G4bool UseOpticalPhysics = false;
+
   G4RunManager* theRunManager = new G4RunManager;
   
   theRunManager->SetUserInitialization(new geometryConstruction);
-  theRunManager->SetUserInitialization(new physicsList(false, false));
+  theRunManager->SetUserInitialization(new physicsList(UseNeutronHPPhysics,
+						       UseOpticalPhysics));
   theRunManager->SetUserAction(new PGA);
   theRunManager->Initialize();
   
@@ -67,7 +87,11 @@ int main(int argc, char *argv[])
   theRunManager->SetUserAction(new steppingAction);
   theRunManager->SetUserAction(new stackingAction(RunAction));
   theRunManager->SetUserAction(new eventAction);
-  
+
+  ///////////////////////////////////
+  // Initialize the user interface //
+  ///////////////////////////////////
+ 
   G4UImanager* UI = G4UImanager::GetUIpointer();
   {
     G4String Alias = "/control/alias";
@@ -83,6 +107,11 @@ int main(int argc, char *argv[])
     
     UI->ApplyCommand("/control/execute runtime/ASIMExample.gps");
   }
+
+
+  ///////////////////////////////////////////////////////////////
+  // Optionally initialize standard OpenGL or Qt visualziation //
+  ///////////////////////////////////////////////////////////////
   
   G4VisManager *visManager = NULL;
   G4TrajectoryDrawByParticleID *colorModel = NULL;
@@ -146,9 +175,9 @@ int main(int argc, char *argv[])
     delete colorModel;
   }
   
-  //if(theRSManager->CheckForOpenASIMFile())
-  //theRSManager->WriteASIMFile(true);
-  //  delete theRSManager;
+  if(theReadoutManager->CheckForOpenASIMFile())
+    theReadoutManager->WriteASIMFile(true);
+  delete theReadoutManager;
 
   delete theRunManager;
 

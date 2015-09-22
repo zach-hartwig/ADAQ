@@ -11,6 +11,7 @@
 #ifdef ASIM_MPI_ENABLED
 #include "MPIManager.hh"
 #endif
+#include "ASIMReadoutManager.hh"
 
 #include "eventAction.hh"
 
@@ -83,8 +84,6 @@ void eventAction::BeginOfEventAction(const G4Event *currentEvent)
 
 void eventAction::EndOfEventAction(const G4Event *currentEvent)
 {
-  //  if( currentEvent->GetHCofThisEvent() )
-  //    rootStorageManager::GetInstance()->FillEventTrees(currentEvent);
-  //  else
-  //    return;
+  if( currentEvent->GetHCofThisEvent() )
+    ASIMReadoutManager::GetInstance()->ReadoutEvent(currentEvent);
 }

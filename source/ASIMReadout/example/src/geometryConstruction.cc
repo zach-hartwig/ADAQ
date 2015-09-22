@@ -9,6 +9,7 @@
 #include "G4SDManager.hh"
 
 #include "ASIMScintillatorSD.hh"
+#include "ASIMReadoutManager.hh"
 
 #include "geometryConstruction.hh"
 
@@ -86,6 +87,10 @@ G4VPhysicalVolume *geometryConstruction::Construct()
 							       new G4Colour(1.0, 1.0, 0.0, 0.4),
 							       8); 
   G4SDManager::GetSDMpointer()->AddNewDetector(Scintillator_SD);
+  
+  ASIMReadoutManager::GetInstance()->RegisterReadout("ScintillatorSD",
+						     "ASIMExample demonstration of scintillator readout");
+  
   Scintillator_L->SetSensitiveDetector(Scintillator_SD);
   
   return World_P;

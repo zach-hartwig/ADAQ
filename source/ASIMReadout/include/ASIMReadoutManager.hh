@@ -4,6 +4,7 @@
 // Geant4
 #include "G4Event.hh"
 #include "G4Run.hh"
+#include "G4VPhysicalVolume.hh"
 
 // ROOT
 #include "TFile.h"
@@ -31,7 +32,9 @@ public:
   void InitializeASIMFile();
   void WriteASIMFile(G4bool emergencyWrite=false);
 
-  void RegisterReadout(G4String, G4String);
+  void RegisterNewReadout(G4String,
+			  G4VPhysicalVolume *,
+			  G4VPhysicalVolume *Photodetector = NULL);
 
   void InitializeForRun();
   void ReadoutEvent(const G4Event *);
@@ -135,7 +138,7 @@ private:
   G4String fileName;
   std::vector<G4String> slaveFileNames;
 
-  vector<G4String> SDNames;
+  vector<G4String> ScintillatorSDNames, PhotodetectorSDNames;
 
   // Variables for SD readout into an ASIM file
 

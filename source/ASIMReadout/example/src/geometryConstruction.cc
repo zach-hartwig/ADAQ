@@ -21,7 +21,7 @@ geometryConstruction::geometryConstruction()
   World_Y = 5.*cm;
   World_Z = 15.*cm;
 
-  // Initialize parameters for the core scintillator
+  // Initialize parameters for the scintillators
   BGO_X = 2.*cm;
   BGO_Y = 2.*cm;
   BGO_Z = 3.*cm;
@@ -29,6 +29,7 @@ geometryConstruction::geometryConstruction()
   NaI_RMin = 0.*cm;
   NaI_RMax = 1.27*cm;
   NaI_Z = 2.54*cm;
+  NaIPMT_Z = 0.1*cm;
 }
 
 
@@ -116,6 +117,30 @@ G4VPhysicalVolume *geometryConstruction::Construct()
   NaI_L->SetVisAttributes(NaIVisAtt);
 
   
+  NaIPMT_S = new G4Tubs("NaIPMTS",
+			NaI_RMin,
+			NaI_RMax,
+			NaIPMT_Z/2,
+			0.*degree,
+			360.*degree);
+  
+  NaIPMT_L = new G4LogicalVolume(NaIPMT_S,
+				 G4NistManager::Instance()->FindOrBuildMaterial("G4_SODIUM_IODIDE"),
+				 "NaIPMTL");
+  
+  NaIPMT_P = new G4PVPlacement(0,
+			       G4ThreeVector(0., 0., (4.*cm + NaI_Z/2 + NaIPMT_Z/2)),
+			       NaIPMT_L,
+			       "NaIPMT",
+			       World_L,
+			       false,
+			       0);
+  
+  G4VisAttributes *NaIPMTVisAtt = new G4VisAttributes(G4Colour(0.5, 0.5, 0.5, 1.0));
+  NaIPMTVisAtt->SetForceSolid(true);
+  NaIPMT_L->SetVisAttributes(NaIPMTVisAtt);
+
+  
   /////////////////////////////////////////////////////////////
   // Specify sensitive detectors (SD) and ASIM readouts (AR) //
   /////////////////////////////////////////////////////////////
@@ -132,19 +157,29 @@ G4VPhysicalVolume *geometryConstruction::Construct()
 						      8); 
   SDMgr->AddNewDetector(BGO_SD);
   BGO_L->SetSensitiveDetector(BGO_SD);
+  
+  ARMgr->RegisterNewReadout("Demonstrating the readout of a BGO scintillator to an ASIM file",
+			    BGO_P);
 
-  ARMgr->RegisterReadout(BGO_SD->GetName(),
-			 "Demonstration of reading out a BGO scintillator to an ASIM file");
-
-  // The NaI(Tl) scintillator
+  // The NaI(Tl) scintillator ...
   
   ASIMScintillatorSD *NaI_SD = new ASIMScintillatorSD("NAISD",
 						      new G4Colour(1.0, 0.0, 0.0, 0.4),
 						      8); 
   SDMgr->AddNewDetector(NaI_SD);
-  ARMgr->RegisterReadout(NaI_SD->GetName(),
-  			 "Demonstration of reading out a NaI(Tl) scintillator to an ASIM file");
   NaI_L->SetSensitiveDetector(NaI_SD);
+
+  // ... and the NaI(Tl) photomultiplier tube
+  
+  ASIMScintillatorSD *NaIPMT_SD = new ASIMScintillatorSD("NAIPMTSD",
+							 new G4Colour(1.0, 0.0, 0.0, 0.4),
+							 8); 
+  SDMgr->AddNewDetector(NaIPMT_SD);
+  NaIPMT_L->SetSensitiveDetector(NaIPMT_SD);
+  
+  ARMgr->RegisterNewReadout("Demonstrating the readout of a NaI(Tl) scintillator to an ASIM file",
+			    NaI_P,
+			    NaIPMT_P);
 
   return World_P;
 }

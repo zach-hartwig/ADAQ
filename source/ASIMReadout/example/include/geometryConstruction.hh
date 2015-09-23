@@ -27,11 +27,11 @@ private:
 
   // Member data for the scintillator
   G4Box *BGO_S;
-  G4Tubs *NaI_S;
-  G4LogicalVolume *BGO_L, *NaI_L;
-  G4VPhysicalVolume *BGO_P, *NaI_P;
+  G4Tubs *NaI_S, *NaIPMT_S;
+  G4LogicalVolume *BGO_L, *NaI_L, *NaIPMT_L;
+  G4VPhysicalVolume *BGO_P, *NaI_P, *NaIPMT_P;
   G4double BGO_X, BGO_Y, BGO_Z;
-  G4double NaI_RMin, NaI_RMax, NaI_Z;
+  G4double NaI_RMin, NaI_RMax, NaI_Z, NaIPMT_Z;
 };
 
 #endif

@@ -108,11 +108,13 @@ void ASIMReadoutManager::WriteASIMFile(G4bool EmergencyWrite)
 }
 
 
-void ASIMReadoutManager::RegisterReadout(G4String ReadoutName,
-					 G4String ReadoutDesc)
+void ASIMReadoutManager::RegisterNewReadout(G4String ReadoutDesc,
+					    G4VPhysicalVolume *Scintillator,
+					    G4VPhysicalVolume *Photodetector)
 {
   G4int ReadoutID = ASIMNumReadouts;
-
+  G4String ReadoutName = Scintillator->GetLogicalVolume()->GetSensitiveDetector()->GetName();
+ 
   ASIMNumReadouts++;
 
   ASIMTreeID.push_back(ReadoutID);
@@ -122,8 +124,16 @@ void ASIMReadoutManager::RegisterReadout(G4String ReadoutName,
   ASIMEvents.push_back(ASIMStorageMgr->CreateEventTree(ReadoutID,
 						       ReadoutName,
 						       ReadoutDesc));
-  string SDName = ReadoutName + "Collection";
-  SDNames.push_back(SDName);
+  
+  string ScintillatorSDName = ReadoutName + "Collection";
+  ScintillatorSDNames.push_back(ScintillatorSDName);
+
+  if(Photodetector != NULL){
+    G4String PReadoutName = Photodetector->GetLogicalVolume()->GetSensitiveDetector()->GetName();
+    PhotodetectorSDNames.push_back(PReadoutName);
+  }
+  else
+    PhotodetectorSDNames.push_back("Photodetector does not exist for this readout!");    
   
   ReadoutEnabled.push_back(0);
 
@@ -181,12 +191,12 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
       
       G4String CollectionName = TheSDManager->GetHCtable()->GetHCname(hc);
       TheCollectionID = TheSDManager->GetCollectionID(CollectionName);
+      
+      if(CollectionName == ScintillatorSDNames[r]){
 
-      if(CollectionName == SDNames[r]){
-
-	/////////////////////////
-	// The scintillator SD //
-	/////////////////////////
+	//////////////////////////
+	// The scintillator SDs //
+	//////////////////////////
 	
 	ASIMScintillatorSDHitCollection const *ScintillatorHC = 
 	  dynamic_cast<ASIMScintillatorSDHitCollection *>(HCE->GetHC(TheCollectionID));
@@ -229,19 +239,18 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
       }
       
 
-      /////////////////////////////////
-      // The scintillator readout SD //
-      /////////////////////////////////
-      /*      
-      if(CollectionName == ""){
-
-	  ASIMOpticalReadoutSDHitCollection const *ReadoutHC =
+      ///////////////////////////////////
+      // The photodetector readout SDs //
+      ///////////////////////////////////
+      
+      else if(CollectionName == PhotodetectorSDNames[r]){
+	
+	ASIMOpticalReadoutSDHitCollection const *ReadoutHC =
 	  dynamic_cast<ASIMOpticalReadoutSDHitCollection *>(HCE->GetHC(TheCollectionID));
 	
-	  for(G4int i=0; i<ReadoutHC->entries(); i++)
+	for(G4int i=0; i<ReadoutHC->entries(); i++)
 	  ASIMEvents.at(r)->IncrementPhotonsDetected();
       }
-      */
     }
     
     ///////////////

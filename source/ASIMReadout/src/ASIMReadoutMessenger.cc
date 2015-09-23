@@ -32,6 +32,11 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARM)
   asimWriteCmd->SetGuidance("the ASIM objects have already been created and initialized.");
   asimWriteCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
 
+  setActiveReadoutCmd = new G4UIcmdWithAnInteger("/ASIM/setActiveReadout", this);
+  setActiveReadoutCmd->SetGuidance("Set the readout for which settings will be modified. Use the readout ID to specify.");
+  setActiveReadoutCmd->SetParameterName("Choice", false);
+  setActiveReadoutCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
+
   setLowerEnergyThresholdCmd = new G4UIcmdWithADoubleAndUnit("/ASIM/setLowerEnergyThreshold", this);
   setLowerEnergyThresholdCmd->SetGuidance("Set the lower energy threshold for scoring hits on the detector. Note that energy");
   setLowerEnergyThresholdCmd->SetGuidance("energy thresholding must be enabled via the '/ASIM/enableEnergyThrehold' command");
@@ -118,6 +123,7 @@ ASIMReadoutMessenger::~ASIMReadoutMessenger()
   delete enableEnergyThresholdCmd;
   delete setUpperEnergyThresholdCmd;
   delete setLowerEnergyThresholdCmd;
+  delete setActiveReadoutCmd;
   delete asimWriteCmd;
   delete asimInitCmd;
   delete asimFileNameCmd;
@@ -135,6 +141,11 @@ void ASIMReadoutMessenger::SetNewValue(G4UIcommand *cmd, G4String newValue)
   
   if(cmd == asimWriteCmd)
     theManager->WriteASIMFile();
+
+  // Set the active readout via readout ID
+
+  if(cmd == setActiveReadoutCmd)
+    theManager->SetActiveReadout(setActiveReadoutCmd->GetNewIntValue(newValue));
 
   // Energy thresholds
 

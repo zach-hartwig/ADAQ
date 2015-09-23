@@ -17,14 +17,18 @@
 geometryConstruction::geometryConstruction()
 {
   // Parameters for the world volume
-  WorldX = 5.*cm;
-  WorldY = 5.*cm;
-  WorldZ = 10.*cm;
+  World_X = 5.*cm;
+  World_Y = 5.*cm;
+  World_Z = 15.*cm;
 
   // Initialize parameters for the core scintillator
-  ScintillatorX = 1.*cm;
-  ScintillatorY = 1.*cm;
-  ScintillatorZ = 3.*cm;
+  BGO_X = 2.*cm;
+  BGO_Y = 2.*cm;
+  BGO_Z = 3.*cm;
+
+  NaI_RMin = 0.*cm;
+  NaI_RMax = 1.27*cm;
+  NaI_Z = 2.54*cm;
 }
 
 
@@ -34,15 +38,14 @@ geometryConstruction::~geometryConstruction()
 
 G4VPhysicalVolume *geometryConstruction::Construct()
 {
-  /////////////////////////////////////
-  // Create the top-level world volumes
-
-  // The simulation world
+  ////////////////////////////////////////
+  // Create the top-level world volumes //
+  ////////////////////////////////////////
     
   World_S = new G4Box("World_S",
-		      WorldX/2,
-		      WorldY/2,
-		      WorldZ/2);
+		      World_X/2,
+		      World_Y/2,
+		      World_Z/2);
     
   World_L = new G4LogicalVolume(World_S, 
 				G4NistManager::Instance()->FindOrBuildMaterial("G4_Galactic"),
@@ -59,39 +62,89 @@ G4VPhysicalVolume *geometryConstruction::Construct()
   G4VisAttributes *WorldVisAtt = new G4VisAttributes();
   WorldVisAtt->SetVisibility(true);
   World_L->SetVisAttributes(WorldVisAtt);
+
+  /////////////////////////////////////
+  // Create two scintillator volumes //
+  /////////////////////////////////////
   
-  // The scintillator
+  // A cuboid BGO scintillator
   
-  Scintillator_S = new G4Box("Scintillator_S",
-			     ScintillatorX/2,
-			     ScintillatorY/2,
-			     ScintillatorZ/2);
+  BGO_S = new G4Box("BGO_S",
+		    BGO_X/2,
+		    BGO_Y/2,
+		    BGO_Z/2);
   
-  Scintillator_L = new G4LogicalVolume(Scintillator_S,
-				       G4NistManager::Instance()->FindOrBuildMaterial("G4_BGO"),
-				       "Scintillator_L");
+  BGO_L = new G4LogicalVolume(BGO_S,
+			      G4NistManager::Instance()->FindOrBuildMaterial("G4_BGO"),
+			      "BGO_L");
   
-  Scintillator_P = new G4PVPlacement(0,
-				     G4ThreeVector(0., 0., 0.),
-				     Scintillator_L,
-				     "TheScintillator",
-				     World_L,
-				     false,
-				     0);
+  BGO_P = new G4PVPlacement(0,
+			    G4ThreeVector(0., 0., -4.*cm),
+			    BGO_L,
+			    "BGO",
+			    World_L,
+			    false,
+			    0);
   
-  G4VisAttributes *ScintillatorVisAtt = new G4VisAttributes(G4Colour(0.3, 1.0, 0.5, 0.7));
-  ScintillatorVisAtt->SetForceSolid(true);
-  Scintillator_L->SetVisAttributes(ScintillatorVisAtt);
+  G4VisAttributes *BGOVisAtt = new G4VisAttributes(G4Colour(0.3, 1.0, 0.5, 0.6));
+  BGOVisAtt->SetForceSolid(true);
+  BGO_L->SetVisAttributes(BGOVisAtt);
+
+  // A cylindrical NaI(Tl) scintillator
   
-  ASIMScintillatorSD *Scintillator_SD = new ASIMScintillatorSD("ScintillatorSD",
-							       new G4Colour(1.0, 1.0, 0.0, 0.4),
-							       8); 
-  G4SDManager::GetSDMpointer()->AddNewDetector(Scintillator_SD);
+  NaI_S = new G4Tubs("NaI_S",
+		     NaI_RMin,
+		     NaI_RMax,
+		     NaI_Z/2,
+		     0.*degree,
+		     360.*degree);
   
-  ASIMReadoutManager::GetInstance()->RegisterReadout("ScintillatorSD",
-						     "ASIMExample demonstration of scintillator readout");
+  NaI_L = new G4LogicalVolume(NaI_S,
+			      G4NistManager::Instance()->FindOrBuildMaterial("G4_SODIUM_IODIDE"),
+			      "NaI_L");
   
-  Scintillator_L->SetSensitiveDetector(Scintillator_SD);
+  NaI_P = new G4PVPlacement(0,
+			    G4ThreeVector(0., 0., 4.*cm),
+			    NaI_L,
+			    "NaI",
+			    World_L,
+			    false,
+			    0);
   
+  G4VisAttributes *NaIVisAtt = new G4VisAttributes(G4Colour(0.2, 0.6, 1.0, 0.6));
+  NaIVisAtt->SetForceSolid(true);
+  NaI_L->SetVisAttributes(NaIVisAtt);
+
+  
+  /////////////////////////////////////////////////////////////
+  // Specify sensitive detectors (SD) and ASIM readouts (AR) //
+  /////////////////////////////////////////////////////////////
+
+  // Get the SD and AR managers
+  
+  G4SDManager *SDMgr = G4SDManager::GetSDMpointer();
+  ASIMReadoutManager *ARMgr = ASIMReadoutManager::GetInstance();
+
+  // The BGO scintillator
+
+  ASIMScintillatorSD *BGO_SD = new ASIMScintillatorSD("BGOSD",
+						      new G4Colour(1.0, 1.0, 0.0, 0.4),
+						      8); 
+  SDMgr->AddNewDetector(BGO_SD);
+  BGO_L->SetSensitiveDetector(BGO_SD);
+
+  ARMgr->RegisterReadout(BGO_SD->GetName(),
+			 "Demonstration of reading out a BGO scintillator to an ASIM file");
+
+  // The NaI(Tl) scintillator
+  
+  ASIMScintillatorSD *NaI_SD = new ASIMScintillatorSD("NAISD",
+						      new G4Colour(1.0, 0.0, 0.0, 0.4),
+						      8); 
+  SDMgr->AddNewDetector(NaI_SD);
+  ARMgr->RegisterReadout(NaI_SD->GetName(),
+  			 "Demonstration of reading out a NaI(Tl) scintillator to an ASIM file");
+  NaI_L->SetSensitiveDetector(NaI_SD);
+
   return World_P;
 }

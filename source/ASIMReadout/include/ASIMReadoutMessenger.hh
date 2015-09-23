@@ -31,6 +31,8 @@ private:
   G4UIcmdWithoutParameter *asimInitCmd;
   G4UIcmdWithoutParameter *asimWriteCmd;
 
+  G4UIcmdWithAnInteger *setActiveReadoutCmd;
+  
   G4UIcmdWithADoubleAndUnit *setLowerEnergyThresholdCmd;
   G4UIcmdWithADoubleAndUnit *setUpperEnergyThresholdCmd;
   G4UIcmdWithoutParameter *enableEnergyThresholdCmd;

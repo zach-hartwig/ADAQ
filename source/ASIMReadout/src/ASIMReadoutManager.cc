@@ -115,7 +115,7 @@ void ASIMReadoutManager::RegisterReadout(G4String ReadoutName,
 
   ASIMNumReadouts++;
 
-  ASIMTreeID.push_back(ASIMNumReadouts-1);
+  ASIMTreeID.push_back(ReadoutID);
   ASIMTreeName.push_back(ReadoutName);
   ASIMTreeDesc.push_back(ReadoutDesc);
   
@@ -169,7 +169,7 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
   G4SDManager *TheSDManager = G4SDManager::GetSDMpointer();
   
   for(G4int r=0; r<ASIMNumReadouts; r++){
-    
+
     G4HCofThisEvent *HCE = currentEvent->GetHCofThisEvent();
     
     ASIMEvents[r]->Initialize();
@@ -181,7 +181,7 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
       
       G4String CollectionName = TheSDManager->GetHCtable()->GetHCname(hc);
       TheCollectionID = TheSDManager->GetCollectionID(CollectionName);
-      
+
       if(CollectionName == SDNames[r]){
 
 	/////////////////////////

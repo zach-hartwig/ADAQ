@@ -10,4 +10,5 @@
 #
 /gps/particle gamma
 /gps/ene/mono 0.662 MeV
-/gps/pos/centre 0 0 4.5 cm
+/gps/pos/centre 0 0 0 cm
+/gps/ang/type iso

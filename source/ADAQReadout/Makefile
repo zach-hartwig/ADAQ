@@ -46,7 +46,8 @@ include $(ROOTMAKE)
 # Note that at this point in the makefile CXXFLAGS now includes
 # ROOT-based flags so we must ensure to use "+=" to add more flags
 
-# Obtain CPU architecture: 32-bit ("i686") or 64-bit ("x86_64")
+# Obtain CPU architecture: 32-bit ("i686") or 64-bit ("x86_64") (Must
+# be set after the ROOT makefile is included)
 ARCH=$(shell uname -m)
 
 # Specify header files directory. Note that this must be an absolute
@@ -116,8 +117,8 @@ clean:
 
 # Install libs and headers into top-level ADAQ directory
 install:
-	@echo -e "\nInstalling ADAQ libraries in $ADAQ/lib/$(ARCH) ..."
+	@echo -e "\nInstalling the ADAQReadout library in $(ADAQ)/lib/$(ARCH) ..."
 	@cp -v $(TARGET) $(DESTLIB)
-	@echo -e "\nInstalling ADAQ headers in $ADAQ/include ..."
+	@echo -e "\nInstalling the ADAQReadout  headers in $(ADAQ)/include ..."
 	@cp -v include/*.hh $(DESTINCL)
 	@echo -e ""

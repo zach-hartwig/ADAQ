@@ -177,9 +177,9 @@ clean:
 
 # Install libs and headers to general directory
 install:
-	@echo -e "\nInstalling ADAQ libraries in $(ADAQHOME)/lib/$(ARCH) ..."
+	@echo -e "\nInstalling the ADAQControl library in $(ADAQ)/lib/$(ARCH) ..."
 	@cp -v $(BUILDDIR)/*.so $(ADAQHOME)/lib/$(ARCH)
-	@echo -e "\nInstalling ADAQ headers in $ADAQ/include ..."
+	@echo -e "\nInstalling ADAQControl headers in $ADAQ/include ..."
 	@cp -v include/* $(ADAQHOME)/include
 	@echo -e ""
 

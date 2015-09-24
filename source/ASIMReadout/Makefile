@@ -41,9 +41,6 @@
 #**** MACRO DEFINITIONS ****#
 #***************************#
 
-# Obtain CPU architecture: 32-bit ("i686") or 64-bit ("x86_64")
-ARCH=$(shell uname -m)
-
 # Include the Makefile for ROOT-based projects
 RC:=root-config
 ROOTSYS:=$(shell $(RC) --prefix)
@@ -52,6 +49,10 @@ include $(ROOTMAKE)
 
 # Note that at this point in the makefile CXXFLAGS now includes
 # ROOT-based flags so we must ensure to use "+=" to add more flags
+
+# Obtain CPU architecture: 32-bit ("i686") or 64-bit ("x86_64") (Must
+# be set after the ROOT makefile is included)
+ARCH=$(shell uname -m)
 
 # Include the Geant4 header files and libraries
 GC:=geant4-config
@@ -129,8 +130,11 @@ clean:
 
 # Install libs and headers into top-level ADAQ directory
 install:
-	@echo -e "\nInstalling the ASIM library into $ADAQ/lib/$(ARCH) ..."
+	@echo -e "\nInstalling the ASIM library into $(ADAQ)/lib/$(ARCH) ..."
 	@cp -v $(TARGET) $(DESTLIB)
-	@echo -e "\nInstalling the ASIM headers into $ADAQ/include ..."
+	@echo -e "\nInstalling the ASIM headers into $(ADAQ)/include ..."
 	@cp -v include/*.hh $(DESTINCL)
 	@echo -e ""
+
+test:
+	echo $(ARCH)

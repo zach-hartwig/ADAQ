@@ -20,13 +20,15 @@
 #include "G4THitsCollection.hh"
 #include "G4Allocator.hh"
 #include "G4ThreeVector.hh"
+#include "G4Colour.hh"
 
 
 class ASIMPhotodetectorSDHit : public G4VHit
 {
-
+  
 public:
   ASIMPhotodetectorSDHit();
+  ASIMPhotodetectorSDHit(G4Colour *, G4double);
   ~ASIMPhotodetectorSDHit();
   
   ASIMPhotodetectorSDHit(const ASIMPhotodetectorSDHit &right);
@@ -40,12 +42,18 @@ public:
   void Print();
   
 private:
-  G4double kineticEnergy;  
+  G4Colour *hitColour;
+  G4double hitSize;
+  
+  G4double kineticEnergy, detectionTime;
   G4ThreeVector position;
   
 public:
   inline G4double GetKineticEnergy() const {return kineticEnergy;};
   inline void SetKineticEnergy(G4double KE) {kineticEnergy = KE;};
+  
+  inline G4double GetDetectionTime() const {return detectionTime;};
+  inline void SetDetectionTime(G4double DT) {detectionTime = DT;};
   
   inline G4ThreeVector GetPosition() const {return position;};  
   inline void SetPosition(G4ThreeVector pos) {position = pos;};

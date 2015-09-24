@@ -19,7 +19,6 @@
 #include "G4Track.hh"
 #include "G4VProcess.hh"
 #include "G4HCofThisEvent.hh"
-#include "G4TouchableHistory.hh"
 #include "G4ios.hh"
 #include "G4THitsMap.hh"
 #include "G4SDManager.hh"
@@ -30,10 +29,23 @@
 #include "ASIMPhotodetectorSDHit.hh"
 
 
-ASIMPhotodetectorSD::ASIMPhotodetectorSD(G4String SDName)
-  : G4VSensitiveDetector(SDName)
+ASIMPhotodetectorSD::ASIMPhotodetectorSD(G4String name)
+  : G4VSensitiveDetector(name),
+    hitColour(new G4Colour(1.0, 0.0, 0.0, 1.0)), hitSize(5)
+{ InitializeCollections(name); }
+
+
+ASIMPhotodetectorSD::ASIMPhotodetectorSD(G4String name,
+					 G4Colour *colour,
+					 G4double size)
+  : G4VSensitiveDetector(name),
+    hitColour(colour), hitSize(size)
+{ InitializeCollections(name); }
+
+
+void ASIMPhotodetectorSD::InitializeCollections(G4String name)
 {
-  G4String theCollectionName = SDName + "Collection";
+  G4String theCollectionName = name + "Collection";
 
   // A public list that can be accessed from other classes
   // for convenience of obtaining the collection names (mine)
@@ -67,19 +79,23 @@ void ASIMPhotodetectorSD::Initialize(G4HCofThisEvent *HCE)
   }
 }
 
-// The APD SD is triggered manually from within steppingAction to
-// correctly account for "detection" of optical photons at the
-// crystal-APD interface.  This requires replacing the default
-// triggering method, ASIMPhotodetectorSD::ProcessHits, with the customized
-// ASIMPhotodetectorSD::ManualTrigger triggering method.
 
-// Default APD triggering: return "false" to nullify method
-G4bool ASIMPhotodetectorSD::ProcessHits(G4Step *, G4TouchableHistory *)
-{ return false; }
+// The standard G4VSensitiveDetector scoring method is empty for the
+// ASIMPhotodetectorSD since only optical photon hits are of interest
+G4bool ASIMPhotodetectorSD::ProcessHits(G4Step *CurrentStep, G4TouchableHistory *)
+{
+  if(CurrentStep->GetTrack()->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition())
+    return true;
+  else
+    return false;
+}
 
 
-// Custom APD triggering 
-G4bool ASIMPhotodetectorSD::ManualTrigger(const G4Step *currentStep, G4TouchableHistory *)
+// This method handles scoring of optical photon hits on the volume
+// with which the ASIMPhotodetectorSD class is associated. This method
+// is called by ASIMReadoutManager::HandleOpticalPhotonReadout() in
+// order to correctly add only detected photons to the hit collection.
+G4bool ASIMPhotodetectorSD::ManualTrigger(const G4Step *currentStep)
 {
   G4Track *currentTrack = currentStep -> GetTrack();
   
@@ -87,25 +103,25 @@ G4bool ASIMPhotodetectorSD::ManualTrigger(const G4Step *currentStep, G4Touchable
   if(currentTrack->GetDefinition() != G4OpticalPhoton::OpticalPhotonDefinition())
     return false;
 
-  // Get the relevant hit information
-  kineticEnergy = currentTrack->GetKineticEnergy();
-  position = currentTrack->GetPosition();
-  
   // Create a new hit and store it in the hit collection
-  ASIMPhotodetectorSDHit *newHit = new ASIMPhotodetectorSDHit();
+  ASIMPhotodetectorSDHit *newHit = new ASIMPhotodetectorSDHit(hitColour, hitSize);
   
+  // Get the relevant hit information
+  G4double kineticEnergy = currentTrack->GetKineticEnergy();
+  G4double detectionTime = currentTrack->GetLocalTime();
+  G4ThreeVector position = currentTrack->GetPosition();
+  
+  // Set the quantities to the SD hit class
   newHit->SetKineticEnergy(kineticEnergy);
+  newHit->SetDetectionTime(detectionTime);
   newHit->SetPosition(position);
 
-  // Add the hit to the desired hit collection.  If there are >0 hits
-  // per event, the will all be stored inside this event's hit collection
+  // Insert this hit into the SD hit collection
   hitCollection->insert(newHit);
-
+  
   return true;
 }
 
 
 void ASIMPhotodetectorSD::EndOfEvent(G4HCofThisEvent*)
 {;}
-
-

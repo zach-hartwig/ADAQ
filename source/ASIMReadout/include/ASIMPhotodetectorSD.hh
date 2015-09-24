@@ -19,6 +19,7 @@
 #define ASIMPhotodetectorSD_hh 1
 
 #include "G4VSensitiveDetector.hh"
+#include "G4Colour.hh"
 
 #include "ASIMPhotodetectorSDHit.hh"
 
@@ -33,13 +34,14 @@ class ASIMPhotodetectorSD : public G4VSensitiveDetector
 {
   
 public:
-  ASIMPhotodetectorSD(G4String name);
+  ASIMPhotodetectorSD(G4String);
+  ASIMPhotodetectorSD(G4String, G4Colour *, G4double);
   ~ASIMPhotodetectorSD();
   
+  void InitializeCollections(G4String);
   void Initialize(G4HCofThisEvent*);
   G4bool ProcessHits(G4Step*,G4TouchableHistory*);
-  G4bool ManualTrigger(const G4Step *, G4TouchableHistory *);
-  G4bool ProcessHits_constStep(const G4Step*,G4TouchableHistory*);
+  G4bool ManualTrigger(const G4Step *);
   
   void EndOfEvent(G4HCofThisEvent*);
   
@@ -49,23 +51,17 @@ public:
   
   std::vector<G4String> GetCollectionNameList()
   {return collectionNameList;}
+
+  void SetHitColor(G4Colour *HC) {hitColour = HC;}
+  void SetHitSize(G4double HS) {hitSize = HS;}
   
-  
-  // All the desired hit collections.  Each collections will require a
-  // name to be pushed into the collectionName vector in the
-  // constructor of ASIMPhotodetectorSD
 private:
   ASIMPhotodetectorSDHitCollection *hitCollection;
-
-public:
-  G4double kineticEnergy;
-  G4ThreeVector position;
-  
   std::vector<G4String> collectionNameList;
+
+  G4Colour *hitColour;
+  G4double hitSize;
 };
-
-
-
 
 #endif
 

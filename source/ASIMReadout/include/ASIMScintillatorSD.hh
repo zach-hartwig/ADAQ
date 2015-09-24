@@ -21,7 +21,7 @@
 #define ASIMScintillatorSD_hh 1
 
 #include "G4VSensitiveDetector.hh"
-#include "G4VPhysicalVolume.hh"
+#include "G4Colour.hh"
 
 #include "ASIMScintillatorSDHit.hh"
 

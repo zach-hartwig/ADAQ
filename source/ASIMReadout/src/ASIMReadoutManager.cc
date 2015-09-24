@@ -130,10 +130,10 @@ void ASIMReadoutManager::RegisterNewReadout(G4String ReadoutDesc,
   
   string ScintillatorSDName = ReadoutName + "Collection";
   ScintillatorSDNames.push_back(ScintillatorSDName);
-
+  
   if(Photodetector != NULL){
     G4String PReadoutName = Photodetector->GetLogicalVolume()->GetSensitiveDetector()->GetName();
-    PhotodetectorSDNames.push_back(PReadoutName);
+    PhotodetectorSDNames.push_back(PReadoutName + "Collection");
   }
   else
     PhotodetectorSDNames.push_back("Photodetector does not exist for this readout!");    
@@ -194,9 +194,9 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
       
       G4String CollectionName = TheSDManager->GetHCtable()->GetHCname(hc);
       TheCollectionID = TheSDManager->GetCollectionID(CollectionName);
-      
-      if(CollectionName == ScintillatorSDNames[r]){
 
+      if(CollectionName == ScintillatorSDNames[r]){
+	
 	//////////////////////////
 	// The scintillator SDs //
 	//////////////////////////
@@ -221,7 +221,7 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
 	  else
 	    EventEDep[r] += (*ScintillatorHC)[i]->GetEnergyDep();
 	}
-
+	
 	// Enable artificial gaussian energy broadening
 	if(EnergyBroadeningEnable[r]){
 	  
@@ -245,14 +245,14 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
       ///////////////////////////////////
       // The photodetector readout SDs //
       ///////////////////////////////////
-      
+
       else if(CollectionName == PhotodetectorSDNames[r]){
 	
 	ASIMPhotodetectorSDHitCollection const *PhotodetectorHC =
 	  dynamic_cast<ASIMPhotodetectorSDHitCollection *>(HCE->GetHC(TheCollectionID));
-	
+
 	for(G4int i=0; i<PhotodetectorHC->entries(); i++)
-	  ASIMEvents.at(r)->IncrementPhotonsDetected();
+	  ASIMEvents[r]->IncrementPhotonsDetected();
       }
     }
     
@@ -411,12 +411,12 @@ void ASIMReadoutManager::HandleOpticalPhotonDetection(const G4Step *CurrentStep)
       case Detection:{
 	
 	G4VPhysicalVolume *PostVolume = CurrentStep->GetPostStepPoint()->GetPhysicalVolume();
-
-	ASIMScintillatorSD *PostVolumeSD =
-	  dynamic_cast<ASIMScintillatorSD *>(PostVolume->GetLogicalVolume()->GetSensitiveDetector());
+	
+	ASIMPhotodetectorSD *PostVolumeSD =
+	  dynamic_cast<ASIMPhotodetectorSD *>(PostVolume->GetLogicalVolume()->GetSensitiveDetector());
 	
 	if(PostVolumeSD)
-	  PostVolumeSD->ManualTrigger(CurrentStep->GetTrack());
+	  PostVolumeSD->ManualTrigger(CurrentStep);
 	else{
 	  
 	  G4String ExceptionString = "\nThe derived G4VSensitiveDetector class object of type ASIMPhotodetectorSD\nassociated with the G4VPhysicalVolume '" +

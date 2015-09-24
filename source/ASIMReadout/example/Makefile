@@ -119,7 +119,7 @@ lib/ASIMExampleDict.cc : $(ACRO_ROOT_FILES) include/RootLinkDef.hh
 # CPPFLAGS += -I$(ADAQHOME)/include
 # LDLIBS += -L$(ADAQHOME)/lib/$(HOSTTYPE) -lASIMReadout
 CPPFLAGS += -I../include
-LDLIBS += -L../build -lASIMReadout
+LDLIBS += -L../build -lASIMReadout -lASIMStorage
 
 
 #########################
@@ -135,11 +135,11 @@ ifeq ($(ARCH),parallel)
   CXX := mpic++
 
   # Flag for parallel build enabled by parallel.sh 
-  SPARROW_MPI_ENABLED := 1
+  ASIM_MPI_ENABLED := 1
 
   # Necessary flags for parallel compilation
   CPPFLAGS += -I$(MPIHOME)/include/ \
-              -DSPARROW_MPI_ENABLED
+              -DASIM_MPI_ENABLED
 endif
 
 

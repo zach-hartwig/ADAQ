@@ -61,6 +61,11 @@ G4INCLDIR=$(G4SYS)/include/Geant4
 G4LIBS=$(shell $(GC) --libs)
 CXXFLAGS += -I$(G4INCLDIR)
 
+# Specify the top-level ADAQ destination directories for the built
+# libraries and headers during installation
+DESTINCL = $(ADAQHOME)/include
+DESTLIB = $(ADAQHOME)/lib/$(ARCH)
+
 # Specify header files directory. Note that this must be an absolute
 # path to ensure the ROOT dictionary files can find the headers
 INCLDIR = $(PWD)/include
@@ -76,47 +81,64 @@ INCLS = $(wildcard $(INCLDIR)/*.hh)
 # List of headers necessary for ROOT dictionary generation
 ROOTDICTINCLS = $(INCLDIR)/ASIMEvent.hh $(INCLDIR)/ASIMRun.hh $(INCLDIR)/ASIMStorageManager.hh
 
-# Specify all object files (to be built in the build/ directory)
-SRCS = $(wildcard $(SRCDIR)/*.cc)
-TMP = $(patsubst %.cc,%.o,$(SRCS))
-OBJS = $(subst src/,build/,$(TMP))
+# Specify necessary files for the R(eadout) library
 
-# Add the mandatory ROOT dictionary object file
-OBJS += $(BUILDDIR)/ASIMReadoutDict.o
+R_SRCS = $(SRCDIR)/ASIMPhotodetectorSD.cc \
+         $(SRCDIR)/ASIMPhotodetectorSDHit.cc \
+         $(SRCDIR)/ASIMReadoutManager.cc \
+         $(SRCDIR)/ASIMReadoutMessenger.cc \
+         $(SRCDIR)/ASIMScintillatorSD.cc \
+         $(SRCDIR)/ASIMScintillatorSDHit.cc 
+R_TMP = $(patsubst %.cc,%.o,$(R_SRCS))
+R_OBJS = $(subst src/,build/,$(R_TMP))
+R_TARGET =$(BUILDDIR)/libASIMReadout.so
 
-# Specify main library as the target
-TARGET = $(BUILDDIR)/libASIMReadout.so
+# Specifcy necessary files for the S(torage) library
 
-# Specify the top-level destination directory
-DESTINCL = $(ADAQHOME)/include
-DESTLIB = $(ADAQHOME)/lib/$(ARCH)
+S_SRCS = $(SRCDIR)/ASIMEvent.cc \
+         $(SRCDIR)/ASIMRun.cc \
+         $(SRCDIR)/ASIMStorageManager.cc
+S_TMP = $(patsubst %.cc,%.o,$(S_SRCS))
+S_OBJS = $(subst src/,build/,$(S_TMP))
+S_OBJS += $(BUILDDIR)/ASIMStorageDict.o
+S_TARGET = $(BUILDDIR)/libASIMStorage.so
 
 
 #***************#
 #**** RULES ****#
 #***************#
 
+all: $(R_TARGET) $(S_TARGET)
 
-# Build shared object libary 
+# Build the libASIMReadout.so library
 
-$(TARGET) : $(OBJS) $(INCLS)
+$(R_TARGET) : $(R_OBJS) $(INCLS)
 	@echo -e "\nBuilding $@ ..."
-	$(CXX) $(CXXFLAGS) -g $(OBJS) $(ROOTLIBS) -shared -o $@ 
+	$(CXX) $(CXXFLAGS) -g $(R_OBJS) $(ROOTLIBS) -shared -o $@ 
 	@echo -e "\n$@ build is complete!\n"
 
 $(BUILDDIR)/%.o : $(SRCDIR)/%.cc $(INCLS)
 	@echo -e "\nBuilding object file '$@' ..."
 	$(CXX) $(CXXFLAGS) -g -c -o $@ $<
 
-# Build the ROOT dictionary
+# Build the libASIMStorage.so library
 
-$(BUILDDIR)/ASIMReadoutDict.o : $(BUILDDIR)/ASIMReadoutDict.cc
+$(S_TARGET) : $(S_OBJS) $(INCLS)
+	@echo -e "\nBuilding $@ ..."
+	$(CXX) $(CXXFLAGS) -g $(S_OBJS) $(ROOTLIBS) -shared -o $@ 
+	@echo -e "\n$@ build is complete!\n"
+
+$(BUILDDIR)/%.o : $(SRCDIR)/%.cc $(INCLS)
+	@echo -e "\nBuilding object file '$@' ..."
+	$(CXX) $(CXXFLAGS) -g -c -o $@ $<
+
+$(BUILDDIR)/ASIMStorageDict.o : $(BUILDDIR)/ASIMStorageDict.cc
 	@echo -e "\nBuilding '$@' ..."
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-$(BUILDDIR)/ASIMReadoutDict.cc : $(ROOTDICTINCLS) $(INCLDIR)/RootLinkDef.h
+$(BUILDDIR)/ASIMStorageDict.cc : $(ROOTDICTINCLS) $(INCLDIR)/RootLinkDef.h
 	@echo -e "\nGenerating ROOT dictionary '$@' ..."
-	rootcint -f $@ -c -I$(ADAQHOME)/source/extensions/root/ASIMReadout/$(INCLDIR) $^ 
+	rootcint -f $@ -c $^ 
 
 # PHONY rules
 
@@ -130,11 +152,8 @@ clean:
 
 # Install libs and headers into top-level ADAQ directory
 install:
-	@echo -e "\nInstalling the ASIM library into $(ADAQ)/lib/$(ARCH) ..."
-	@cp -v $(TARGET) $(DESTLIB)
+	@echo -e "\nInstalling the ASIM libraries into $(ADAQ)/lib/$(ARCH) ..."
+	@cp -v $(R_TARGET) $(S_TARGET) $(DESTLIB)
 	@echo -e "\nInstalling the ASIM headers into $(ADAQ)/include ..."
 	@cp -v include/*.hh $(DESTINCL)
 	@echo -e ""
-
-test:
-	echo $(ARCH)

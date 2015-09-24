@@ -118,6 +118,8 @@ G4bool ASIMScintillatorSD::ManualTrigger(const G4Track *)
   ASIMScintillatorSDHit *newHit = new ASIMScintillatorSDHit();
   newHit->SetIsOpticalPhoton(true);
   hitCollection->insert(newHit);
+
+  G4cout << "Detection!" << G4endl;
   
   return true; 
 }

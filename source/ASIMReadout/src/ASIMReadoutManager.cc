@@ -4,6 +4,9 @@
 #include "G4SystemOfUnits.hh"
 #include "G4PhysicalConstants.hh"
 #include "G4RunManager.hh"
+#include "G4OpBoundaryProcess.hh"
+#include "G4ProcessManager.hh"
+#include "G4ParticleTypes.hh"
 #include "Randomize.hh"
 
 // ROOT 
@@ -32,12 +35,12 @@ ASIMReadoutManager::ASIMReadoutManager(G4bool arch)
 {
   if(ASIMReadoutMgr != NULL)
     G4Exception("ASIMReadoutManager::ASIMReadoutManager()", 
-		"RSMException011", 
+		"ASIMReadoutManager-Excepction00", 
 		FatalException, 
-		"The ASIMReadoutManager was constructed twice!");
+		"\nThe Meyer's singletone ASIMReadoutManager was constructed twice!\n");
   else 
     ASIMReadoutMgr = this;
-
+  
   // Initialize ASIM readout classes
   
   ASIMFileName = "ASIMReadoutDefault.asim.root";
@@ -344,6 +347,94 @@ void ASIMReadoutManager::FillRunSummary(const G4Run *currentRun)
 
     // Add the run class to the list for later readout
     ASIMStorageMgr->AddRun(ASIMRunSummary);
+  }
+}
+
+
+void ASIMReadoutManager::HandleOpticalPhotonCreation()
+{
+
+  
+
+
+}
+
+
+void ASIMReadoutManager::HandleOpticalPhotonDetection(const G4Step *CurrentStep)
+{
+  ////////////////////////////////////////////////////
+  // Handle the readout of detected optical photons //
+  ////////////////////////////////////////////////////
+
+  // Iterate through the available physics processes to find the
+  // optical boundary process and store it for later use. Note that
+  // static methods enable this code to be successfully executed once.
+
+  static G4OpBoundaryProcess *OpBoundaryProc = NULL;
+  
+  if(!OpBoundaryProc){
+    
+    G4ProcessManager *ProcessMgr = CurrentStep->GetTrack()->GetDefinition()->GetProcessManager();
+    G4int NumProcesses = ProcessMgr->GetProcessListLength();
+    G4ProcessVector *ProcessVec = ProcessMgr->GetProcessList();
+    
+    for(G4int p=0; p<NumProcesses; p++){
+      if((*ProcessVec)[p]->GetProcessName()=="OpBoundary"){
+	OpBoundaryProc = (G4OpBoundaryProcess*)(*ProcessVec)[p];
+	break;
+      }
+    }
+  }
+
+  // Check to see if the currently tracking particle is an optical photon
+  G4ParticleDefinition *ParticleType = CurrentStep->GetTrack()->GetDefinition();
+  if(ParticleType == G4OpticalPhoton::OpticalPhotonDefinition()){
+
+    // Get the status of the optical photon at the boundary
+    G4OpBoundaryProcessStatus OpBoundaryStatus = Undefined;  
+    OpBoundaryStatus = OpBoundaryProc->GetStatus();
+    
+    // Check to ensure that the optical photon is actually at a
+    // geometrically defined boundary
+    if(CurrentStep->GetPostStepPoint()->GetStepStatus()==fGeomBoundary){
+      
+      switch(OpBoundaryStatus){
+	
+	// "Absorption" means the optical photon was killed at the
+	// optical boundary but did *not* create a photoelectron
+      case Absorption:
+	;
+	break;
+
+	// "Detection" means the optical photon was killed at the
+	// boundary and created a photoelectron 
+      case Detection:{
+	
+	G4VPhysicalVolume *PostVolume = CurrentStep->GetPostStepPoint()->GetPhysicalVolume();
+
+	ASIMScintillatorSD *PostVolumeSD =
+	  dynamic_cast<ASIMScintillatorSD *>(PostVolume->GetLogicalVolume()->GetSensitiveDetector());
+	
+	if(PostVolumeSD)
+	  PostVolumeSD->ManualTrigger(CurrentStep->GetTrack());
+	else{
+	  
+	  G4String ExceptionString = "\nThe derived G4VSensitiveDetector class object of type ASIMPhotodetectorSD\nassociated with the G4VPhysicalVolume '" +
+	    PostVolume->GetName() +
+	    "' could not be found!\nPlease register an ASIMPhotodetectorSD object in your detector construction!\n";
+	  
+	  G4Exception("ASIMReadoutManager::HandleOpticalPhotonDetection()",
+		      "ASIMReadoutManager-Exception01",
+		      FatalException,
+		      ExceptionString);
+	}
+	break;
+      }
+
+      default:
+	break;
+      }
+    }
   }
 }
 

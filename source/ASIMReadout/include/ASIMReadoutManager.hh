@@ -4,6 +4,7 @@
 // Geant4
 #include "G4Event.hh"
 #include "G4Run.hh"
+#include "G4Step.hh"
 #include "G4VPhysicalVolume.hh"
 
 // ROOT
@@ -40,6 +41,9 @@ public:
   void ReadoutEvent(const G4Event *);
   void FillRunSummary(const G4Run *);
   void IncrementRunLevelData(vector<G4bool> &);
+
+  void HandleOpticalPhotonCreation();
+  void HandleOpticalPhotonDetection(const G4Step *);
   
   void ReduceSlaveValuesToMaster();
 

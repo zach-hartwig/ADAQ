@@ -1,20 +1,20 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
-// name: ASIMOpticalReadoutSDHit.hh
+// name: ASIMPhotodetectorSDHit.hh
 // date: 21 May 15
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 //
-// desc: ASIMOpticalReadoutSDHit class is intended as a generic Geant4
+// desc: ASIMPhotodetectorSDHit class is intended as a generic Geant4
 //       sensitive detector hit class that registers information on
 //       detected optical photons on optical readout volumes such as
 //       PMTs and SiPMs. The class is used by the complementary class
-//       ASIMOpticalReadoutSD
+//       ASIMPhotodetectorSD
 //
 /////////////////////////////////////////////////////////////////////////////////
 
-#ifndef ASIMOpticalReadoutSDHit_hh
-#define ASIMOpticalReadoutSDHit_hh 1
+#ifndef ASIMPhotodetectorSDHit_hh
+#define ASIMPhotodetectorSDHit_hh 1
 
 #include "G4VHit.hh"
 #include "G4THitsCollection.hh"
@@ -22,16 +22,16 @@
 #include "G4ThreeVector.hh"
 
 
-class ASIMOpticalReadoutSDHit : public G4VHit
+class ASIMPhotodetectorSDHit : public G4VHit
 {
 
 public:
-  ASIMOpticalReadoutSDHit();
-  ~ASIMOpticalReadoutSDHit();
+  ASIMPhotodetectorSDHit();
+  ~ASIMPhotodetectorSDHit();
   
-  ASIMOpticalReadoutSDHit(const ASIMOpticalReadoutSDHit &right);
-  const ASIMOpticalReadoutSDHit& operator=(const ASIMOpticalReadoutSDHit &right);
-  G4int operator==(const ASIMOpticalReadoutSDHit &right) const;
+  ASIMPhotodetectorSDHit(const ASIMPhotodetectorSDHit &right);
+  const ASIMPhotodetectorSDHit& operator=(const ASIMPhotodetectorSDHit &right);
+  G4int operator==(const ASIMPhotodetectorSDHit &right) const;
 
   inline void *operator new(size_t);
   inline void operator delete(void *aHit);
@@ -52,19 +52,19 @@ public:
 };
 
 
-typedef G4THitsCollection<ASIMOpticalReadoutSDHit> ASIMOpticalReadoutSDHitCollection;
-extern G4Allocator<ASIMOpticalReadoutSDHit> ASIMOpticalReadoutSDHitAllocator;
+typedef G4THitsCollection<ASIMPhotodetectorSDHit> ASIMPhotodetectorSDHitCollection;
+extern G4Allocator<ASIMPhotodetectorSDHit> ASIMPhotodetectorSDHitAllocator;
 
-inline void *ASIMOpticalReadoutSDHit::operator new (size_t)
+inline void *ASIMPhotodetectorSDHit::operator new (size_t)
 {
   void *aHit;
-  aHit = (void *) ASIMOpticalReadoutSDHitAllocator.MallocSingle();
+  aHit = (void *) ASIMPhotodetectorSDHitAllocator.MallocSingle();
   return aHit;
 }
 
-inline void ASIMOpticalReadoutSDHit::operator delete(void *aHit)
+inline void ASIMPhotodetectorSDHit::operator delete(void *aHit)
 {
-  ASIMOpticalReadoutSDHitAllocator.FreeSingle((ASIMOpticalReadoutSDHit *) aHit);
+  ASIMPhotodetectorSDHitAllocator.FreeSingle((ASIMPhotodetectorSDHit *) aHit);
 }
 
 #endif

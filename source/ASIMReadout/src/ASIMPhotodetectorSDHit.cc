@@ -1,15 +1,15 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
-// name: ASIMOpticalReadoutSDHit.cc
+// name: ASIMPhotodetectorSDHit.cc
 // date: 21 May 15
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 //
-// desc: ASIMOpticalReadoutSDHit class is intended as a generic Geant4
+// desc: ASIMPhotodetectorSDHit class is intended as a generic Geant4
 //       sensitive detector hit class that registers information on
 //       detected optical photons on optical readout volumes such as
 //       PMTs and SiPMs. The class is used by the complementary class
-//       ASIMOpticalReadoutSD
+//       ASIMPhotodetectorSD
 //
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -19,21 +19,21 @@
 #include "G4Colour.hh"
 #include "G4VisAttributes.hh"
 
-#include "ASIMOpticalReadoutSDHit.hh"
+#include "ASIMPhotodetectorSDHit.hh"
 
 
-G4Allocator<ASIMOpticalReadoutSDHit> ASIMOpticalReadoutSDHitAllocator;
+G4Allocator<ASIMPhotodetectorSDHit> ASIMPhotodetectorSDHitAllocator;
 
 
-ASIMOpticalReadoutSDHit::ASIMOpticalReadoutSDHit()
+ASIMPhotodetectorSDHit::ASIMPhotodetectorSDHit()
 {;}
 
 
-ASIMOpticalReadoutSDHit::~ASIMOpticalReadoutSDHit()
+ASIMPhotodetectorSDHit::~ASIMPhotodetectorSDHit()
 {;}
 
 
-ASIMOpticalReadoutSDHit::ASIMOpticalReadoutSDHit(const ASIMOpticalReadoutSDHit &right)
+ASIMPhotodetectorSDHit::ASIMPhotodetectorSDHit(const ASIMPhotodetectorSDHit &right)
   : G4VHit()
 {
   kineticEnergy = right.kineticEnergy;
@@ -41,7 +41,7 @@ ASIMOpticalReadoutSDHit::ASIMOpticalReadoutSDHit(const ASIMOpticalReadoutSDHit &
 }
 
 
-const ASIMOpticalReadoutSDHit& ASIMOpticalReadoutSDHit::operator=(const ASIMOpticalReadoutSDHit &right)
+const ASIMPhotodetectorSDHit& ASIMPhotodetectorSDHit::operator=(const ASIMPhotodetectorSDHit &right)
 {
   kineticEnergy = right.kineticEnergy;
   position = right.position;
@@ -49,11 +49,11 @@ const ASIMOpticalReadoutSDHit& ASIMOpticalReadoutSDHit::operator=(const ASIMOpti
 }
 
 
-G4int ASIMOpticalReadoutSDHit::operator==(const ASIMOpticalReadoutSDHit &right) const
+G4int ASIMPhotodetectorSDHit::operator==(const ASIMPhotodetectorSDHit &right) const
 { return (this==&right) ? 1 : 0; }
 
 
-void ASIMOpticalReadoutSDHit::Draw()
+void ASIMPhotodetectorSDHit::Draw()
 {
   G4VVisManager* pVVisManager = G4VVisManager::GetConcreteInstance();
   if(pVVisManager)
@@ -69,5 +69,5 @@ void ASIMOpticalReadoutSDHit::Draw()
 }
 
 
-void ASIMOpticalReadoutSDHit::Print()
+void ASIMPhotodetectorSDHit::Print()
 {;}

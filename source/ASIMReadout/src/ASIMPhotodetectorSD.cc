@@ -1,17 +1,17 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
-// name: ASIMOpticalReadoutSD.cc
+// name: ASIMPhotodetectorSD.cc
 // date: 21 May 15
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 //
-// desc: ASIMOpticalReadoutSD class is intended as a generic Geant4
+// desc: ASIMPhotodetectorSD class is intended as a generic Geant4
 //       sensitive detector class that should be attached to
 //       scintillator readout volumes, such as PMT photocathodes or
 //       SiPM surfaces, to handle optical photon detection and readout
 //       into the ASIM file format supported by the ADAQ framework.
 //       The class makes use of the complementary class
-//       ASIMOpticalReadoutSDHit.
+//       ASIMPhotodetectorSDHit.
 //
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -26,11 +26,11 @@
 #include "G4ParticleTypes.hh"
 #include "G4ParticleDefinition.hh"
 
-#include "ASIMOpticalReadoutSD.hh"
-#include "ASIMOpticalReadoutSDHit.hh"
+#include "ASIMPhotodetectorSD.hh"
+#include "ASIMPhotodetectorSDHit.hh"
 
 
-ASIMOpticalReadoutSD::ASIMOpticalReadoutSD(G4String SDName)
+ASIMPhotodetectorSD::ASIMPhotodetectorSD(G4String SDName)
   : G4VSensitiveDetector(SDName)
 {
   G4String theCollectionName = SDName + "Collection";
@@ -47,18 +47,18 @@ ASIMOpticalReadoutSD::ASIMOpticalReadoutSD(G4String SDName)
 
 
 // Clear the list data
-ASIMOpticalReadoutSD::~ASIMOpticalReadoutSD()
+ASIMPhotodetectorSD::~ASIMPhotodetectorSD()
 { collectionNameList.clear(); }
 
 
 // At the beginning of each event, perform the following initializations
-void ASIMOpticalReadoutSD::Initialize(G4HCofThisEvent *HCE)
+void ASIMPhotodetectorSD::Initialize(G4HCofThisEvent *HCE)
 {
   // Ensure HCID is set to <0 for each new event
   static int HCID = -1;
   
   // Create the desired hit collections, using names set in constructor
-  hitCollection = new ASIMOpticalReadoutSDHitCollection
+  hitCollection = new ASIMPhotodetectorSDHitCollection
     (SensitiveDetectorName,collectionName[0]); 
   
   //  Add the desired hit collections to the mother hit collection of the event
@@ -70,16 +70,16 @@ void ASIMOpticalReadoutSD::Initialize(G4HCofThisEvent *HCE)
 // The APD SD is triggered manually from within steppingAction to
 // correctly account for "detection" of optical photons at the
 // crystal-APD interface.  This requires replacing the default
-// triggering method, ASIMOpticalReadoutSD::ProcessHits, with the customized
-// ASIMOpticalReadoutSD::ManualTrigger triggering method.
+// triggering method, ASIMPhotodetectorSD::ProcessHits, with the customized
+// ASIMPhotodetectorSD::ManualTrigger triggering method.
 
 // Default APD triggering: return "false" to nullify method
-G4bool ASIMOpticalReadoutSD::ProcessHits(G4Step *, G4TouchableHistory *)
+G4bool ASIMPhotodetectorSD::ProcessHits(G4Step *, G4TouchableHistory *)
 { return false; }
 
 
 // Custom APD triggering 
-G4bool ASIMOpticalReadoutSD::ManualTrigger(const G4Step *currentStep, G4TouchableHistory *)
+G4bool ASIMPhotodetectorSD::ManualTrigger(const G4Step *currentStep, G4TouchableHistory *)
 {
   G4Track *currentTrack = currentStep -> GetTrack();
   
@@ -92,7 +92,7 @@ G4bool ASIMOpticalReadoutSD::ManualTrigger(const G4Step *currentStep, G4Touchabl
   position = currentTrack->GetPosition();
   
   // Create a new hit and store it in the hit collection
-  ASIMOpticalReadoutSDHit *newHit = new ASIMOpticalReadoutSDHit();
+  ASIMPhotodetectorSDHit *newHit = new ASIMPhotodetectorSDHit();
   
   newHit->SetKineticEnergy(kineticEnergy);
   newHit->SetPosition(position);
@@ -105,7 +105,7 @@ G4bool ASIMOpticalReadoutSD::ManualTrigger(const G4Step *currentStep, G4Touchabl
 }
 
 
-void ASIMOpticalReadoutSD::EndOfEvent(G4HCofThisEvent*)
+void ASIMPhotodetectorSD::EndOfEvent(G4HCofThisEvent*)
 {;}
 
 

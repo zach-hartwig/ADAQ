@@ -15,9 +15,9 @@
 // C++
 #include <sstream>
 
-// SWS
+// ASIM
 #include "ASIMScintillatorSD.hh"
-#include "ASIMOpticalReadoutSD.hh"
+#include "ASIMPhotodetectorSD.hh"
 #include "ASIMReadoutManager.hh"
 #include "ASIMReadoutMessenger.hh"
 //#include "MPIManager.hh"
@@ -248,10 +248,10 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
       
       else if(CollectionName == PhotodetectorSDNames[r]){
 	
-	ASIMOpticalReadoutSDHitCollection const *ReadoutHC =
-	  dynamic_cast<ASIMOpticalReadoutSDHitCollection *>(HCE->GetHC(TheCollectionID));
+	ASIMPhotodetectorSDHitCollection const *PhotodetectorHC =
+	  dynamic_cast<ASIMPhotodetectorSDHitCollection *>(HCE->GetHC(TheCollectionID));
 	
-	for(G4int i=0; i<ReadoutHC->entries(); i++)
+	for(G4int i=0; i<PhotodetectorHC->entries(); i++)
 	  ASIMEvents.at(r)->IncrementPhotonsDetected();
       }
     }

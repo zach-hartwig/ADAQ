@@ -108,7 +108,7 @@ G4bool ASIMPhotodetectorSD::ManualTrigger(const G4Step *currentStep)
   
   // Get the relevant hit information
   G4double kineticEnergy = currentTrack->GetKineticEnergy();
-  G4double detectionTime = currentTrack->GetLocalTime();
+  G4double detectionTime = currentTrack->GetGlobalTime();
   G4ThreeVector position = currentTrack->GetPosition();
   
   // Set the quantities to the SD hit class

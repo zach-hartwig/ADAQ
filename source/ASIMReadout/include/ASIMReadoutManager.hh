@@ -41,8 +41,8 @@ public:
   void ReadoutEvent(const G4Event *);
   void FillRunSummary(const G4Run *);
   void IncrementRunLevelData(vector<G4bool> &);
-
-  void HandleOpticalPhotonCreation();
+  
+  void HandleOpticalPhotonCreation(const G4Track *);
   void HandleOpticalPhotonDetection(const G4Step *);
   
   void ReduceSlaveValuesToMaster();

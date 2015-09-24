@@ -250,9 +250,11 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
 	
 	ASIMPhotodetectorSDHitCollection const *PhotodetectorHC =
 	  dynamic_cast<ASIMPhotodetectorSDHitCollection *>(HCE->GetHC(TheCollectionID));
-
-	for(G4int i=0; i<PhotodetectorHC->entries(); i++)
+	
+	for(G4int i=0; i<PhotodetectorHC->entries(); i++){
 	  ASIMEvents[r]->IncrementPhotonsDetected();
+	  ASIMEvents[r]->AddPhotonDetectionTime( (*PhotodetectorHC)[i]->GetDetectionTime()/ns );
+	}
       }
     }
     
@@ -351,12 +353,28 @@ void ASIMReadoutManager::FillRunSummary(const G4Run *currentRun)
 }
 
 
-void ASIMReadoutManager::HandleOpticalPhotonCreation()
+void ASIMReadoutManager::HandleOpticalPhotonCreation(const G4Track *CurrentTrack)
 {
 
-  
+  ///////////////////////////////////////////
+  // Handle the readout of created photons //
+  ///////////////////////////////////////////
 
+  // Ensure the current track is an optical photon
+  if(CurrentTrack->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition()){
+    
+    G4VPhysicalVolume *CurrentVolume = CurrentTrack->GetVolume();
 
+    // Handle the primary case: scintillation/cerenkov photons are
+    // created within a scintillator/cerenkov-radiator volume that has
+    // an ASIMScintillatorSD object registered to it
+
+    ASIMScintillatorSD *VolumeScintillatorSD = 
+      dynamic_cast<ASIMScintillatorSD *>(CurrentVolume->GetLogicalVolume()->GetSensitiveDetector());
+
+    if(VolumeScintillatorSD)
+      VolumeScintillatorSD->ManualTrigger(CurrentTrack);
+  }
 }
 
 
@@ -409,28 +427,21 @@ void ASIMReadoutManager::HandleOpticalPhotonDetection(const G4Step *CurrentStep)
 	// "Detection" means the optical photon was killed at the
 	// boundary and created a photoelectron 
       case Detection:{
-	
+
 	G4VPhysicalVolume *PostVolume = CurrentStep->GetPostStepPoint()->GetPhysicalVolume();
+	
+	// Handle the primary case: scintillation/cerenkov photons
+	// have been detected at an optical readout device volume that
+	// has an ASIMPhotodetectorSD object registered to it
 	
 	ASIMPhotodetectorSD *PostVolumeSD =
 	  dynamic_cast<ASIMPhotodetectorSD *>(PostVolume->GetLogicalVolume()->GetSensitiveDetector());
 	
 	if(PostVolumeSD)
 	  PostVolumeSD->ManualTrigger(CurrentStep);
-	else{
-	  
-	  G4String ExceptionString = "\nThe derived G4VSensitiveDetector class object of type ASIMPhotodetectorSD\nassociated with the G4VPhysicalVolume '" +
-	    PostVolume->GetName() +
-	    "' could not be found!\nPlease register an ASIMPhotodetectorSD object in your detector construction!\n";
-	  
-	  G4Exception("ASIMReadoutManager::HandleOpticalPhotonDetection()",
-		      "ASIMReadoutManager-Exception01",
-		      FatalException,
-		      ExceptionString);
-	}
 	break;
       }
-
+	
       default:
 	break;
       }

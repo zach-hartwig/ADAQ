@@ -113,13 +113,15 @@ G4bool ASIMScintillatorSD::ProcessHits(G4Step *currentStep, G4TouchableHistory *
 }
 
 
-G4bool ASIMScintillatorSD::ManualTrigger(const G4Track *)
-{ 
+G4bool ASIMScintillatorSD::ManualTrigger(const G4Track *CurrentTrack)
+{
+  // Ensure that currently tracking particle is an optical photon
+  if(CurrentTrack->GetDefinition() != G4OpticalPhoton::OpticalPhotonDefinition())
+    return false;
+  
   ASIMScintillatorSDHit *newHit = new ASIMScintillatorSDHit();
   newHit->SetIsOpticalPhoton(true);
   hitCollection->insert(newHit);
-
-  G4cout << "Detection!" << G4endl;
   
   return true; 
 }

@@ -5,6 +5,7 @@
 #include "G4Tubs.hh"
 #include "G4LogicalVolume.hh"
 #include "G4VPhysicalVolume.hh"
+#include "G4Material.hh"
 #include "G4VUserDetectorConstruction.hh"
 
 
@@ -16,7 +17,10 @@ public:
   ~geometryConstruction();
   
   G4VPhysicalVolume *Construct();
-  void BuildScintillator();
+  void BuildMaterials();
+  void BuildBGOScintillator();
+  void BuildNaIScintillator();
+  void BuildReadouts();
 
 private:
   // Member data for the world
@@ -32,6 +36,9 @@ private:
   G4VPhysicalVolume *BGO_P, *NaI_P, *NaIPMT_P;
   G4double BGO_X, BGO_Y, BGO_Z;
   G4double NaI_RMin, NaI_RMax, NaI_Z, NaIPMT_Z;
+  
+  // Materials to use in the simulation
+  G4Material *BGO, *NaI, *Bialkali, *Vacuum;
 };
 
 #endif

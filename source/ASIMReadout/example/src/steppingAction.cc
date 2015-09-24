@@ -14,18 +14,20 @@
 #include <iomanip>
 using namespace std;
 
+#include "ASIMReadoutManager.hh"
+
 #include "steppingAction.hh"
 
 
 steppingAction::steppingAction()
-{
-  // G4PhysicalVolumeStore *PVS = G4PhysicalVolumeStore::GetInstance();
-}
+{;}
 
 
 steppingAction::~steppingAction()
 {;}
 
  
-void steppingAction::UserSteppingAction(const G4Step *)
-{;}
+void steppingAction::UserSteppingAction(const G4Step *currentStep)
+{
+  ASIMReadoutManager::GetInstance()->HandleOpticalPhotonDetection(currentStep);
+}

@@ -52,9 +52,26 @@ int main(int argc, char *argv[])
       visQt = true;
     }
   }
+
   
+  G4bool UseNeutronHPPhysics = false;
   if(argc>2){
     std::string arg2 = argv[2];
+    if(arg2=="hp")
+      UseNeutronHPPhysics = true;
+  }
+
+  
+  G4bool UseOpticalPhysics = false;
+  if(argc>3){
+    std::string arg3 = argv[3];
+    if(arg3=="optical")
+      UseOpticalPhysics = true;
+  }
+  
+  
+  if(argc>4){
+    std::string arg2 = argv[4];
     if(arg2=="seed")
       CLHEP::HepRandom::setTheSeed(time(0));
   }
@@ -70,9 +87,6 @@ int main(int argc, char *argv[])
   //////////////////////////////////////////////////
   // Initialize mandatory and option user classes //
   //////////////////////////////////////////////////
-
-  G4bool UseNeutronHPPhysics = false;
-  G4bool UseOpticalPhysics = false;
 
   G4RunManager* theRunManager = new G4RunManager;
   

@@ -107,7 +107,7 @@ void physicsList::ConstructPhysics()
   // Optical (scintillation/cerenkov/photon transport) physics.
   if(useScintillation){
     opticalPhysics = new G4OpticalPhysics();
-    opticalPhysics->SetScintillationByParticleType(true);
+    opticalPhysics->SetScintillationByParticleType(false);
     opticalPhysics->SetMaxNumPhotonsPerStep(500);
     opticalPhysics->SetMaxBetaChangePerStep(10.0);
     opticalPhysics->SetTrackSecondariesFirst(kCerenkov,true);

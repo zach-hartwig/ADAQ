@@ -10,15 +10,12 @@ class runAction;
 class stackingAction : public G4UserStackingAction
 {
 public:
-  stackingAction(runAction *);
+  stackingAction();
   ~stackingAction();
   
   G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track*);
   
 private:
-  runAction *RunAction;
-
-  std::ofstream Output;
 };
 
 #endif

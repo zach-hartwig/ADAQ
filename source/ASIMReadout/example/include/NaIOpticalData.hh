@@ -16,7 +16,7 @@ G4double NaI_absLength[2] = {30.*cm, 30.*cm};
 const G4double NaI_fastTimeC = 250*ns;
 
 // Optical photon yield per MeV deposited: 38000/MeV
-const G4double NaI_yield = 1000/MeV;
+const G4double NaI_yield = 3800/MeV;
 
 // This parameter gives the relative strength of the "fast component"
 // (of alpha/beta ratio) as a fraction of total scintillation yield
@@ -24,13 +24,8 @@ const G4double NaI_yRatio = 1.0;
 
 // The number of optical photons scintillated is distributed in a
 // gaussian around the scintillation yield.  This factor describes the
-// "broadening" beyond the gaussian (1.0 = gaussian, 0 = no
-// fluctuation). 
-
-// No literature results report using NaI with APDs so I'm guessing a
-// bit here on getting the resolution scale right.  Factor of 1.3
-// gives a 661.5 keV energy resolution of 8.15%.  Reasonable?
-const G4double NaI_rScale = 1.6;
+// "broadening" beyond the gaussian (1.0 = gaussian, 0 = no fluctuation). 
+const G4double NaI_rScale = 1.0;
 
 // Mean ionization energy for NaI. From examples/extended/TestEm15
 const G4double NaI_meanIonisE = 452*eV;

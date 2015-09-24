@@ -96,10 +96,9 @@ int main(int argc, char *argv[])
   theRunManager->SetUserAction(new PGA);
   theRunManager->Initialize();
   
-  runAction *RunAction = new runAction();
-  theRunManager->SetUserAction(RunAction);
+  theRunManager->SetUserAction(new runAction);
   theRunManager->SetUserAction(new steppingAction);
-  theRunManager->SetUserAction(new stackingAction(RunAction));
+  theRunManager->SetUserAction(new stackingAction);
   theRunManager->SetUserAction(new eventAction);
 
   ///////////////////////////////////

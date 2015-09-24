@@ -5,14 +5,15 @@
 #include "G4SystemOfUnits.hh"
 #include "G4PhysicalConstants.hh"
 
+#include "ASIMReadoutManager.hh"
+
 #include "stackingAction.hh"
 #include "runAction.hh"
 
 #include <fstream>
 
 
-stackingAction::stackingAction(runAction *theRun)
-  : RunAction(theRun)
+stackingAction::stackingAction()
 {;}
 
 
@@ -20,5 +21,9 @@ stackingAction::~stackingAction()
 {;}
 
 
-G4ClassificationOfNewTrack stackingAction::ClassifyNewTrack(const G4Track*)
-{ return fUrgent;}
+G4ClassificationOfNewTrack stackingAction::ClassifyNewTrack(const G4Track* currentTrack)
+{
+  ASIMReadoutManager::GetInstance()->HandleOpticalPhotonCreation(currentTrack);
+  
+  return fUrgent;
+}

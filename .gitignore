@@ -27,6 +27,9 @@ source/ADAQControl/build/*
 source/ADAQReadout/build/*
 source/ASIMReadout/build/*
 
+# Ignore ASIMExample build files
+source/ASIMReadout/example/lib/*
+
 # Miscellaneous
 templates/CAENAcquisitionTemplate/build/*
 templates/CAENAcquisitionTemplate/bin/*

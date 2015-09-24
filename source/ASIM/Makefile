@@ -1,32 +1,38 @@
 ######################################################################
 #
 # name: Makefile
-# date: 23 Dec 14
+# date: 24 Sep 15
 # auth: Zach Hartwig
 # mail: hartwig@psfc.mit.edu
 #
-# desc: This GNUmakefile controls the building of the ROOT-based
-#       extension library for the readout and analysis of simulated
-#       data within the ADAQ framework (libASIMReadout.so). The
-#       purpose is provide a standardized and straightforward way to
-#       save simulated detector data persistently then easily access
-#       it later for analysis. For example, the user may choose to
-#       readout Geant4- simulated detector data into persistent
-#       storage and then seemlessly analyze it with the ADAQAnalysis
-#       program.
+# desc: This GNUmakefile controls the building two ASIM libraries the
+#       readout and analysis of Geant4 simulated data within the ADAQ
+#       framework. libASIMReadout.so contains a powerful set of
+#       classes that can dropped into a user's Geant4 simulation for
+#       readout of scintillator and photodetector data;
+#       libASIMStorage.so contains classes for persistent storage of
+#       the data that is provided by libASIMReadout into ASIM
+#       files. The libASIMStorage.so library, unlike the
+#       libASIMReadout.so library, intentionally does *not* require
+#       the Geant4 libraries/headers and so may be utilized into a
+#       user's code for the analysis of ASIM files on without
+#       necessitating a Geant4 install.
 #
-#       The libASIMReadout.so is built locally within the build/
-#       directory when 'make' is called and then copied - along with
-#       the header files -into the top-level $ADAQ/lib/$ARCH and
-#       $ADAQ/include when a 'make install' for general purpose access
-#       by other codes. Note that $ARCH specifies the system
-#       architecture (32- or 64-bit)
+#       Both libraries are built locally within the build/ directory
+#       when 'make' is called and then copied - along with the header
+#       files -into the top-level $ADAQ/lib/$ARCH and $ADAQ/include
+#       when a 'make install' for general purpose access by other
+#       codes. Note that $ARCH specifies the system architecture (32-
+#       or 64-bit)
 #
-# dpnd: The library has the following dependencies:
+# dpnd: libADAQReadout.so requires:
+#       -- The ROOT toolkit (v5.34.30 latest tested)
+#
+#       libADAQStorage.so requires
 #       -- The ROOT toolkit (v5.34.30 latest tested)
 #       -- The Geant4 toolkit (v10.01 latest tested)
 #
-# 2run: To build libASIMReadout.so locally
+# 2run: To build the libraries locally
 #       $ make
 # 
 #       To install library and headers in $ADAQ/lib and $ADAQ/include

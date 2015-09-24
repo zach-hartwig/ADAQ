@@ -25,10 +25,8 @@ lib/x86_64/*ASIM*
 # Ignore all ADAQ core library files
 source/ADAQControl/build/*
 source/ADAQReadout/build/*
-source/ASIMReadout/build/*
-
-# Ignore ASIMExample build files
-source/ASIMReadout/example/lib/*
+source/ASIM/build/*
+source/ASIM/example/lib/*
 
 # Miscellaneous
 templates/CAENAcquisitionTemplate/build/*

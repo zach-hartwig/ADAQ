@@ -14,7 +14,7 @@ NPROC=$(nproc)
 DIR=$PWD
 
 # List all of the libraries to build/install
-declare -a LIBS=("ADAQControl" "ADAQReadout" "ASIMReadout")
+declare -a LIBS=("ADAQControl" "ADAQReadout" "ASIM")
 
 # Loop over the list and do the work
 for lib in "${LIBS[@]}"

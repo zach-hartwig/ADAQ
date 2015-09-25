@@ -19,6 +19,16 @@ declare -a LIBS=("ADAQControl" "ADAQReadout" "ASIM")
 # Loop over the list and do the work
 for lib in "${LIBS[@]}"
 do
+    if [ "$lib" = "ASIM" ]; then
+	if [ -z "$G4VERSION" ]; then
+	    echo -e "\n--------------------------------------------------------"
+	    echo -e "\nWARNING: Geant4 does not appear to exist on this system!"
+	    echo -e   "         The ASIM libraries will not be built.\n"
+	    echo -e   "--------------------------------------------------------\n"
+	    continue
+	fi
+    fi
+
     cd $DIR/$lib
     make clean
     make -e -j$NPROC

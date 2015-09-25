@@ -20,7 +20,7 @@ declare -a LIBS=("ADAQControl" "ADAQReadout" "ASIM")
 for lib in "${LIBS[@]}"
 do
     if [ "$lib" = "ASIM" ]; then
-	if [ -z "$G4VERSION" ]; then
+	if [ -z "$G4INSTALL" ]; then
 	    echo -e "\n--------------------------------------------------------"
 	    echo -e "\nWARNING: Geant4 does not appear to exist on this system!"
 	    echo -e   "         The ASIM libraries will not be built.\n"

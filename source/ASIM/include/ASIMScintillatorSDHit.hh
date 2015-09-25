@@ -48,17 +48,20 @@ private:
   G4Colour *hitColour;
   G4double hitSize;
   
-  G4double energyDep, kineticEnergy;
+  G4double energyDep, kineticEnergy, creationTime;
   G4ThreeVector position, momentumDir;
   G4bool isOpticalPhoton;
   G4ParticleDefinition *particleDef;
   
 public:
-  inline G4double GetEnergyDep() const {return energyDep;};
-  inline void SetEnergyDep(G4double eDep) {energyDep = eDep;};
+  inline G4double GetEnergyDep() const {return energyDep;}
+  inline void SetEnergyDep(G4double eDep) {energyDep = eDep;}
   
   inline G4double GetKineticEnergy() const {return kineticEnergy;}
   inline void SetKineticEnergy(G4double kE) {kineticEnergy = kE;}
+
+  inline G4double GetCreationTime() const {return creationTime;}
+  inline void SetCreationTime(G4double CT) {creationTime = CT;}
 
   inline G4ThreeVector GetPosition() const {return position;}
   inline void SetPosition(G4ThreeVector p) {position = p;}
@@ -66,11 +69,11 @@ public:
   inline G4ThreeVector GetMomentumDir() const {return momentumDir;}
   inline void SetMomentumDir(G4ThreeVector mD) {momentumDir = mD;}
 
-  inline G4bool GetIsOpticalPhoton() const {return isOpticalPhoton;};
-  inline void SetIsOpticalPhoton(G4bool isOP) {isOpticalPhoton = isOP;};
+  inline G4bool GetIsOpticalPhoton() const {return isOpticalPhoton;}
+  inline void SetIsOpticalPhoton(G4bool isOP) {isOpticalPhoton = isOP;}
   
-  inline G4ParticleDefinition *GetParticleDef() const {return particleDef;};
-  inline void SetParticleDef(G4ParticleDefinition *pD) {particleDef = pD;};
+  inline G4ParticleDefinition *GetParticleDef() const {return particleDef;}
+  inline void SetParticleDef(G4ParticleDefinition *pD) {particleDef = pD;}
 };
 
 

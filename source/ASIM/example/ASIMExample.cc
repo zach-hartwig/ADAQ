@@ -1,11 +1,20 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
 // name: ASIMExample.cc
-// date: 22 Sep 15
+// date: 25 Sep 15
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 //
-// desc:
+// desc: ASIMExample is a Geant4 simulation that demonstrates the use
+//       of the ASIM libraries to handle the readout of detector data
+//       and persistent storage to disk. The ASIM libraries provide a
+//       simple but powerful way to handle detector simulation and
+//       data analysis in Geant4. An unlimited number of scintillator
+//       and (optionally) associated photodetector volumes can be
+//       specified by the user for readout into a standardized ROOT
+//       file known as an ASIM file. The ASIM file can then be
+//       analyzed offline, either using the ADAQAnalysis tool or the
+//       user's own ROOT scripts.
 //
 /////////////////////////////////////////////////////////////////////////////////
 

@@ -214,10 +214,12 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
 	
 	if(ScintillatorHC->entries() > 0)
 	  Incidents[r]++;
-	
+
 	for(G4int i=0; i<ScintillatorHC->entries(); i++){
-	  if( (*ScintillatorHC)[i]->GetIsOpticalPhoton() )
+	  if( (*ScintillatorHC)[i]->GetIsOpticalPhoton() ){
 	    ASIMEvents[r]->IncrementPhotonsCreated();
+	    ASIMEvents[r]->AddPhotonCreationTime( (*ScintillatorHC)[i]->GetCreationTime()/ns );
+	  }
 	  else
 	    EventEDep[r] += (*ScintillatorHC)[i]->GetEnergyDep();
 	}
@@ -302,7 +304,7 @@ void ASIMReadoutManager::IncrementRunLevelData(vector<G4bool> &EventActivated)
   G4int EventSum = 0;
   
   for(G4int r=0; r<ASIMNumReadouts; r++){
-
+    
     EventSum += EventActivated[r];
     
     if(EventActivated[r]){

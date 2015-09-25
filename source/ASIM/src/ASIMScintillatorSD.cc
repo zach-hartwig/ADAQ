@@ -113,14 +113,33 @@ G4bool ASIMScintillatorSD::ProcessHits(G4Step *currentStep, G4TouchableHistory *
 }
 
 
-G4bool ASIMScintillatorSD::ManualTrigger(const G4Track *CurrentTrack)
+// This method handles scoring of optical photons that are created in
+// the volume to which the ASIMScintillatorSD object is attached. The
+// method is called by ASIMReadoutManager::HandleOpticalPhotonCreation()
+// in order to correctly add created photons at birth to the hit collection
+G4bool ASIMScintillatorSD::ManualTrigger(const G4Track *currentTrack)
 {
   // Ensure that currently tracking particle is an optical photon
-  if(CurrentTrack->GetDefinition() != G4OpticalPhoton::OpticalPhotonDefinition())
+  if(currentTrack->GetDefinition() != G4OpticalPhoton::OpticalPhotonDefinition())
     return false;
   
   ASIMScintillatorSDHit *newHit = new ASIMScintillatorSDHit();
+
+  // Get the relevant hit information
+  G4double kineticEnergy = currentTrack->GetKineticEnergy();
+  G4double creationTime = currentTrack->GetGlobalTime();
+  G4ThreeVector position = currentTrack->GetPosition();
+
+  // Set the quantities to the SD hit class. Note that the
+  // IsOpticalPhoton flag is necessary to set since the
+  // ASIMScintillatorSD class is also responsible for scoring other
+  // particle types as well as optical photons.
+  newHit->SetKineticEnergy(kineticEnergy);
+  newHit->SetCreationTime(creationTime);
+  newHit->SetPosition(position);
   newHit->SetIsOpticalPhoton(true);
+
+  // Insert the hit into the SD hit collection
   hitCollection->insert(newHit);
   
   return true; 

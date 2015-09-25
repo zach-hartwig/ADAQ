@@ -28,15 +28,15 @@ G4Allocator<ASIMScintillatorSDHit> ASIMScintillatorSDHitAllocator;
 
 ASIMScintillatorSDHit::ASIMScintillatorSDHit()
   : hitColour(new G4Colour(1.0, 0.0, 0.0, 1.0)), hitSize(5),
-    energyDep(0.), kineticEnergy(0.), position(0), momentumDir(0),
-    isOpticalPhoton(false)
+    energyDep(0.), kineticEnergy(0.), creationTime(0.),
+    position(0), momentumDir(0), isOpticalPhoton(false)
 {;}
 
 
 ASIMScintillatorSDHit::ASIMScintillatorSDHit(G4Colour *colour, G4double size)
   : hitColour(colour), hitSize(size),
-    energyDep(0.), kineticEnergy(0.), position(0), momentumDir(0),
-    isOpticalPhoton(false)
+    energyDep(0.), kineticEnergy(0.), creationTime(0.),
+    position(0), momentumDir(0), isOpticalPhoton(false)
 {;}
 
 
@@ -52,6 +52,7 @@ ASIMScintillatorSDHit::ASIMScintillatorSDHit(const ASIMScintillatorSDHit &right)
   
   energyDep = right.energyDep;
   kineticEnergy = right.kineticEnergy;
+  creationTime = right.creationTime;
   position = right.position;
   momentumDir = right.momentumDir;
   isOpticalPhoton = right.isOpticalPhoton;
@@ -66,6 +67,7 @@ const ASIMScintillatorSDHit& ASIMScintillatorSDHit::operator=(const ASIMScintill
   
   energyDep = right.energyDep;
   kineticEnergy = right.kineticEnergy;
+  creationTime = right.creationTime;
   position = right.position;
   momentumDir = right.momentumDir;
   isOpticalPhoton = right.isOpticalPhoton;

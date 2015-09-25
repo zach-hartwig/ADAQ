@@ -284,7 +284,6 @@ void geometryConstruction::BuildNaIScintillator()
 
 
   // A note on dielectric-metal interface parameters: A REFLECTIVITY
-
   // value of "X" sets the prob. that optical photons will be
   // reflected (=X) by the metal and absorbed by the metal (=1-X). An
   // EFFICIENCY value of "Y" set the prob. that the absorbed optical
@@ -296,13 +295,13 @@ void geometryConstruction::BuildNaIScintillator()
   G4OpticalSurface *ReflectiveWrap_OS = new G4OpticalSurface("ReflectiveWrap_OS");
   ReflectiveWrap_OS->SetType(dielectric_metal);
   ReflectiveWrap_OS->SetModel(unified);
-  ReflectiveWrap_OS->SetFinish(ground);
+  ReflectiveWrap_OS->SetFinish(polished);
   
   // Optical photon energy spectrum
   G4double ReflectiveSpct[2] = {0.1*eV, 15.*eV};
   
   // Corresponding probability of reflection
-  G4double ReflectiveRefl[2] = {.95, .95};
+  G4double ReflectiveRefl[2] = {0.98, 0.98};
   
   // Corresponding probability of producing a photoelectron
   // (irrelevant since this surface only performs reflection)
@@ -353,7 +352,7 @@ void geometryConstruction::BuildReadouts()
 
   // The BGO scintillator
 
-  ASIMScintillatorSD *BGO_SD = new ASIMScintillatorSD("BGOSD",
+  ASIMScintillatorSD *BGO_SD = new ASIMScintillatorSD("BGO-Detector",
 						      new G4Colour(1.0, 0.0, 0.0, 0.4),
 						      8); 
   SDMgr->AddNewDetector(BGO_SD);
@@ -364,7 +363,7 @@ void geometryConstruction::BuildReadouts()
 
   // The NaI(Tl) scintillator ...
   
-  ASIMScintillatorSD *NaI_SD = new ASIMScintillatorSD("NAISD",
+  ASIMScintillatorSD *NaI_SD = new ASIMScintillatorSD("NaI(Tl)-Detector",
 						      new G4Colour(1.0, 1.0, 0.0, 0.4),
 						      8); 
   SDMgr->AddNewDetector(NaI_SD);
@@ -372,13 +371,13 @@ void geometryConstruction::BuildReadouts()
 
   // ... and the NaI(Tl) photomultiplier tube
   
-  ASIMPhotodetectorSD *NaIPMT_SD = new ASIMPhotodetectorSD("NAIPMTSD",
+  ASIMPhotodetectorSD *NaIPMT_SD = new ASIMPhotodetectorSD("NaI(Tl)-PMT",
 							   new G4Colour(0.0, 1.0, 1.0, 1.0),
 							   4); 
   SDMgr->AddNewDetector(NaIPMT_SD);
   NaIPMT_L->SetSensitiveDetector(NaIPMT_SD);
   
-  ARMgr->RegisterNewReadout("Demonstrating the readout of a NaI(Tl) scintillator to an ASIM file",
+  ARMgr->RegisterNewReadout("Demonstrating the readout of a NaI(Tl)-PMT detector to an ASIM file",
 			    NaI_P,
 			    NaIPMT_P);
 }

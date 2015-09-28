@@ -12,8 +12,11 @@ const G4int NaI_absLengthEntries = 2;
 G4double NaI_absLengthSpectrum[2] = {1.5*eV, 5*eV};
 G4double NaI_absLength[2] = {30.*cm, 30.*cm};
 
+// Fast rise time constant
+const G4double NaI_fastRiseTimeC = 28*ns;
+
 // Fast time decay contant
-const G4double NaI_fastTimeC = 250*ns;
+const G4double NaI_fastDecayTimeC = 250*ns;
 
 // Optical photon yield per MeV deposited: 38000/MeV
 const G4double NaI_yield = 3800/MeV;

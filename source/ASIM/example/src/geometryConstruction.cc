@@ -75,8 +75,9 @@ void geometryConstruction::BuildMaterials()
   // Transform the wavelength spectrum into an energy spectrum
   for(G4int i=0; i<NaI_entries; i++)
     NaI_eSpectrum[i] = nm2eV / NaI_eWavelength[i];      
-  
-  NaI_MPT->AddConstProperty("FASTTIMECONSTANT", NaI_fastTimeC);
+
+  NaI_MPT->AddConstProperty("FASTSCINTILLATIONRISETIME", NaI_fastRiseTimeC);
+  NaI_MPT->AddConstProperty("FASTTIMECONSTANT", NaI_fastDecayTimeC);
   NaI_MPT->AddConstProperty("SCINTILLATIONYIELD", NaI_yield);
   NaI_MPT->AddConstProperty("YIELDRATIO",NaI_yRatio);
   NaI_MPT->AddConstProperty("RESOLUTIONSCALE",NaI_rScale);

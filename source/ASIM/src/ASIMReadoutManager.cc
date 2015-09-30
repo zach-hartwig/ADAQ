@@ -161,6 +161,7 @@ void ASIMReadoutManager::RegisterNewReadout(G4String ReadoutDesc,
   UsePhotonThresholds.push_back(true);
   LowerPhotonThreshold.push_back(0);
   UpperPhotonThreshold.push_back(1000000000);
+  WaveformStorageEnable.push_back(false);
 }
 
 
@@ -218,7 +219,8 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
 	for(G4int i=0; i<ScintillatorHC->entries(); i++){
 	  if( (*ScintillatorHC)[i]->GetIsOpticalPhoton() ){
 	    ASIMEvents[r]->IncrementPhotonsCreated();
-	    ASIMEvents[r]->AddPhotonCreationTime( (*ScintillatorHC)[i]->GetCreationTime()/ns );
+	    if(WaveformStorageEnable[r])
+	      ASIMEvents[r]->AddPhotonCreationTime( (*ScintillatorHC)[i]->GetCreationTime()/ns );
 	  }
 	  else
 	    EventEDep[r] += (*ScintillatorHC)[i]->GetEnergyDep();
@@ -255,7 +257,8 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
 	
 	for(G4int i=0; i<PhotodetectorHC->entries(); i++){
 	  ASIMEvents[r]->IncrementPhotonsDetected();
-	  ASIMEvents[r]->AddPhotonDetectionTime( (*PhotodetectorHC)[i]->GetDetectionTime()/ns );
+	  if(WaveformStorageEnable[r])
+	    ASIMEvents[r]->AddPhotonDetectionTime( (*PhotodetectorHC)[i]->GetDetectionTime()/ns );
 	}
       }
     }
@@ -582,7 +585,7 @@ G4bool ASIMReadoutManager::GetUsePhotonThresholds(G4int R)
 
 
 void ASIMReadoutManager::SetLowerEnergyThreshold(G4double LET)
-{ LowerEnergyThreshold.at(LET); }
+{ LowerEnergyThreshold.at(ActiveReadout) = LET; }
 
 
 G4double ASIMReadoutManager::GetLowerEnergyThreshold(G4int R)
@@ -590,7 +593,7 @@ G4double ASIMReadoutManager::GetLowerEnergyThreshold(G4int R)
 
 
 void ASIMReadoutManager::SetUpperEnergyThreshold(G4double UET)
-{ UpperEnergyThreshold.at(UET); }
+{ UpperEnergyThreshold.at(ActiveReadout) = UET; }
 
 
 G4double ASIMReadoutManager::GetUpperEnergyThreshold(G4int R)
@@ -598,7 +601,7 @@ G4double ASIMReadoutManager::GetUpperEnergyThreshold(G4int R)
 
 
 void ASIMReadoutManager::SetLowerPhotonThreshold(G4int LPT)
-{ LowerPhotonThreshold.at(LPT); }
+{ LowerPhotonThreshold.at(ActiveReadout) = LPT; }
 
 
 G4int ASIMReadoutManager::GetLowerPhotonThreshold(G4int R)
@@ -606,8 +609,16 @@ G4int ASIMReadoutManager::GetLowerPhotonThreshold(G4int R)
 
 
 void ASIMReadoutManager::SetUpperPhotonThreshold(G4int UPT)
-{ UpperPhotonThreshold.at(UPT); }
+{ UpperPhotonThreshold.at(ActiveReadout) = UPT; }
 
 
 G4int ASIMReadoutManager::GetUpperPhotonThreshold(G4int R)
 { return UpperPhotonThreshold.at(R); }
+
+
+void ASIMReadoutManager::SetWaveformStorage(G4bool WS)
+{ WaveformStorageEnable.at(ActiveReadout) = WS; }
+
+
+G4bool ASIMReadoutManager::GetWaveformStorage(G4int R)
+{ return WaveformStorageEnable.at(R); }

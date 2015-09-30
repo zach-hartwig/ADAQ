@@ -53,24 +53,6 @@ public:
 
   void SetActiveReadout(G4int);
   G4int GetActiveReadout();
-  
-  void SetReadoutEnabled(G4bool);
-  G4bool GetReadoutEnabled(G4int);
-
-  void SetIncidents(G4int);
-  G4int GetIncidents(G4int);
-
-  void SetHits(G4int);
-  G4int GetHits(G4int);
-
-  void SetRunEDep(G4double);
-  G4double GetRunEDep(G4int);
-
-  void SetPhotonsCreated(G4int);
-  G4int GetPhotonsCreated(G4int);
-
-  void SetPhotonsCounted(G4int);
-  G4int GetPhotonsCounted(G4int);
 
   void SetEnergyBroadeningStatus(G4bool);
   G4bool GetEnergyBroadeningStatus(G4int);
@@ -105,6 +87,27 @@ public:
   void SetDetectorPSDParticle(G4String){};
   G4String GetDetectorPSDParticle(){return "";}
   
+  void SetWaveformStorage(G4bool);
+  G4bool GetWaveformStorage(G4int);
+  
+  void SetReadoutEnabled(G4bool);
+  G4bool GetReadoutEnabled(G4int);
+
+  void SetIncidents(G4int);
+  G4int GetIncidents(G4int);
+
+  void SetHits(G4int);
+  G4int GetHits(G4int);
+
+  void SetRunEDep(G4double);
+  G4double GetRunEDep(G4int);
+
+  void SetPhotonsCreated(G4int);
+  G4int GetPhotonsCreated(G4int);
+
+  void SetPhotonsCounted(G4int);
+  G4int GetPhotonsCounted(G4int);
+  
   void SetCoincidentReadoutStatus(G4bool);
   G4bool GetCoincidentReadoutStatus();
 
@@ -135,6 +138,7 @@ private:
   vector<G4double> LowerEnergyThreshold, UpperEnergyThreshold;
   vector<G4bool> UsePhotonThresholds;
   vector<G4int> LowerPhotonThreshold, UpperPhotonThreshold;
+  vector<G4bool> WaveformStorageEnable;
 
   vector<G4double> EventEDep;
   vector<G4bool> EventActivated;

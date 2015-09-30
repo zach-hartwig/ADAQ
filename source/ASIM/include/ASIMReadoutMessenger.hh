@@ -33,6 +33,10 @@ private:
 
   G4UIcmdWithAnInteger *setActiveReadoutCmd;
   
+  G4UIcmdWithADouble *setEnergyResolutionCmd;
+  G4UIcmdWithADoubleAndUnit *setEnergyEvaluationCmd;
+  G4UIcmdWithABool *setEnergyBroadeningCmd;
+  
   G4UIcmdWithADoubleAndUnit *setLowerEnergyThresholdCmd;
   G4UIcmdWithADoubleAndUnit *setUpperEnergyThresholdCmd;
   G4UIcmdWithoutParameter *enableEnergyThresholdCmd;
@@ -43,10 +47,8 @@ private:
 
   G4UIcmdWithABool *setPSDStatusCmd;
   G4UIcmdWithAString *setPSDParticleCmd;
-  
-  G4UIcmdWithADouble *setEnergyResolutionCmd;
-  G4UIcmdWithADoubleAndUnit *setEnergyEvaluationCmd;
-  G4UIcmdWithABool *setEnergyBroadeningCmd;
+
+  G4UIcmdWithABool *setWaveformStorageCmd;
 };
 
 #endif

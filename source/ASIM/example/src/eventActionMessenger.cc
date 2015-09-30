@@ -8,8 +8,11 @@
 eventActionMessenger::eventActionMessenger(eventAction *EA)
   : EventAction(EA)
 {
+  topDirectory = new G4UIdirectory("/ASIMExample/");
+  topDirectory->SetGuidance("Commands specific to the ASIMExample simulation");
+  
   detDataDirectory = new G4UIdirectory("/ASIMExample/dataOutput/");
-  detDataDirectory->SetGuidance("SWS data output control");
+  detDataDirectory->SetGuidance("ASIMExample data output control");
   
   eventFreqCmd = new G4UIcmdWithAnInteger("/ASIMExample/dataOutput/setEventInfoFreq",this);
   eventFreqCmd->SetGuidance("Sets how often event information is printed to terminal");
@@ -22,6 +25,7 @@ eventActionMessenger::~eventActionMessenger()
 {
   delete eventFreqCmd;
   delete detDataDirectory;
+  delete topDirectory;
 }
 
 

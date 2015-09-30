@@ -13,7 +13,7 @@ G4double NaI_absLengthSpectrum[2] = {1.5*eV, 5*eV};
 G4double NaI_absLength[2] = {30.*cm, 30.*cm};
 
 // Fast rise time constant
-const G4double NaI_fastRiseTimeC = 28*ns;
+const G4double NaI_fastRiseTimeC = 280*ns;
 
 // Fast time decay contant
 const G4double NaI_fastDecayTimeC = 250*ns;

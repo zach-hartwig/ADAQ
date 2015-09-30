@@ -19,6 +19,8 @@ public:
 
 private:
   eventAction *EventAction;
+
+  G4UIdirectory *topDirectory;
   G4UIdirectory *detDataDirectory;
   
   G4UIcmdWithAnInteger *eventFreqCmd;

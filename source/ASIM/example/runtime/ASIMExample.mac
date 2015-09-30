@@ -24,10 +24,11 @@
 /ASIM/setEnergyBroadening true
 /ASIM/setEnergyEvaluation 0.662 MeV
 /ASIM/setEnergyResolution 8.0
+/ASIM/setWaveformStorage true
 #
 # Setup the particle source and run beam!
 /gps/ene/mono 0.662 MeV
-/run/beamOn 60000
+/run/beamOn 6000
 #
 # Write the ASIM file to disk
 /ASIM/write

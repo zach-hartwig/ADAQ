@@ -22,6 +22,7 @@
 #include "ASIMReadoutMessenger.hh"
 //#include "MPIManager.hh"
 
+
 ASIMReadoutManager *ASIMReadoutManager::ASIMReadoutMgr = NULL;
 
 
@@ -31,7 +32,7 @@ ASIMReadoutManager *ASIMReadoutManager::GetInstance()
 
 ASIMReadoutManager::ASIMReadoutManager(G4bool arch)
   : parallelArchitecture(!arch), MPI_Rank(0), MPI_Size(1),
-    ASIMNumReadouts(0)
+    NumReadouts(0)
 {
   if(ASIMReadoutMgr != NULL)
     G4Exception("ASIMReadoutManager::ASIMReadoutManager()", 
@@ -43,7 +44,7 @@ ASIMReadoutManager::ASIMReadoutManager(G4bool arch)
   
   // Initialize ASIM readout classes
   
-  ASIMFileName = "ASIMReadoutDefault.asim.root";
+  ASIMFileName = "ASIMDefault.asim.root";
   ASIMStorageMgr = new ASIMStorageManager;
   ASIMRunSummary = new ASIMRun;
   
@@ -115,44 +116,56 @@ void ASIMReadoutManager::RegisterNewReadout(G4String ReadoutDesc,
 					    G4VPhysicalVolume *Scintillator,
 					    G4VPhysicalVolume *Photodetector)
 {
-  G4int ReadoutID = ASIMNumReadouts;
-  G4String ReadoutName = Scintillator->GetLogicalVolume()->GetSensitiveDetector()->GetName();
- 
-  ASIMNumReadouts++;
+  // Increment total number of registered readouts
+  NumReadouts++;
 
-  ASIMTreeID.push_back(ReadoutID);
-  ASIMTreeName.push_back(ReadoutName);
-  ASIMTreeDesc.push_back(ReadoutDesc);
+  // Assign a unique readout ID based on registration order
+  G4int ReadoutID = NumReadouts;
+
+  // Use the associated G4SD name as the readout name
+  G4String ReadoutName = Scintillator->GetLogicalVolume()->GetSensitiveDetector()->GetName();
   
+  // Store ASIM readout variables to use later for access
+  ASIMReadoutID.push_back(ReadoutID);
+  ASIMReadoutName.push_back(ReadoutName);
+  ASIMReadoutNameMap[ReadoutName] = ReadoutID;
+  
+  // Create a ROOT TTree to hold ASIMEvent classes for this readout
   ASIMEvents.push_back(ASIMStorageMgr->CreateEventTree(ReadoutID,
 						       ReadoutName,
 						       ReadoutDesc));
-  
+
+  // Store the readout name associated with a ScintillatorSD for later
+  // use during event-level readout ...
   string ScintillatorSDName = ReadoutName + "Collection";
   ScintillatorSDNames.push_back(ScintillatorSDName);
-  
+
+  // ... and also store the readout name of the associated
+  // PhotodetectorSD as well if it has been specified
   if(Photodetector != NULL){
     G4String PReadoutName = Photodetector->GetLogicalVolume()->GetSensitiveDetector()->GetName();
     PhotodetectorSDNames.push_back(PReadoutName + "Collection");
   }
   else
-    PhotodetectorSDNames.push_back("Photodetector does not exist for this readout!");    
-  
+    PhotodetectorSDNames.push_back("Photodetector does not exist for this readout!");
+
+  // Increment the event-, run-, and readout setting vectors 
+
+  // Run-level aggregators
   ReadoutEnabled.push_back(0);
+  Incidents.push_back(0);
+  Hits.push_back(0);
+  RunEDep.push_back(0.);
+  PhotonsCreated.push_back(0);
+  PhotonsDetected.push_back(0);
 
   // Event-level variables
   EventEDep.push_back(0.);
   EventActivated.push_back(false);
 
-  // Run-level aggregators
-  Incidents.push_back(0);
-  Hits.push_back(0);
-  RunEDep.push_back(0.);
-  PhotonsCreated.push_back(0);
-  PhotonsCounted.push_back(0);
-
   // Readout settings
-  EnergyBroadeningEnable.push_back(false);
+  ActiveReadout = 0;
+  EnergyBroadening.push_back(false);
   EnergyResolution.push_back(0.);
   EnergyEvaluation.push_back(0.);
   UseEnergyThresholds.push_back(true);
@@ -161,18 +174,19 @@ void ASIMReadoutManager::RegisterNewReadout(G4String ReadoutDesc,
   UsePhotonThresholds.push_back(true);
   LowerPhotonThreshold.push_back(0);
   UpperPhotonThreshold.push_back(1000000000);
-  WaveformStorageEnable.push_back(false);
+  WaveformStorage.push_back(false);
 }
 
 
 void ASIMReadoutManager::InitializeForRun()
 {
-  for(G4int r=0; r<ASIMNumReadouts; r++){
+  // Set all run-level aggregators to zero to prepare for a new run
+  for(G4int r=0; r<NumReadouts; r++){
     Incidents[r] = 0;
     Hits[r] = 0;
     RunEDep[r] = 0;
     PhotonsCreated[r] = 0;
-    PhotonsCounted[r] = 0;
+    PhotonsDetected[r] = 0;
   }
 }
 
@@ -182,7 +196,7 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
   G4int TheCollectionID = -1;
   G4SDManager *TheSDManager = G4SDManager::GetSDMpointer();
   
-  for(G4int r=0; r<ASIMNumReadouts; r++){
+  for(G4int r=0; r<NumReadouts; r++){
 
     G4HCofThisEvent *HCE = currentEvent->GetHCofThisEvent();
     
@@ -219,7 +233,7 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
 	for(G4int i=0; i<ScintillatorHC->entries(); i++){
 	  if( (*ScintillatorHC)[i]->GetIsOpticalPhoton() ){
 	    ASIMEvents[r]->IncrementPhotonsCreated();
-	    if(WaveformStorageEnable[r])
+	    if(WaveformStorage[r])
 	      ASIMEvents[r]->AddPhotonCreationTime( (*ScintillatorHC)[i]->GetCreationTime()/ns );
 	  }
 	  else
@@ -227,7 +241,7 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
 	}
 	
 	// Enable artificial gaussian energy broadening
-	if(EnergyBroadeningEnable[r]){
+	if(EnergyBroadening[r]){
 	  
 	  // For simplicity, convert energy deposition to eV to ensure we
 	  // can use a simple algorithm with integers
@@ -257,7 +271,7 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
 	
 	for(G4int i=0; i<PhotodetectorHC->entries(); i++){
 	  ASIMEvents[r]->IncrementPhotonsDetected();
-	  if(WaveformStorageEnable[r])
+	  if(WaveformStorage[r])
 	    ASIMEvents[r]->AddPhotonDetectionTime( (*PhotodetectorHC)[i]->GetDetectionTime()/ns );
 	}
       }
@@ -279,7 +293,7 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
 	
 	// Fill detector trees if output to ASIM has been activated
 	if(ASIMStorageMgr->GetASIMFileOpen())
-	  ASIMStorageMgr->GetEventTree(ASIMTreeID[r])->Fill();
+	  ASIMStorageMgr->GetEventTree(ASIMReadoutID[r])->Fill();
       }
     }
     
@@ -292,7 +306,7 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
 	
 	// Fill detector trees if output to ASIM has been activated
 	if(ASIMStorageMgr->GetASIMFileOpen())
-	  ASIMStorageMgr->GetEventTree(ASIMTreeID[r])->Fill();
+	  ASIMStorageMgr->GetEventTree(ASIMReadoutID[r])->Fill();
       }
     }
   }
@@ -306,7 +320,7 @@ void ASIMReadoutManager::IncrementRunLevelData(vector<G4bool> &EventActivated)
 {
   G4int EventSum = 0;
   
-  for(G4int r=0; r<ASIMNumReadouts; r++){
+  for(G4int r=0; r<NumReadouts; r++){
     
     EventSum += EventActivated[r];
     
@@ -314,7 +328,7 @@ void ASIMReadoutManager::IncrementRunLevelData(vector<G4bool> &EventActivated)
       Hits[r]++;
       RunEDep[r] += EventEDep[r];
       PhotonsCreated[r] += ASIMEvents[r]->GetPhotonsCreated();
-      PhotonsCounted[r] += ASIMEvents[r]->GetPhotonsDetected();
+      PhotonsDetected[r] += ASIMEvents[r]->GetPhotonsDetected();
     }
   }
 }
@@ -349,7 +363,7 @@ void ASIMReadoutManager::FillRunSummary(const G4Run *currentRun)
       ASIMRunSummary->SetDetectorLowerThresholdInMeV( detectorEnergyLowerThreshold/MeV );
       ASIMRunSummary->SetDetectorUpperThresholdInMeV( detectorEnergyUpperThreshold/MeV );
       ASIMRunSummary->SetPhotonsCreated( detectorPhotonsCreated );
-      ASIMRunSummary->SetPhotonsDetected( detectorPhotonsCounted );
+      ASIMRunSummary->SetPhotonsDetected( detectorPhotonsDetected );
     */
 
     // Add the run class to the list for later readout
@@ -468,7 +482,7 @@ void ASIMReadoutManager::ReduceSlaveValuesToMaster()
   detectorIncidents = theMPImanager->SumDoublesToMaster(detectorIncidents);
   detectorHits = theMPImanager->SumDoublesToMaster(detectorHits);
   detectorPhotonsCreated = theMPImanager->SumDoublesToMaster(detectorPhotonsCreated);
-  detectorPhotonsCounted = theMPImanager->SumDoublesToMaster(detectorPhotonsCounted);
+  detectorPhotonsDetected = theMPImanager->SumDoublesToMaster(detectorPhotonsDetected);
   */
   G4cout << "\nASIMReadoutManager : Finished the MPI reduction of values to the master!\n"
 	 << G4endl;
@@ -478,7 +492,7 @@ void ASIMReadoutManager::ReduceSlaveValuesToMaster()
 
 void ASIMReadoutManager::SetActiveReadout(G4int R)
 {
-  if(R<ASIMNumReadouts)
+  if(R<NumReadouts)
     ActiveReadout = R;
   else
     G4cout << "\nASIMReadoutManager : Error! Specified readout number does not exist!\n"
@@ -530,20 +544,20 @@ G4int ASIMReadoutManager::GetPhotonsCreated(G4int R)
 { return PhotonsCreated.at(R); }
 
 
-void ASIMReadoutManager::SetPhotonsCounted(G4int P)
-{ PhotonsCounted.at(ActiveReadout) = P; }
+void ASIMReadoutManager::SetPhotonsDetected(G4int P)
+{ PhotonsDetected.at(ActiveReadout) = P; }
 
 
-G4int ASIMReadoutManager::GetPhotonsCounted(G4int R)
-{ return PhotonsCounted.at(R); }
+G4int ASIMReadoutManager::GetPhotonsDetected(G4int R)
+{ return PhotonsDetected.at(R); }
 
 
-void ASIMReadoutManager::SetEnergyBroadeningStatus(G4bool B)
-{ EnergyBroadeningEnable.at(ActiveReadout) = B; }
+void ASIMReadoutManager::SetEnergyBroadening(G4bool B)
+{ EnergyBroadening.at(ActiveReadout) = B; }
 
 
-G4bool ASIMReadoutManager::GetEnergyBroadeningStatus(G4int R)
-{ return EnergyBroadeningEnable.at(R); }
+G4bool ASIMReadoutManager::GetEnergyBroadening(G4int R)
+{ return EnergyBroadening.at(R); }
 
 
 void ASIMReadoutManager::SetEnergyResolution(G4double E)
@@ -617,8 +631,8 @@ G4int ASIMReadoutManager::GetUpperPhotonThreshold(G4int R)
 
 
 void ASIMReadoutManager::SetWaveformStorage(G4bool WS)
-{ WaveformStorageEnable.at(ActiveReadout) = WS; }
+{ WaveformStorage.at(ActiveReadout) = WS; }
 
 
 G4bool ASIMReadoutManager::GetWaveformStorage(G4int R)
-{ return WaveformStorageEnable.at(R); }
+{ return WaveformStorage.at(R); }

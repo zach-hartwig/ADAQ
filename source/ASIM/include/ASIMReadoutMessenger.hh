@@ -33,17 +33,17 @@ private:
 
   G4UIcmdWithAnInteger *setActiveReadoutCmd;
   
+  G4UIcmdWithABool *setEnergyBroadeningCmd;
   G4UIcmdWithADouble *setEnergyResolutionCmd;
   G4UIcmdWithADoubleAndUnit *setEnergyEvaluationCmd;
-  G4UIcmdWithABool *setEnergyBroadeningCmd;
-  
+
+  G4UIcmdWithoutParameter *enableEnergyThresholdCmd;  
   G4UIcmdWithADoubleAndUnit *setLowerEnergyThresholdCmd;
   G4UIcmdWithADoubleAndUnit *setUpperEnergyThresholdCmd;
-  G4UIcmdWithoutParameter *enableEnergyThresholdCmd;
 
+  G4UIcmdWithoutParameter *enablePhotonThresholdCmd;
   G4UIcmdWithAnInteger *setLowerPhotonThresholdCmd;
   G4UIcmdWithAnInteger *setUpperPhotonThresholdCmd;
-  G4UIcmdWithoutParameter *enablePhotonThresholdCmd;
 
   G4UIcmdWithABool *setPSDStatusCmd;
   G4UIcmdWithAString *setPSDParticleCmd;

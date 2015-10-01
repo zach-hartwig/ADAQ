@@ -36,19 +36,6 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARM)
   setActiveReadoutCmd->SetGuidance("Set the readout for which settings will be modified. Use the readout ID to specify.");
   setActiveReadoutCmd->SetParameterName("Choice", false);
   setActiveReadoutCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
-
-  setEnergyResolutionCmd = new G4UIcmdWithADouble("/ASIM/setEnergyResolution", this);
-  setEnergyResolutionCmd->SetGuidance("Set the energy resolution as a percent [%] to be used with the energy");
-  setEnergyResolutionCmd->SetGuidance("gaussoam energy broading command, which must be first enabled via the");
-  setEnergyResolutionCmd->SetGuidance("/ASIM/enableEnergyBroadening' command");
-  setEnergyResolutionCmd->SetParameterName("Choice",false);
-  
-  setEnergyEvaluationCmd = new G4UIcmdWithADoubleAndUnit("/ASIM/setEnergyEvaluation", this);
-  setEnergyEvaluationCmd->SetGuidance("Set the energy at which the desired energy resolution will be computed.");
-  setEnergyEvaluationCmd->SetGuidance("enabled via the '/ASIM/enableEnergyBroadening' command");
-  setEnergyEvaluationCmd->SetParameterName("Choice",false);
-  setEnergyEvaluationCmd->SetUnitCategory("Energy");
-  setEnergyEvaluationCmd->SetDefaultUnit("MeV");
   
   setEnergyBroadeningCmd = new G4UIcmdWithABool("/ASIM/setEnergyBroadening", this);
   setEnergyBroadeningCmd->SetGuidance("Enables the ability to broadening the value of energy deposited by a Gaussian function");
@@ -57,6 +44,19 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARM)
   setEnergyBroadeningCmd->SetParameterName("Choice", false);
   setEnergyBroadeningCmd->SetDefaultValue(false);
 
+  setEnergyResolutionCmd = new G4UIcmdWithADouble("/ASIM/setEnergyResolution", this);
+  setEnergyResolutionCmd->SetGuidance("Set the energy resolution as a percent [%] to be used with the energy");
+  setEnergyResolutionCmd->SetGuidance("gaussoam energy broading command, which must be first enabled via the");
+  setEnergyResolutionCmd->SetGuidance("/ASIM/setEnergyBroadening' command");
+  setEnergyResolutionCmd->SetParameterName("Choice",false);
+  
+  setEnergyEvaluationCmd = new G4UIcmdWithADoubleAndUnit("/ASIM/setEnergyEvaluation", this);
+  setEnergyEvaluationCmd->SetGuidance("Set the energy at which the desired energy resolution will be computed.");
+  setEnergyEvaluationCmd->SetGuidance("enabled via the '/ASIM/setEnergyBroadening' command");
+  setEnergyEvaluationCmd->SetParameterName("Choice",false);
+  setEnergyEvaluationCmd->SetUnitCategory("Energy");
+  setEnergyEvaluationCmd->SetDefaultUnit("MeV");
+  
   setLowerEnergyThresholdCmd = new G4UIcmdWithADoubleAndUnit("/ASIM/setLowerEnergyThreshold", this);
   setLowerEnergyThresholdCmd->SetGuidance("Set the lower energy threshold for scoring hits on the detector. Note that energy");
   setLowerEnergyThresholdCmd->SetGuidance("energy thresholding must be enabled via the '/ASIM/enableEnergyThrehold' command");
@@ -76,6 +76,12 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARM)
   enableEnergyThresholdCmd->SetGuidance("may be set via '/ASIM/set{Lower,Upper}EnergyThreshold' command. Note that energy");
   enableEnergyThresholdCmd->SetGuidance("and photon thresholding are mutually exclusive. Setting this will undo the other!");
 
+  enablePhotonThresholdCmd = new G4UIcmdWithoutParameter("/ASIM/enablePhotonThreshold", this);
+  enablePhotonThresholdCmd->SetGuidance("Enables the lower/upper photon thresholds for scoring hits on the detector. The photon");
+  enablePhotonThresholdCmd->SetGuidance("thresholds may be set via '/ASIM/set{Lower,Upper}EnergyThreshold' command.");
+  enablePhotonThresholdCmd->SetGuidance("Note that energy and photon thresholding are mutually exclusive with energy thresholding.");
+  enablePhotonThresholdCmd->SetGuidance("Setting this will undor the other!");
+
   setLowerPhotonThresholdCmd = new G4UIcmdWithAnInteger("/ASIM/setLowerPhotonThreshold", this);
   setLowerPhotonThresholdCmd->SetGuidance("Set the lower photon threshold for scoring hits on the detector. Note that photon");
   setLowerPhotonThresholdCmd->SetGuidance("thresholding must be enabled via the '/ASIM/enablePhotonThrehold' command");
@@ -86,11 +92,6 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARM)
   setUpperPhotonThresholdCmd->SetGuidance("tresholding must be enabled via the '/ASIM/enablePhotonThrehold' command");
   setUpperPhotonThresholdCmd->SetParameterName("Choice",false);
 
-  enablePhotonThresholdCmd = new G4UIcmdWithoutParameter("/ASIM/enablePhotonThreshold", this);
-  enablePhotonThresholdCmd->SetGuidance("Enables the lower/upper photon thresholds for scoring hits on the detector. The photon");
-  enablePhotonThresholdCmd->SetGuidance("thresholds may be set via '/ASIM/set{Lower,Upper}EnergyThreshold' command.");
-  enablePhotonThresholdCmd->SetGuidance("Note that energy and photon thresholding are mutually exclusive with energy thresholding.");
-  enablePhotonThresholdCmd->SetGuidance("Setting this will undor the other!");
 
   /*
   setPSDStatusCmd = new G4UIcmdWithABool("/ASIM/setPSDStatus", this);
@@ -109,8 +110,8 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARM)
   */
 
   setWaveformStorageCmd = new G4UIcmdWithABool("/ASIM/setWaveformStorage", this);
-  setWaveformStorageCmd->SetGuidance("Enable/disable the storage of individual waveforms (e.g. a vector of optical photon");
-  setWaveformStorageCmd->SetGuidance("creation/detection times) on disk. Warning: when enabled ASIM file sizes on disk can");
+  setWaveformStorageCmd->SetGuidance("Set/disable the storage of individual waveforms (e.g. a vector of optical photon");
+  setWaveformStorageCmd->SetGuidance("creation/detection times) on disk. Warning: when setd ASIM file sizes on disk can");
   setWaveformStorageCmd->SetGuidance("quickly become very large");
   setWaveformStorageCmd->SetParameterName("Choice", false);
   setWaveformStorageCmd->SetDefaultValue(false);
@@ -119,9 +120,9 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARM)
 
 ASIMReadoutMessenger::~ASIMReadoutMessenger()
 {
-  delete setWaveformStorageCmd;
   //delete setPSDParticleCmd;
   //delete setPSDStatusCmd;
+  delete setWaveformStorageCmd;
   delete enablePhotonThresholdCmd;
   delete setUpperPhotonThresholdCmd;
   delete setLowerPhotonThresholdCmd;
@@ -158,7 +159,7 @@ void ASIMReadoutMessenger::SetNewValue(G4UIcommand *cmd, G4String newValue)
   // Energy broadening 
 
   if(cmd == setEnergyBroadeningCmd)
-    theManager->SetEnergyBroadeningStatus(setEnergyBroadeningCmd->GetNewBoolValue(newValue));
+    theManager->SetEnergyBroadening(setEnergyBroadeningCmd->GetNewBoolValue(newValue));
   
   if(cmd == setEnergyResolutionCmd)
     theManager->SetEnergyResolution(setEnergyResolutionCmd->GetNewDoubleValue(newValue));
@@ -188,6 +189,11 @@ void ASIMReadoutMessenger::SetNewValue(G4UIcommand *cmd, G4String newValue)
   if(cmd == enablePhotonThresholdCmd)
     theManager->EnablePhotonThresholds();
 
+  // Waveform storage
+  
+  if(cmd == setWaveformStorageCmd)
+    theManager->SetWaveformStorage(setWaveformStorageCmd->GetNewBoolValue(newValue));
+
   /*
   if(cmd == setPSDStatusCmd)
     theManager->SetDetectorPSDStatus(setPSDStatusCmd->GetNewBoolValue(newValue));
@@ -196,6 +202,5 @@ void ASIMReadoutMessenger::SetNewValue(G4UIcommand *cmd, G4String newValue)
     theManager->SetDetectorPSDParticle(newValue);
   */
 
-  if(cmd == setWaveformStorageCmd)
-    theManager->SetWaveformStorage(setWaveformStorageCmd->GetNewBoolValue(newValue));
+
 }

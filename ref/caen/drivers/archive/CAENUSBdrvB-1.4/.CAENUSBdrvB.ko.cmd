@@ -1,0 +1,1 @@
+cmd_/home/hartwig/adaq/ADAQ/ref/caen/drivers/CAENUSBdrvB-1.4/CAENUSBdrvB.ko := ld -r -m elf_x86_64 -T ./scripts/module-common.lds --build-id  -o /home/hartwig/adaq/ADAQ/ref/caen/drivers/CAENUSBdrvB-1.4/CAENUSBdrvB.ko /home/hartwig/adaq/ADAQ/ref/caen/drivers/CAENUSBdrvB-1.4/CAENUSBdrvB.o /home/hartwig/adaq/ADAQ/ref/caen/drivers/CAENUSBdrvB-1.4/CAENUSBdrvB.mod.o

@@ -130,6 +130,7 @@ ADAQDigitizer::ADAQDigitizer(ZBoardType Type,  // ADAQ-specific device type iden
   insert(SamplingRateMap)
     (zV1720, 250)
     (zV1724, 100)
+    (zV1725, 250)
     (zDT5720, 250)
     (zDT5730, 500)
     (zDT5790M, 250)
@@ -308,7 +309,7 @@ bool ADAQDigitizer::CheckForEnabledChannel()
   uint32_t ChannelEnableMask = 0;
   GetChannelEnableMask(&ChannelEnableMask);
   
-  if((0xff & ChannelEnableMask) == 0){
+  if((0xffff & ChannelEnableMask) == 0){
     cout << "ADAQDigitizer : Warning! No channels were enabled for acquisition!\n"
 	 << endl;
     return false;

@@ -422,7 +422,6 @@ public:
   int VMEIRQWait(CAEN_DGTZ_ConnectionType LinkType, int LinkNum, int ConetNode, uint8_t IRQMask, uint32_t timeout, int *VMEHandle)
   {return CAEN_DGTZ_VMEIRQWait(LinkType, LinkNum, ConetNode, IRQMask, timeout, VMEHandle);}
 
-  int IACKCycle(int32_t *board_id) {return CAEN_DGTZ_IACKCycle(BoardHandle, board_id);}
   int VMEIACKCycle(int VMEHandle, uint8_t level, int32_t *board_id) {return CAEN_DGTZ_VMEIACKCycle(VMEHandle, level, board_id);}
   int SetDESMode(CAEN_DGTZ_EnaDis_t enable) {return CAEN_DGTZ_SetDESMode(BoardHandle, enable);}
   int GetDESMode(CAEN_DGTZ_EnaDis_t *enable) {return CAEN_DGTZ_GetDESMode(BoardHandle, enable);}

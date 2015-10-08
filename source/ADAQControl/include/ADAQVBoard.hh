@@ -42,6 +42,7 @@ enum ZBoardType{
   // VME Digitizer boards
   zV1720,
   zV1724,
+  zV1725,
   
   // Desktop digitizers
   zDT5720,

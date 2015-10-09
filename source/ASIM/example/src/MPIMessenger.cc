@@ -1,3 +1,17 @@
+/////////////////////////////////////////////////////////////////////////////////
+//
+// name: MPIMessenger.hh
+// date: 09 Oct 15
+// auth: Zach Hartwig
+// mail: hartwig@psfc.mit.edu
+//
+// desc: The MPIMessenger is a standard G4 interface class that
+//       provide a command line method to run particles in parallel
+//       architecture builds of the user's Geant4 simulation that
+//       utilizes the MPIManager class for parallelization.
+//
+/////////////////////////////////////////////////////////////////////////////////
+
 #include "G4SystemOfUnits.hh"
 #include "G4PhysicalConstants.hh"
 

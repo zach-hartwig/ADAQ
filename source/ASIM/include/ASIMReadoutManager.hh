@@ -7,10 +7,6 @@
 #include "G4Step.hh"
 #include "G4VPhysicalVolume.hh"
 
-// ROOT
-#include "TFile.h"
-#include "TTree.h"
-
 // C++
 #include <vector>
 #include <map>

@@ -1,3 +1,31 @@
+/////////////////////////////////////////////////////////////////////////////////
+//
+// name: MPIManager.hh
+// date: 09 Oct 15
+// auth: Zach Hartwig
+// mail: hartwig@psfc.mit.edu
+//
+// desc: The MPIManager is a meyer's singleton class that provides the
+//       ability to rapidly parallelize a Geant4 simulation for use on
+//       multicore of high-performance computing systems. At present,
+//       the implementation is achieved using and has been tested
+//       using the Open MPI (http://www.open-mpi.org/) implementation
+//       of the MPI standard.
+//
+//       It is important to ensure that a user's simulation that
+//       incorporates the MPIManager can be built in sequential
+//       architectures on systems that do not have Open MPI
+//       installed. The 'MPI_ENABLED' macro enables the user's
+//       makefile to include/exclude the Open MPI relevant code.
+//
+//       MPIManager is accompanied by the complementary MPIMessenger
+//       class. The messenger provides the "beam on" command for
+//       launching particles, and the user has the option to
+//       distribute N particles as evenly as possible across all
+//       available nodes or to distribute N particle on each node.
+//
+/////////////////////////////////////////////////////////////////////////////////
+
 #ifndef MPIManager_hh
 #define MPIManager_hh 1
 
@@ -5,24 +33,16 @@
 
 #include <fstream>
 
-class MPIManagerMessenger;
-
-/*
-  MPIManager is a class that provides an OpenMPI interface for
-  ACRONYM.  The MPIManager is constructed as a C++ singleton
-  class, ie, only a single object of this type is permitted to exist.
-  The MPIManager singleton object may be obtained via the
-  MPIManager::GetInstance() method
-*/
-
+#include "MPIMessenger.hh"
 
 class MPIManager
 {
-#ifdef SWS_MPI_ENABLED
-public:
+  // Exclude MPI-relevant code from sequential simulation builds
+#ifdef MPI_ENABLED
+ public:
   MPIManager(int, char **);
   ~MPIManager();
-
+  
   // Static method to obtain the singleton MPI manager
   static MPIManager *GetInstance();
   
@@ -62,7 +82,7 @@ private:
   static MPIManager *theMPImanager;
 
   // The messenger interface for run time commands
-  MPIManagerMessenger *theMPImessenger;
+  MPIMessenger *theMPImessenger;
 
   // size == number of procs; rank == process id
   G4int size, rank;

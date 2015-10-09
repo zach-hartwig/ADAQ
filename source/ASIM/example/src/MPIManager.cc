@@ -1,13 +1,45 @@
-#ifdef SWS_MPI_ENABLED
+/////////////////////////////////////////////////////////////////////////////////
+//
+// name: MPIManager.cc
+// date: 09 Oct 15
+// auth: Zach Hartwig
+// mail: hartwig@psfc.mit.edu
+//
+// desc: The MPIManager is a meyer's singleton class that provides the
+//       ability to rapidly parallelize a Geant4 simulation for use on
+//       multicore of high-performance computing systems. At present,
+//       the implementation is achieved using and has been tested
+//       using the Open MPI (http://www.open-mpi.org/) implementation
+//       of the MPI standard.
+//
+//       It is important to ensure that a user's simulation that
+//       incorporates the MPIManager can be built in sequential
+//       architectures on systems that do not have Open MPI
+//       installed. The 'MPI_ENABLED' macro enables the user's
+//       makefile to include/exclude the Open MPI relevant code.
+//
+//       MPIManager is accompanied by the complementary MPIMessenger
+//       class. The messenger provides the "beam on" command for
+//       launching particles, and the user has the option to
+//       distribute N particles as evenly as possible across all
+//       available nodes or to distribute N particle on each node.
+//
+/////////////////////////////////////////////////////////////////////////////////
 
+// Exclude MPI-relevant code from sequential simulation builds
+#ifdef MPI_ENABLED
+
+// Geant4
 #include "G4RunManager.hh"
 
+// MPI
 #include "mpi.h"
 
+// C/C++
 #include "limits.h"
 
 #include "MPIManager.hh"
-#include "MPIManagerMessenger.hh"
+#include "MPIMessenger.hh"
 
 
 MPIManager *MPIManager::theMPImanager = 0;
@@ -36,12 +68,12 @@ MPIManager::MPIManager(int argcMPI, char *argvMPI[])
 
   // If the present process is a slave, redirect its std::output to
   // the slaveForum, a special directory for output. The output file
-  // is the base specified by argvMPI[1] combined with the slave rank
+  // is the base specified by argvMPI[1] combined with the slave rank.
   if(isSlave){
     G4String fBase = argvMPI[1];
     std::ostringstream slaveRank;
     slaveRank << rank;
-    G4String fName = fBase+slaveRank.str()+".out";
+    G4String fName = fBase + slaveRank.str() + ".out";
 
     // Redirect G4cout to the slave output file
     slaveOut.open(fName.c_str(), std::ios::out);
@@ -63,10 +95,14 @@ MPIManager::MPIManager(int argcMPI, char *argvMPI[])
   DistributeSeeds();
 
   if(theMPImanager)
-    G4Exception("MPIManager::MPIManager()", "acroException009", FatalException, "The MPImanager was constructed twice!");
+    G4Exception("MPIManager::MPIManager()",
+		"MPIManagerException001",
+		FatalException,
+		"\nError! The MPImanager was constructed twice!\n");
+
   theMPImanager = this;
 
-  theMPImessenger = new MPIManagerMessenger(this);
+  theMPImessenger = new MPIMessenger(this);
 }
 
 
@@ -77,7 +113,6 @@ MPIManager::~MPIManager()
   if(isSlave and slaveOut.is_open())
     slaveOut.close();
   
-  // MPI::Finalize() terminates the MPI execution environment
   MPI::Finalize(); 
 }
 
@@ -104,7 +139,7 @@ void MPIManager::BeamOn(G4double events, G4bool distribute)
     masterEvents = G4int(events-slaveEvents*(size-1));
     
     if(isMaster) {
-      G4cout << "\nSWS ANNOUNCEMENT: # events in master = " << masterEvents 
+      G4cout << "\MPI MANAGER ANNOUNCEMENT: # events in master = " << masterEvents 
 	     << " / # events in slave = "  << slaveEvents << "\n" << G4endl;
     }
     
@@ -129,7 +164,7 @@ void MPIManager::BeamOn(G4double events, G4bool distribute)
     masterEvents = G4int(events);
 
     if(isMaster)
-      G4cout << "\nSWS ANNOUNCEMENT: # events in master = " << masterEvents 
+      G4cout << "\nMPI MANAGER ANNOUNCEMENT: # events in master = " << masterEvents 
 	     << " / # events in slave = "  << slaveEvents << G4endl;
     
     // Error check to ensure events < range_G4int
@@ -153,14 +188,17 @@ void MPIManager::ThrowEventError()
   // 2.1e9 data range of G4int) is actually passed. Therefore,
   // ensure that events is < 2.1e9 if the user has chosen NOT to
   // distribute events across the slaves
-  G4cout << "\nSWS ANNOUNCMENT: You have chosen to run (n_events > n_G4int_range) on each of the \n"
-	 <<   "                 slaves! Since MPIManager passes n_events to the runManager\n"
-	 <<   "                 this could result in unspecified behavior. Please choose another\n"
-	 <<   "                 number of primary events or distribute them across nodes such that\n"
-	 <<   "                 (n_events < n_G4int_range = 2,147,483,647). SWS will now abort...\n"
+  G4cout << "\nMPI MANAGER ANNOUNCMENT: You have chosen to run (n_events > n_G4int_range) on each of the \n"
+	 <<   "                         slaves! Since MPIManager passes n_events to the runManager\n"
+	 <<   "                         this could result in unspecified behavior. Please choose another\n"
+	 <<   "                         number of primary events or distribute them across nodes such that\n"
+	 <<   "                         (n_events < n_G4int_range = 2,147,483,647). SWS will now abort...\n"
 	 << G4endl;
   
-  G4Exception("MPIManager::ThrowEventErro()","acroException010", FatalException, "SWS ANNOUNCEMENT: Crashing this ship like the Hindenburg!\n");
+  G4Exception("MPIManager::ThrowEventError()",
+	      "MPIManagerException002",
+	      FatalException,
+	      "MPI MANAGER ANNOUNCEMENT: Crashing this ship like the Hindenburg!\n");
 }
 
 
@@ -190,25 +228,19 @@ void MPIManager::CreateSeeds()
 	  seedPacket[j] = G4long(x*LONG_MAX);
 	  doubleCount=true;
 	}
-    
     doubleCount = false;
   }
 }
 
-
+// Distribute the seeds to the random number generator for each node
 void MPIManager::DistributeSeeds()
 {
   if(rank==0){
     for(size_t i=0; i<seedPacket.size(); i++)
       G4cout << "Rank[" << i << "] seed = " << seedPacket[i] << G4endl;
   }
-
-
-
-
-
-
- CLHEP::HepRandom::setTheSeed(seedPacket[rank]); }
+  CLHEP::HepRandom::setTheSeed(seedPacket[rank]);
+}
 
 
 // MPI::COMM_WORLD.Barrier forces all nodes to reach a common point
@@ -218,8 +250,8 @@ void MPIManager::ForceBarrier(G4String location)
 { 
   MPI::COMM_WORLD.Barrier();
 
-  G4cout << "\nSWS ANNOUNCEMENT: All nodes have reached the MPI barrier at " << location << "!\n"
-         <<   "                  Nodes now proceeding onward ... \n"
+  G4cout << "\nMPI MANAGER ANNOUNCEMENT: All nodes have reached the MPI barrier at " << location << "!\n"
+         <<   "                          Nodes now proceeding onward ... \n"
 	 << G4endl;
 }
 
@@ -227,7 +259,6 @@ void MPIManager::ForceBarrier(G4String location)
 // MPI::COMM_WORLD.Reduce reduces values on all nodes to a single
 // value on the specified node by using an MPI predefined operation
 // or a user specified operation. 
-
 G4double MPIManager::SumDoublesToMaster(G4double slaveValue)
 {
   G4double masterSum = 0.;
@@ -244,4 +275,3 @@ G4int MPIManager::SumIntsToMaster(G4int slaveValue)
 }
 
 #endif
-

@@ -9,9 +9,6 @@
 #include "G4ParticleTypes.hh"
 #include "Randomize.hh"
 
-// ROOT 
-#include "TChain.h"
-
 // C++
 #include <sstream>
 
@@ -20,7 +17,7 @@
 #include "ASIMPhotodetectorSD.hh"
 #include "ASIMReadoutManager.hh"
 #include "ASIMReadoutMessenger.hh"
-//#include "MPIManager.hh"
+// #include "MPIManager.hh"
 
 
 ASIMReadoutManager *ASIMReadoutManager::ASIMReadoutMgr = NULL;
@@ -36,7 +33,7 @@ ASIMReadoutManager::ASIMReadoutManager(G4bool arch)
 {
   if(ASIMReadoutMgr != NULL)
     G4Exception("ASIMReadoutManager::ASIMReadoutManager()", 
-		"ASIMReadoutManager-Excepction00", 
+		"ASIMReadoutManager-Exception00", 
 		FatalException, 
 		"\nThe Meyer's singletone ASIMReadoutManager was constructed twice!\n");
   else 

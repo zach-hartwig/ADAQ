@@ -14,9 +14,14 @@
 #       the data that is provided by libASIMReadout into ASIM
 #       files. The libASIMStorage.so library, unlike the
 #       libASIMReadout.so library, intentionally does *not* require
-#       the Geant4 libraries/headers and so may be utilized into a
-#       user's code for the analysis of ASIM files on without
-#       necessitating a Geant4 install.
+#       any Geant4 libraries/headers. Thus, libASIMStorage.so may be
+#       compiled on any system without Geant4 and utilized into a
+#       user's code for the analysis of ASIM file.
+#
+#       The libASIMStorage.so library is always built;
+#       libASIMReadout.so is only built if Geant4 is detected on the
+#       user's system via the existence of a deifned G4INSTALL
+#       environmental variable.
 #
 #       Both libraries are built locally within the build/ directory
 #       when 'make' is called and then copied - along with the header
@@ -30,7 +35,7 @@
 #
 #       libADAQStorage.so requires
 #       -- The ROOT toolkit (v5.34.30 latest tested)
-#       -- The Geant4 toolkit (v10.01 latest tested)
+#       -- The Geant4 toolkit (v10.01.p02 latest tested)
 #
 # 2run: To build the libraries locally
 #       $ make
@@ -110,22 +115,25 @@ S_OBJS += $(BUILDDIR)/ASIMStorageDict.o
 S_TARGET = $(BUILDDIR)/libASIMStorage.so
 
 
+#***************************#
+# **** TARGET SELECTION ****#
+#***************************#
+
+# Always build the libASIMStorage.so library ...
+TARGETS = $(S_TARGET)
+
+# ... also build the libASIMReadout.so library if Geant4 is detected
+ifdef G4INSTALL
+   TARGETS += $(R_TARGET)
+endif
+
+# Set the makefile targets for building
+all: $(TARGETS)
+
+
 #***************#
 #**** RULES ****#
 #***************#
-
-all: $(R_TARGET) $(S_TARGET)
-
-# Build the libASIMReadout.so library
-
-$(R_TARGET) : $(R_OBJS) $(INCLS)
-	@echo -e "\nBuilding $@ ..."
-	$(CXX) $(CXXFLAGS) -g $(R_OBJS) $(ROOTLIBS) -shared -o $@ 
-	@echo -e "\n$@ build is complete!\n"
-
-$(BUILDDIR)/%.o : $(SRCDIR)/%.cc $(INCLS)
-	@echo -e "\nBuilding object file '$@' ..."
-	$(CXX) $(CXXFLAGS) -g -c -o $@ $<
 
 # Build the libASIMStorage.so library
 
@@ -144,9 +152,23 @@ $(BUILDDIR)/ASIMStorageDict.o : $(BUILDDIR)/ASIMStorageDict.cc
 
 $(BUILDDIR)/ASIMStorageDict.cc : $(ROOTDICTINCLS) $(INCLDIR)/RootLinkDef.h
 	@echo -e "\nGenerating ROOT dictionary '$@' ..."
-	rootcint -f $@ -c $^ 
+	rootcint -f $@ -c $^
 
-# PHONY rules
+# Build the libASIMReadout.so library
+
+$(R_TARGET) : $(R_OBJS) $(INCLS)
+	@echo -e "\nBuilding $@ ..."
+	$(CXX) $(CXXFLAGS) -g $(R_OBJS) $(ROOTLIBS) -shared -o $@ 
+	@echo -e "\n$@ build is complete!\n"
+
+$(BUILDDIR)/%.o : $(SRCDIR)/%.cc $(INCLS)
+	@echo -e "\nBuilding object file '$@' ..."
+	$(CXX) $(CXXFLAGS) -g -c -o $@ $<
+
+
+#********************#
+#*** PHONY rules ****#
+#********************#
 
 .PHONY:
 
@@ -159,7 +181,7 @@ clean:
 # Install libs and headers into top-level ADAQ directory
 install:
 	@echo -e "\nInstalling the ASIM libraries into $(ADAQ)/lib/$(ARCH) ..."
-	@cp -v $(R_TARGET) $(S_TARGET) $(DESTLIB)
+	@cp -v $(TARGETS) $(DESTLIB)
 	@echo -e "\nInstalling the ASIM headers into $(ADAQ)/include ..."
 	@cp -v include/*.hh $(DESTINCL)
 	@echo -e ""

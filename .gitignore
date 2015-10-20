@@ -14,6 +14,7 @@
 # installed on the system during the build from source
 include/ADAQ*.hh
 include/ASIM*.hh
+include/MPI*.hh
 include/RootLinkDef.h
 
 lib/i686/*ADAQ*

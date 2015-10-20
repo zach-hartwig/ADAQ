@@ -79,7 +79,7 @@ CXX=clang++
 # Newest version of G4 with ROOT results in massive warnings output
 # since ROOT local variable 's' shadows the G4Unit 's' for
 # seconds. This doesn't effect anything so suppress warning.
-CXXFLAGS := $(subst -Wshadow,,$(CXXFLAGS))
+CXXFLAGS := $(subst -Wshadow,,$(CXXFLAGS))# -DMPI_ENABLED
 
 
 ##########
@@ -109,13 +109,13 @@ lib/ASIMExampleDict.cc : include/RootLinkDef.hh
 
 
 ########
-# ADAQ #
+# ASIM #
 ########
 
-# The ADAQ Simulation Readout (ASIM) library is used for readout of
+# The ADAQ Simulation Readout (ASIM) libraries are used for readout of
 # detector data into persistent ROOT simulation (*.asim.root) files
 CPPFLAGS += -I$(ADAQHOME)/include
-LDLIBS += -L$(ADAQHOME)/lib/$(HOSTTYPE) -lASIMReadout
+LDLIBS += -L$(ADAQHOME)/lib/$(HOSTTYPE) -lASIMReadout -lASIMStorage
 
 
 #########################

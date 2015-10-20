@@ -8,7 +8,7 @@
 
 #include <ctime>
 
-#ifdef ASIM_MPI_ENABLED
+#ifdef MPI_ENABLED
 #include "MPIManager.hh"
 #endif
 #include "ASIMReadoutManager.hh"

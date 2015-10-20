@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
 // name: ASIMStorageManager.cc
-// date: 23 Dec 14
+// date: 20 Oct 15
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 // 
@@ -74,9 +74,7 @@ void ASIMStorageManager::CreateSequentialFile(std::string Name)
 }
 
 
-void ASIMStorageManager::CreateParallelFile(std::string Name,
-					    Int_t Rank,
-					    Int_t Size)
+void ASIMStorageManager::CreateParallelFile(std::string Name)
 {
   if(ASIMFileOpen){
     std::cout << "ASIMStorageManager::CreateParallelFile():\n"
@@ -87,14 +85,17 @@ void ASIMStorageManager::CreateParallelFile(std::string Name,
     
     return;
   }
-  
-  // Set MPI rank and size class members
-  MPI_Rank = Rank;
-  MPI_Size = Size;
 
-  // Generate names for all slaves ASIM files based on rank
+  // Get the number of MPI nodes (MPI_Size) and the unique ID for the
+  // present node (MPI_Rank);
+#ifdef MPI_ENABLED
+  MPIManager *theMPIManager = MPIManager::GetInstance();
+  MPI_Size = theMPIManager->GetSize();
+  MPI_Rank = theMPIManager->GetRank();
+#endif
+  
   std::stringstream SS;
-  SS << Name << ".slave" << Rank;
+  SS << Name << ".slave" << MPI_Rank;
   ASIMFileName = SS.str();
   GenerateSlaveFileNames();
   
@@ -123,7 +124,6 @@ void ASIMStorageManager::GenerateSlaveFileNames()
       SlaveFileNames.push_back((TString)SS.str());
     }
     else
-      // Should generate exception
       {}
   }
 }
@@ -154,9 +154,9 @@ void ASIMStorageManager::WriteParallelFile()
 {
   if(!ASIMFileOpen)
     return;
-
+  
   std::string Name = ASIMFileName.Data();
-
+  
   // All slaves should write out the event TTrees contained on each
   // slave node to a node-specific ROOT file and then close the file
   EventTreeList->Write();

@@ -65,43 +65,43 @@ ASIMReadoutManager::~ASIMReadoutManager()
 void ASIMReadoutManager::InitializeASIMFile()
 {
   if(ASIMStorageMgr->GetASIMFileOpen()){
-    G4cout << "\nASIMReadoutManager : An ASIM file is presently open for data output! A new file cannot be opened\n"
-	   <<   "                     until the existing ASIM file is written to disk via the /ASIM/write command.\n"
+    G4cout << "\nASIMReadoutManager::InitializeASIMFile():\n"
+	   <<   "   An ASIM file is presently open for data output! A new file cannot be opened\n"
+	   <<   "  until the existing ASIM file is written to disk via the /ASIM/write command.\n"
 	   << G4endl;
     
     return;
   }
-  
-#ifdef MPI_ENABLED
-  MPIManager *theMPIManager = MPIManager::GetInstance();
-  MPI_Rank = theMPIManager->GetRank();
-  MPI_Size = theMPIManager->GetSize();
-#endif
-  
+
+  // Create new architecture-specific ASIM files to receive data
+
   if(parallelArchitecture)
-    ASIMStorageMgr->CreateParallelFile(ASIMFileName, MPI_Rank, MPI_Size);
+    ASIMStorageMgr->CreateParallelFile(ASIMFileName);
   else
     ASIMStorageMgr->CreateSequentialFile(ASIMFileName);
 }
-  
+
   
 void ASIMReadoutManager::WriteASIMFile(G4bool EmergencyWrite)
 {
   if(!ASIMStorageMgr->GetASIMFileOpen()){
-    G4cout << "\nASIMReadoutManager : There is no valid ASIM file presently open for writing! A new ASIM file should\n"
-           <<   "                     first be created via the /ASIM/init command.\n"
+    G4cout << "\nASIMReadoutManager::WriteASIMFile():\n"
+	   <<   "  There is no valid ASIM file presently open for writing! A new ASIM file should\n"
+           <<   "  first be created via the /ASIM/init command.\n"
 	   << G4endl;
     
     return;
   }
   
   if(EmergencyWrite)
-    G4cout << "\nASIMReadoutManager : The ASIM file that presently exists with data is being written to disk in\n"
-           <<   "                     emergency fashion to avoid losing critical data before the simulation\n"
-	   <<   "                     terminates. Please issue the /ASIM/write command before exiting next time!\n"
+    G4cout << "\nASIMReadoutManager::WriteASIMFile():\n"
+	   <<   "  The ASIM file that presently exists with data is being written to disk in\n"
+           <<   "  emergency fashion to avoid losing critical data before the simulation\n"
+	   <<   "  terminates. Please issue the /ASIM/write command before exiting next time!\n"
 	   << G4endl;
   
-  // Parallel readout to the ASIM file
+  // Perform the final write-to-disk for the ASIM files
+  
   if(parallelArchitecture)
     ASIMStorageMgr->WriteParallelFile();
   else
@@ -468,19 +468,19 @@ void ASIMReadoutManager::HandleOpticalPhotonDetection(const G4Step *CurrentStep)
 
 void ASIMReadoutManager::ReduceSlaveValuesToMaster()
 {
-#ifdef SPARROW_MPI_ENABLED
+#ifdef MPI_ENABLED
   
   G4cout << "\nASIMReadoutManager : Beginning the MPI reduction of data to the master!"
 	 << G4endl;
-
+  
   MPIManager *theMPImanager = MPIManager::GetInstance();
-
-  /*
-  detectorIncidents = theMPImanager->SumDoublesToMaster(detectorIncidents);
-  detectorHits = theMPImanager->SumDoublesToMaster(detectorHits);
-  detectorPhotonsCreated = theMPImanager->SumDoublesToMaster(detectorPhotonsCreated);
-  detectorPhotonsDetected = theMPImanager->SumDoublesToMaster(detectorPhotonsDetected);
-  */
+  
+  Incidents = theMPImanager->SumIntsToMaster(Incidents);
+  Hits = theMPImanager->SumIntsToMaster(Hits);
+  RunEDep = theMPImanager->SumDoublesToMaster(RunEDep);
+  PhotonsCreated = theMPImanager->SumDoublesToMaster(PhotonsCreated);
+  PhotonsDetected = theMPImanager->SumDoublesToMaster(PhotonsDetected);
+  
   G4cout << "\nASIMReadoutManager : Finished the MPI reduction of values to the master!\n"
 	 << G4endl;
 #endif
@@ -492,7 +492,8 @@ void ASIMReadoutManager::SetActiveReadout(G4int R)
   if(R<NumReadouts)
     ActiveReadout = R;
   else
-    G4cout << "\nASIMReadoutManager : Error! Specified readout number does not exist!\n"
+    G4cout << "\nASIMReadoutManager::SetActiveReadout():\n"
+	   <<   "  The specified readout does not exist and therefore cannot be activated!\n"
 	   << G4endl;
 }
 

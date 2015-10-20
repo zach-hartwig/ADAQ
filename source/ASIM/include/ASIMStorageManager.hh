@@ -46,7 +46,7 @@ public:
   // Methods for ASIM file handling //
 
   void CreateSequentialFile(std::string);
-  void CreateParallelFile(std::string, Int_t, Int_t);
+  void CreateParallelFile(std::string);
   void GenerateSlaveFileNames();
   void WriteSequentialFile();
   void WriteParallelFile();
@@ -74,13 +74,6 @@ public:
   Int_t GetNumberOfRuns();
   void ListRuns();
   void WriteRuns();
-
-  // Methods for 
-
-
-
-
-  
 
   // Set/Get methods for class member data
   

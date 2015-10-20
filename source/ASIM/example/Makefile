@@ -95,8 +95,6 @@ ROOTDISTLIBS = $(shell root-config --nonew --libs --glibs)
 CPPFLAGS += $(ROOTINCLUDES)
 LDLIBS += $(ROOTDISTLIBS) -L./lib -lASIMExampleRoot
 
-ACRO_ROOT_FILES = $(wildcard include/*.rhh)
-
 lib/libASIMExampleRoot.so : lib/ASIMExampleDict.o 
 	@echo -e "\nBuilding the ASIMExample ROOT library ...\n"
 	@$(CXX) -shared -o $@  $^
@@ -105,7 +103,7 @@ lib/ASIMExampleDict.o : lib/ASIMExampleDict.cc
 	@echo -e "Building $@ ..."
 	@$(CXX) $(CXXFLAGS) $(ROOTINCLUDES) -I. -c -o $@ $<
 
-lib/ASIMExampleDict.cc : $(ACRO_ROOT_FILES) include/RootLinkDef.hh
+lib/ASIMExampleDict.cc : include/RootLinkDef.hh
 	@echo -e "Generating the ASIMExample ROOT dictionary ..."
 	@rootcint -f $@ -c $^
 
@@ -116,10 +114,8 @@ lib/ASIMExampleDict.cc : $(ACRO_ROOT_FILES) include/RootLinkDef.hh
 
 # The ADAQ Simulation Readout (ASIM) library is used for readout of
 # detector data into persistent ROOT simulation (*.asim.root) files
-# CPPFLAGS += -I$(ADAQHOME)/include
-# LDLIBS += -L$(ADAQHOME)/lib/$(HOSTTYPE) -lASIMReadout
-CPPFLAGS += -I../include
-LDLIBS += -L../build -lASIMReadout -lASIMStorage
+CPPFLAGS += -I$(ADAQHOME)/include
+LDLIBS += -L$(ADAQHOME)/lib/$(HOSTTYPE) -lASIMReadout
 
 
 #########################

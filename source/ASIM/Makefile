@@ -99,7 +99,8 @@ R_SRCS = $(SRCDIR)/ASIMPhotodetectorSD.cc \
          $(SRCDIR)/ASIMReadoutManager.cc \
          $(SRCDIR)/ASIMReadoutMessenger.cc \
          $(SRCDIR)/ASIMScintillatorSD.cc \
-         $(SRCDIR)/ASIMScintillatorSDHit.cc 
+         $(SRCDIR)/ASIMScintillatorSDHit.cc \
+	 $(SRCDIR)/MPIManager.cc
 R_TMP = $(patsubst %.cc,%.o,$(R_SRCS))
 R_OBJS = $(subst src/,build/,$(R_TMP))
 R_TARGET =$(BUILDDIR)/libASIMReadout.so

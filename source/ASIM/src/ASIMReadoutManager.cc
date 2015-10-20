@@ -17,7 +17,7 @@
 #include "ASIMPhotodetectorSD.hh"
 #include "ASIMReadoutManager.hh"
 #include "ASIMReadoutMessenger.hh"
-// #include "MPIManager.hh"
+#include "MPIManager.hh"
 
 
 ASIMReadoutManager *ASIMReadoutManager::ASIMReadoutMgr = NULL;
@@ -72,7 +72,7 @@ void ASIMReadoutManager::InitializeASIMFile()
     return;
   }
   
-#ifdef ASIM_MPI_ENABLED
+#ifdef MPI_ENABLED
   MPIManager *theMPIManager = MPIManager::GetInstance();
   MPI_Rank = theMPIManager->GetRank();
   MPI_Size = theMPIManager->GetSize();
@@ -347,7 +347,7 @@ void ASIMReadoutManager::FillRunSummary(const G4Run *currentRun)
 
     ASIMRunSummary->SetRunID( currentRun->GetRunID() );
 
-#ifdef ASIM_MPI_ENABLED
+#ifdef MPI_ENABLED
     if(parallelArchitecture)
       ASIMRunSummary->SetTotalEvents( MPIManager::GetInstance()->GetTotalEvents() );
     else

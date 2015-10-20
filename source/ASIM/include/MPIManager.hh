@@ -42,7 +42,7 @@
 #include <fstream>
 
 /// ASIM
-#include "MPIMessenger.hh"
+class MPIMessenger;
 
 class MPIManager
 {

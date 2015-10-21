@@ -31,6 +31,7 @@
 
 // ASIM
 #include "ASIMStorageManager.hh"
+#include "MPIManager.hh"
 
 
 ASIMStorageManager::ASIMStorageManager()

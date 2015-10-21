@@ -466,6 +466,8 @@ void ASIMReadoutManager::HandleOpticalPhotonDetection(const G4Step *CurrentStep)
 }
 
 
+// Method used in parallel to aggregate run-level data on each slave
+// into single values on the master after the run has concluded
 void ASIMReadoutManager::ReduceSlaveValuesToMaster()
 {
 #ifdef MPI_ENABLED
@@ -474,12 +476,14 @@ void ASIMReadoutManager::ReduceSlaveValuesToMaster()
 	 << G4endl;
   
   MPIManager *theMPImanager = MPIManager::GetInstance();
-  
-  Incidents = theMPImanager->SumIntsToMaster(Incidents);
-  Hits = theMPImanager->SumIntsToMaster(Hits);
-  RunEDep = theMPImanager->SumDoublesToMaster(RunEDep);
-  PhotonsCreated = theMPImanager->SumDoublesToMaster(PhotonsCreated);
-  PhotonsDetected = theMPImanager->SumDoublesToMaster(PhotonsDetected);
+
+  for(G4int r=0; r<NumReadouts; r++){
+    Incidents[r] = theMPImanager->SumIntsToMaster(Incidents[r]);
+    Hits[r] = theMPImanager->SumIntsToMaster(Hits[r]);
+    RunEDep[r] = theMPImanager->SumDoublesToMaster(RunEDep[r]);
+    PhotonsCreated[r] = theMPImanager->SumDoublesToMaster(PhotonsCreated[r]);
+    PhotonsDetected[r] = theMPImanager->SumDoublesToMaster(PhotonsDetected[r]);
+  }
   
   G4cout << "\nASIMReadoutManager : Finished the MPI reduction of values to the master!\n"
 	 << G4endl;

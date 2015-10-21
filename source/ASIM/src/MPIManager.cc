@@ -146,7 +146,7 @@ void MPIManager::BeamOn(G4double events, G4bool distribute)
     masterEvents = G4int(events-slaveEvents*(size-1));
     
     if(isMaster) {
-      G4cout << "\MPI MANAGER ANNOUNCEMENT: # events in master = " << masterEvents 
+      G4cout << "\nMPI MANAGER ANNOUNCEMENT: # events in master = " << masterEvents 
 	     << " / # events in slave = "  << slaveEvents << "\n" << G4endl;
     }
     

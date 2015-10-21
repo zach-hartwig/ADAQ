@@ -1,9 +1,30 @@
 ## The ADAQ Libraries Source Code Change Log
 
 name: Changelog.md  
-date: 26 Aug 15 (last updated)  
+date: 21 Oct 15 (last updated)  
 auth: Zach Hartwig  
 mail: hartwig@psfc.mit.edu
+
+## Version 1.4 Series
+
+### 1.4.0
+
+ - Releasing production version of ASIM library to enable
+   comprehensive, easy integration of ADAQ framework with Geant4
+   simulation. Enables readout of simulated deetector data into ASIM 
+   files that can be analyzed with the powerfulADAQAnalysis tool.
+
+ - Releasing example Geant4 simulation (ASIMExample) to show how to
+   integrate ASIM libraries into a user's simulation
+
+ - Enabled the CAEN V1725 digitizer within the ADAQControl
+   library. Initial testing demonstrated full compatibility
+
+ - Updated CAENUSBdrvB driver to v1.5.1; updated CAENDigitizer library
+   to 2.6.7. Both are most up-to-date.
+
+ - Update to all libraries Makefiles and the BuildLibraries.sh script
+   to ensure correct building on basic Linux platforms
 
 
 ## Version 1.2 Series

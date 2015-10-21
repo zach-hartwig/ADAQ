@@ -1,19 +1,19 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
 // name: ASIMEvent.hh
-// date: 23 Dec 14
+// date: 20 Oct 15
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 // 
 // desc: The ASIMEvent class provides a generic container for the
 //       essential event-level data of a particle detector that is
-//       modelled with Monte Carlo particle transport methods. This
-//       class is designed to provide a straightforward and universal
-//       method of persistently storing event-level data for later
-//       analysis within the ADAQ framework. This class is designed to
-//       be used within the ROOT framework and utilizes ROOT data
-//       types to ensure compatibility with post-simulation analysis
-//       tools built using ROOT and for portability between platforms.
+//       modelled within Geant4. The class is designed to provide a
+//       straightforward and universal method of persistently storing
+//       event-level data for later analysis within the ADAQ
+//       framework. This class is designed to be used within the ROOT
+//       framework and utilizes ROOT data types to ensure
+//       compatibility with post-simulation analysis tools built using
+//       ROOT and for portability between platforms.
 //
 /////////////////////////////////////////////////////////////////////////////////
 

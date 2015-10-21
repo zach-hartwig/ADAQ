@@ -32,8 +32,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////////
 
-#ifndef MPIManager_hh
-#define MPIManager_hh 1
+#ifndef __MPIManager_hh__
+#define __MPIManager_hh__ 1
 
 // Geant4
 #include "globals.hh"

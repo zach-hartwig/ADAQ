@@ -5,18 +5,17 @@
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 // 
-// desc: The ASIMStorageManager class provides a framework for reading
-//       out simulated detector data into a standardized format ROOT
-//       file (called an ASIM file). THe primary purpose is to provide
-//       a standardized, flexible method for high efficiency detector
-//       data persistency and post-simulation data analysis using
-//       software tools (e.g. the ADAQAnalysis program). The class
-//       utilizes the ADAQSimulationEvent and ADAQSimultionRun classes
-//       for containerized data storage with ROOT TCollection objects
-//       to facilitate data storage. The class is primarily developed
-//       for use with Geant4 "Sensitive Detectors" but in principle
-//       could be used by any Monte Carlo simulation that can be
-//       integrated with the ROOT toolkit.
+// desc: The ASIMStorageManager class handles the persistent storage
+//       of simulated Geant4 detector data in a standardized ROOT file
+//       known as an ASIM file. The data is obtained by its sister
+//       class ASIMReadoutManager, which handles the extraction of
+//       data from within the Geant4 simulation and then hands it off
+//       to the ASIMStorageManager for persistent storage to
+//       disk. This class makes heavy use of ROOT classes to perform
+//       its data storage task. Stored data includes thereadout of
+//       file metadata, event-level information (e.g. energy
+//       deposition), and run-level information (e.g. total hits on a
+//       sensitive detector).
 //
 /////////////////////////////////////////////////////////////////////////////////
 

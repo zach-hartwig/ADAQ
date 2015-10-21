@@ -13,8 +13,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////////
 
-#ifndef MPIMessenger_hh
-#define MPIMessenger_hh 1
+#ifndef __MPIMessenger_hh__
+#define __MPIMessenger_hh__ 1
 
 // Geant4
 #include "G4UImessenger.hh"

@@ -1,3 +1,20 @@
+/////////////////////////////////////////////////////////////////////////////////
+//
+// name: ASIMReadoutManager.cc
+// date: 20 Oct 15
+// auth: Zach Hartwig
+// mail: hartwig@psfc.mit.edu
+// 
+// desc: The ASIMReadoutManager class handles the automated extraction
+//       of Geant4 simulated detector data for "readouts" that are
+//       registered by the user. Each "readout" is attached to an
+//       individual G4SensitiveDetector object as the hook into
+//       extracting Geant4 data. Once extracted, the data is handed to
+//       its sister class ASIMStorageManager for persistent storage to
+//       disk in a standardized ROOT file known as an ASIM File.
+//
+/////////////////////////////////////////////////////////////////////////////////
+
 // Geant4
 #include "G4SDManager.hh"
 #include "G4ParticleTypes.hh"

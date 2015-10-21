@@ -90,7 +90,19 @@ SRCDIR = src
 INCLS = $(wildcard $(INCLDIR)/*.hh)
 
 # List of headers necessary for ROOT dictionary generation
-ROOTDICTINCLS = $(INCLDIR)/ASIMEvent.hh $(INCLDIR)/ASIMRun.hh $(INCLDIR)/ASIMStorageManager.hh
+ROOTDICTINCLS = $(INCLDIR)/ASIMEvent.hh \
+                $(INCLDIR)/ASIMRun.hh \
+                $(INCLDIR)/ASIMStorageManager.hh \
+                $(INCLDIR)/RootLinkDef.h # Must be last in list
+
+ifeq ($(PROC),PAR)
+
+  # Specify the Open MPI C++ compiler
+  CXX = mpic++
+
+  # Specify necessary compiler flags
+  CXXFLAGS += -DMPI_ENABLED -I$(MPIHOME)/include -fPIC
+endif
 
 # Specify necessary files for the R(eadout) library
 
@@ -100,7 +112,8 @@ R_SRCS = $(SRCDIR)/ASIMPhotodetectorSD.cc \
          $(SRCDIR)/ASIMReadoutMessenger.cc \
          $(SRCDIR)/ASIMScintillatorSD.cc \
          $(SRCDIR)/ASIMScintillatorSDHit.cc \
-	 $(SRCDIR)/MPIManager.cc
+	 $(SRCDIR)/MPIManager.cc \
+	 $(SRCDIR)/MPIMessenger.cc
 R_TMP = $(patsubst %.cc,%.o,$(R_SRCS))
 R_OBJS = $(subst src/,build/,$(R_TMP))
 R_TARGET =$(BUILDDIR)/libASIMReadout.so
@@ -151,7 +164,7 @@ $(BUILDDIR)/ASIMStorageDict.o : $(BUILDDIR)/ASIMStorageDict.cc
 	@echo -e "\nBuilding '$@' ..."
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-$(BUILDDIR)/ASIMStorageDict.cc : $(ROOTDICTINCLS) $(INCLDIR)/RootLinkDef.h
+$(BUILDDIR)/ASIMStorageDict.cc : $(ROOTDICTINCLS)
 	@echo -e "\nGenerating ROOT dictionary '$@' ..."
 	rootcint -f $@ -c $^
 

@@ -20,14 +20,14 @@
 #
 #############################################################################
 
-# Sequential and parallel binary names
-SEQ_TARGET := ASIMExample
-PAR_TARGET := ASIMExample_MPI
+# Name for the binary
+name := ASIMExample
 
+# Name for the associated ROOT shared object library
 ASIMExampleLIBS := libASIMExampleRoot.so
 
-# Architecture: sequential (default), parallel (set by .PHONY 'parallel')
-ARCH := sequential
+# Define sequential (SEQ) processing as the default build mode
+PROC := SEQ
 
 
 ##################
@@ -37,12 +37,6 @@ ARCH := sequential
 # Set the architecture-dependent 'name' and G4TARGET variables. Note
 # that the 'name' variable is required to set the name of the build
 # directory in $G4INSTALL/tmp/$G4SYSTEM directory.
-
-ifeq ($(ARCH),sequential)
-  name := $(SEQ_TARGET)
-else
-  name := $(PAR_TARGET)
-endif
 
 G4TARGET := $(name)
 G4EXLIB := true
@@ -54,32 +48,15 @@ endif
  .PHONY: all
 all: lib/$(ASIMExampleLIBS) lib bin
 
-# Exclude visualization for parallelized builds on PSFC Loki cluster,
-# which is named 'head' via HOSTNAME env. variable
-#
-# Summary:
-#   sws/cmodws (both) : enabled
-#   Loki (serial)     : enabled
-#   Loki (parallel)   : disabled
-
-ifeq ($(HOSTNAME),head)
-  ifeq ($(ARCH),parallel)
-    include $(G4INSTALL)/config/binmake.gmk#.NO_VISUALIZATION
-  else
-    include $(G4INSTALL)/config/binmake.gmk
-  endif	
+ifeq ($(PROC),PAR)
+  include $(G4INSTALL)/config/binmake.gmk#.NO_VISUALIZATION
 else
   include $(G4INSTALL)/config/binmake.gmk
 endif
 
-# Now that G4 Makefile is included we can update the compilers
-CC=clang
-CXX=clang++
-
-# Newest version of G4 with ROOT results in massive warnings output
-# since ROOT local variable 's' shadows the G4Unit 's' for
-# seconds. This doesn't effect anything so suppress warning.
-CXXFLAGS := $(subst -Wshadow,,$(CXXFLAGS))# -DMPI_ENABLED
+# Prevent shadow warnings needed to suppress ROOT/Geant4 shadowing
+# mainly of global variable "s". This may come back to bite me...
+CXXFLAGS := $(subst -Wshadow,,$(CXXFLAGS))
 
 
 ##########
@@ -122,20 +99,19 @@ LDLIBS += -L$(ADAQHOME)/lib/$(HOSTTYPE) -lASIMReadout -lASIMStorage
 #  Parallization / MPI  #
 #########################
 
-# Necessary flags to build ASIMExample with MPI parallelization via the
-# customized acroMPImanager/messenger interface.  This conditional is
-# triggered automatically via the "parallel.sh" build script.
-ifeq ($(ARCH),parallel)
+# Necessary flags to build ASIMExample with MPI parallelization. Note
+# that the user should have the environment variable MPIHOME set to
+# point to the top-level Open MPI installation directory
+ifeq ($(PROC),PAR)
 
   # Open MPI C++ compiler
   CXX := mpic++
 
-  # Flag for parallel build enabled by parallel.sh 
-  ASIM_MPI_ENABLED := 1
+  # Flag for parallel build enabled by parallel.sh
+  MPI_ENABLED := 1
 
   # Necessary flags for parallel compilation
-  CPPFLAGS += -I$(MPIHOME)/include/ \
-              -DASIM_MPI_ENABLED
+  CPPFLAGS += -I$(MPIHOME)/include/ -DMPI_ENABLED
 endif
 
 
@@ -144,7 +120,3 @@ endif
 libclean:
 	@echo -e "\nCleaning up the ASIMExample libraries ...\n"
 	@rm lib/* -f
-
-flags:
-	@echo -e "\nCPPFLAGS = $(CPPFLAGS)\n"
-	@echo -e "CXXFLAGS = $(CXXFLAGS)\n"

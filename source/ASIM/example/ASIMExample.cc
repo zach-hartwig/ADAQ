@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
 // name: ASIMExample.cc
-// date: 25 Sep 15
+// date: 20 Oct 15
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 //
@@ -33,6 +33,9 @@
 
 // ASIM
 #include <ASIMReadoutManager.hh>
+#ifdef MPI_ENABLED
+#include "MPIManager.hh"
+#endif
 
 // ASIMExample
 #include "geometryConstruction.hh"
@@ -46,6 +49,16 @@
 
 int main(int argc, char *argv[])
 {
+  ////////////////////////////////////
+  // Sequential/parallel processing //
+  ////////////////////////////////////
+  
+  G4bool useParallelProcessing = false;
+#ifdef MPI_ENABLED
+  useParallelProcessing = true;
+#endif
+
+  
   ////////////////////////////////
   // Parse command line options //
   ////////////////////////////////
@@ -130,71 +143,107 @@ int main(int argc, char *argv[])
     UI->ApplyCommand("/control/execute runtime/ASIMExample.gps");
   }
 
+  /////////////////////////
+  // Parallel processing //
+  /////////////////////////
 
-  ///////////////////////////////////////////////////////////////
-  // Optionally initialize standard OpenGL or Qt visualziation //
-  ///////////////////////////////////////////////////////////////
-  
-  G4VisManager *visManager = NULL;
-  G4TrajectoryDrawByParticleID *colorModel = NULL;
-  if(visualization){
-    visManager = new G4VisExecutive;
-    visManager->Initialize();
-    
-    // Color particle by particle type
-    colorModel = new G4TrajectoryDrawByParticleID;
-    colorModel->Set("deuteron", "yellow");
-    colorModel->Set("neutron", "cyan");
-    colorModel->Set("gamma", "green");
-    colorModel->Set("e-", "red");
-    colorModel->Set("e+", "blue");
-    colorModel->Set("opticalphoton","magenta");
-    colorModel->SetDefault("gray");
-    visManager->RegisterModel(colorModel);
-    visManager->SelectTrajectoryModel(colorModel->Name());
-    
-    if(visQt){
-      G4UIExecutive *theUIExecutive = new G4UIExecutive(argc, argv, "Qt");
+  if(useParallelProcessing){
 
-      UI->ApplyCommand("/vis/open OGL");
-      UI->ApplyCommand("/control/execute runtime/ASIMExample.vis");
+#ifdef MPI_ENABLED
 
-      theUIExecutive->SessionStart();
-      delete theUIExecutive;
-    }
-    else{
-      UI->ApplyCommand("/vis/open OGLIX");
-      UI->ApplyCommand("/control/execute runtime/ASIMExample.vis");
-    }
-  }
+    const G4int argcMPI = 2;
+    char *argvMPI[argcMPI];
+    argvMPI[0] = argv[0]; // binary name
+    argvMPI[1] = (char *)"slaveForum/Slave"; // slave file base name
 
-  if(!visQt){
-    // Create a decent 'tcsh'-like prompt for tab completion, command
-    // history, etc.  Also, style points for cooler prompt
-    G4String prompt = "ASIMExample >> ";
-    G4int histories = 200;
-    G4UItcsh *shell = new G4UItcsh(prompt, histories);
-    G4UIsession* session = new G4UIterminal(shell);
+    MPIManager *theMPIManager= new MPIManager(argcMPI,argvMPI);
+    G4int MPI_Rank = theMPIManager->GetRank();
     
-    // As Gallagher famously said: "STYYYYYYYYYYYYYLE!!"
-    G4cout << "\n\n \t ******************************************************************\n"
-	   <<     " \t ******                                                      ******\n"
-	   <<     " \t ****           Welcome to the ASIMExample simulation          ****\n"
-	   <<     " \t **                                                              **\n"
-	   <<     " \t ******************************************************************\n"
-	   << G4endl;
+    std::string arg2 = argv[4];
+    if(arg2=="seed")
+      CLHEP::HepRandom::setTheSeed(time(0) + MPI_Rank);
     
-    session->SessionStart();
-
-    ////////////////////////
-    // Garbage collection //
-    ////////////////////////
+    G4String macroCmd = "/control/execute runtime/ASIMExample.mpi.mac";
+    UI->ApplyCommand(macroCmd);
     
-    delete session;
+    delete theMPIManager;
+    
+#endif
+    
   }
   
-  if(visualization){
-    delete colorModel;
+  
+  ///////////////////////////
+  // Sequential processing //
+  ///////////////////////////
+  else{
+
+    ///////////////////////////////////////////////////////////////
+    // Optionally initialize standard OpenGL or Qt visualziation //
+    ///////////////////////////////////////////////////////////////
+
+    G4VisManager *visManager = NULL;
+    G4TrajectoryDrawByParticleID *colorModel = NULL;
+    if(visualization){
+      visManager = new G4VisExecutive;
+      visManager->Initialize();
+    
+      // Color particle by particle type
+      colorModel = new G4TrajectoryDrawByParticleID;
+      colorModel->Set("deuteron", "yellow");
+      colorModel->Set("neutron", "cyan");
+      colorModel->Set("gamma", "green");
+      colorModel->Set("e-", "red");
+      colorModel->Set("e+", "blue");
+      colorModel->Set("opticalphoton","magenta");
+      colorModel->SetDefault("gray");
+      visManager->RegisterModel(colorModel);
+      visManager->SelectTrajectoryModel(colorModel->Name());
+    
+      if(visQt){
+	G4UIExecutive *theUIExecutive = new G4UIExecutive(argc, argv, "Qt");
+
+	UI->ApplyCommand("/vis/open OGL");
+	UI->ApplyCommand("/control/execute runtime/ASIMExample.vis");
+
+	theUIExecutive->SessionStart();
+	delete theUIExecutive;
+      }
+      else{
+	UI->ApplyCommand("/vis/open OGLIX");
+	UI->ApplyCommand("/control/execute runtime/ASIMExample.vis");
+      }
+    }
+
+    if(!visQt){
+      // Create a decent 'tcsh'-like prompt for tab completion, command
+      // history, etc.  Also, style points for cooler prompt
+      G4String prompt = "ASIMExample >> ";
+      G4int histories = 200;
+      G4UItcsh *shell = new G4UItcsh(prompt, histories);
+      G4UIsession* session = new G4UIterminal(shell);
+    
+      // As Gallagher famously said: "STYYYYYYYYYYYYYLE!!"
+      G4cout << "\n\n \t ******************************************************************\n"
+	     <<     " \t ******                                                      ******\n"
+	     <<     " \t ****           Welcome to the ASIMExample simulation          ****\n"
+	     <<     " \t **                                                              **\n"
+	     <<     " \t ******************************************************************\n"
+	     << G4endl;
+    
+      session->SessionStart();
+    
+
+      ////////////////////////
+      // Garbage collection //
+      ////////////////////////
+      
+      delete session;
+    }
+  
+    if(visualization){
+      delete colorModel;
+    }
   }
   
   if(theReadoutManager->CheckForOpenASIMFile())

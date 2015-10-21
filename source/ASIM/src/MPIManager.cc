@@ -103,10 +103,10 @@ MPIManager::MPIManager(int argcMPI, char *argvMPI[])
 
   if(theMPImanager)
     G4Exception("MPIManager::MPIManager()",
-		"MPIManagerException001",
+		"MPIManager-Exception00",
 		FatalException,
-		"\nError! The MPImanager was constructed twice!\n");
-
+		"The MPIManager singleton was constructed twice!\n");
+  
   theMPImanager = this;
 
   theMPImessenger = new MPIMessenger(this);

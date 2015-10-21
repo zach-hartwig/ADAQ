@@ -1,0 +1,36 @@
+#################################################################################
+#
+# name: ASIMExample.mpi.mac
+# date: 20 Oct 15
+# auth; Zach Hartwig
+# mail: hartwig@psfc.mit.edu
+# desc: Standard utility macro for automating runs when ASIMExample is
+#       built in parallel mode using Open MPI. This macro is
+#       automatically executed from within ASIMExample.cc during
+#       parallel execution.
+#
+#################################################################################
+#
+# Set the ASIM file name and initialize
+/ASIM/setFileName Cs137.asim.root
+/ASIM/init
+#
+# Apply gaussian broadening to the energy deposition
+/ASIM/setActiveReadout 0 # The BGO detector
+/ASIM/setEnergyBroadening true
+/ASIM/setEnergyEvaluation 0.662 MeV
+/ASIM/setEnergyResolution 14.0
+#
+/ASIM/setActiveReadout 1 # The NaI detector
+/ASIM/setEnergyBroadening true
+/ASIM/setEnergyEvaluation 0.662 MeV
+/ASIM/setEnergyResolution 8.0
+/ASIM/setWaveformStorage true
+#
+# Setup the particle source and run 1e5 events evenly
+# distributed across the master and slaves ('true')
+/gps/ene/mono 0.662 MeV
+/MPIManager/beamOn 100000
+#
+# Write the ASIM file to disk
+/ASIM/write

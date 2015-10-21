@@ -37,7 +37,7 @@ MPIMessenger::MPIMessenger(MPIManager *MPI)
   // the number of nodes used for processing.  The default is to
   // distribute events across all nodes.
 
-  mpiBeamOnCmd = new G4UIcmdWithAString("/MPIManager/mpiBeamOn", this);
+  mpiBeamOnCmd = new G4UIcmdWithAString("/MPIManager/beamOn", this);
   mpiBeamOnCmd->SetGuidance("Start a parallel run using the MPIManager to distribute events across the master");
   mpiBeamOnCmd->SetGuidance("and slaves according to the specified command line arguments. The distributeEvents");
   mpiBeamOnCmd->SetGuidance("flag determines if N events should be distributed evenly across all the available");

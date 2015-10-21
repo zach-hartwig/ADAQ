@@ -107,9 +107,6 @@ ifeq ($(PROC),PAR)
   # Open MPI C++ compiler
   CXX := mpic++
 
-  # Flag for parallel build enabled by parallel.sh
-  MPI_ENABLED := 1
-
   # Necessary flags for parallel compilation
   CPPFLAGS += -I$(MPIHOME)/include/ -DMPI_ENABLED
 endif

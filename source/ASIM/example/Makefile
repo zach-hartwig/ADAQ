@@ -1,7 +1,7 @@
 #############################################################################
 #
 # name: Makefile
-# date: 20 OCt 15
+# date: 20 Oct 15
 # auth: Zach Hartwig
 #
 # desc: This file is the GNU makefile that controls the ASIMExample build
@@ -18,13 +18,12 @@
 #
 #       To build the simulation with Open MPI for parallel processing
 #       (requires the ASIM libraries to be built with Open MPI)
-#         $ make PROC-PAR
+#         $ make PROC=PAR
 #
 # dpnd: 1. The ROOT toolkit (mandatory)
 #       2. The Boost C+ libraries (mandatory)
 #       3. ADAQ libraries (mandatory)
 #       4. Open MPI (optional)
-#
 #
 #############################################################################
 
@@ -54,7 +53,7 @@ ifndef G4INSTALL
 endif
 
  .PHONY: all
-all: lib/$(ASIMExampleLIBS) lib bin
+all: lib bin # lib/$(ASIMExampleLIBS)
 
 ifeq ($(PROC),PAR)
   include $(G4INSTALL)/config/binmake.gmk#.NO_VISUALIZATION
@@ -78,19 +77,24 @@ ROOTINCLUDES = -I$(shell root-config --incdir)
 ROOTDISTLIBS = $(shell root-config --nonew --libs --glibs)
 
 CPPFLAGS += $(ROOTINCLUDES)
-LDLIBS += $(ROOTDISTLIBS) -L./lib -lASIMExampleRoot
+LDLIBS += $(ROOTDISTLIBS)
 
-lib/libASIMExampleRoot.so : lib/ASIMExampleDict.o 
-	@echo -e "\nBuilding the ASIMExample ROOT library ...\n"
-	@$(CXX) -shared -o $@  $^
+# The following code enables the user to generate a ROOT dictionary is
+# necessary in order to use custom TObject-derived classes within ROOT
+# in post-processing. At present, there are no such classes so we'll
+# comment this out.
 
-lib/ASIMExampleDict.o : lib/ASIMExampleDict.cc
-	@echo -e "Building $@ ..."
-	@$(CXX) $(CXXFLAGS) $(ROOTINCLUDES) -I. -c -o $@ $<
+# lib/libASIMExampleRoot.so : lib/ASIMExampleDict.o 
+# 	@echo -e "\nBuilding the ASIMExample ROOT library ...\n"
+# 	@$(CXX) -shared -o $@  $^
 
-lib/ASIMExampleDict.cc : include/RootLinkDef.hh
-	@echo -e "Generating the ASIMExample ROOT dictionary ..."
-	@rootcint -f $@ -c $^
+# lib/ASIMExampleDict.o : lib/ASIMExampleDict.cc
+# 	@echo -e "Building $@ ..."
+# 	@$(CXX) $(CXXFLAGS) $(ROOTINCLUDES) -I. -c -o $@ $<
+
+# lib/ASIMExampleDict.cc : include/RootLinkDef.hh
+# 	@echo -e "Generating the ASIMExample ROOT dictionary ..."
+# 	@rootcint -f $@ -c $^
 
 
 ########

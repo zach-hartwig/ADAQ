@@ -49,28 +49,10 @@
 
 int main(int argc, char *argv[])
 {
-  ////////////////////////////////////
-  // Sequential/parallel processing //
-  ////////////////////////////////////
-  
-  G4bool useParallelProcessing = false;
-
-#ifdef MPI_ENABLED
-  useParallelProcessing = true;
-
-  const G4int argcMPI = 2;
-  char *argvMPI[argcMPI];
-  argvMPI[0] = argv[0]; // binary name
-  argvMPI[1] = (char *)"slaveForum/Slave"; // slave file base name
-  
-  MPIManager *theMPIManager= new MPIManager(argcMPI,argvMPI);
-#endif
-  
-  
   ////////////////////////////////
   // Parse command line options //
   ////////////////////////////////
-  
+
   G4bool visualization = false;
   G4bool visQt = false;
   if(argc>1){
@@ -83,15 +65,13 @@ int main(int argc, char *argv[])
     }
   }
 
-  
   G4bool UseNeutronHPPhysics = false;
   if(argc>2){
     std::string arg2 = argv[2];
     if(arg2=="hp")
       UseNeutronHPPhysics = true;
   }
-
-  
+ 
   G4bool UseOpticalPhysics = false;
   if(argc>3){
     std::string arg3 = argv[3];
@@ -99,12 +79,31 @@ int main(int argc, char *argv[])
       UseOpticalPhysics = true;
   }
   
-  
   if(argc>4){
     std::string arg2 = argv[4];
     if(arg2=="seed")
       CLHEP::HepRandom::setTheSeed(time(0));
   }
+
+  
+  ////////////////////////////////////
+  // Sequential/parallel processing //
+  ////////////////////////////////////
+  
+  G4bool useParallelProcessing = false;
+
+#ifdef MPI_ENABLED
+  useParallelProcessing = true;
+
+  // Declare faux command line arguments to pass to MPI; use static to
+  // ensure that only one copy is created to prevent memory issues
+  static const G4int argcMPI = 2;
+  static char *argvMPI[argcMPI];
+  argvMPI[0] = argv[0]; // binary name
+  argvMPI[1] = (char *)"slaveForum/Slave"; // slave file base name
+  
+  MPIManager *theMPIManager= new MPIManager(argcMPI, argvMPI);
+#endif
 
 
   /////////////////////////////////////////////////

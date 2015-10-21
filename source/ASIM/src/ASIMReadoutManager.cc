@@ -27,9 +27,9 @@ ASIMReadoutManager *ASIMReadoutManager::GetInstance()
 { return ASIMReadoutMgr; }
 
 
-ASIMReadoutManager::ASIMReadoutManager(G4bool arch)
-  : parallelArchitecture(!arch), MPI_Rank(0), MPI_Size(1),
-    NumReadouts(0)
+ASIMReadoutManager::ASIMReadoutManager()
+  : parallelProcessing(false), MPI_Rank(0), MPI_Size(1),
+    ActiveReadout(0), NumReadouts(0)
 {
   if(ASIMReadoutMgr != NULL)
     G4Exception("ASIMReadoutManager::ASIMReadoutManager()", 
@@ -72,10 +72,10 @@ void ASIMReadoutManager::InitializeASIMFile()
     
     return;
   }
-
+  
   // Create new architecture-specific ASIM files to receive data
-
-  if(parallelArchitecture)
+  
+  if(parallelProcessing)
     ASIMStorageMgr->CreateParallelFile(ASIMFileName);
   else
     ASIMStorageMgr->CreateSequentialFile(ASIMFileName);
@@ -102,7 +102,7 @@ void ASIMReadoutManager::WriteASIMFile(G4bool EmergencyWrite)
   
   // Perform the final write-to-disk for the ASIM files
   
-  if(parallelArchitecture)
+  if(parallelProcessing)
     ASIMStorageMgr->WriteParallelFile();
   else
     ASIMStorageMgr->WriteSequentialFile();
@@ -333,7 +333,7 @@ void ASIMReadoutManager::IncrementRunLevelData(vector<G4bool> &EventActivated)
 
 void ASIMReadoutManager::FillRunSummary(const G4Run *currentRun)
 {
-  if(parallelArchitecture)
+  if(parallelProcessing)
     ReduceSlaveValuesToMaster();
 
   // In sequential or in parallel on the master node, add a class with
@@ -348,7 +348,7 @@ void ASIMReadoutManager::FillRunSummary(const G4Run *currentRun)
     ASIMRunSummary->SetRunID( currentRun->GetRunID() );
 
 #ifdef MPI_ENABLED
-    if(parallelArchitecture)
+    if(parallelProcessing)
       ASIMRunSummary->SetTotalEvents( MPIManager::GetInstance()->GetTotalEvents() );
     else
 #endif

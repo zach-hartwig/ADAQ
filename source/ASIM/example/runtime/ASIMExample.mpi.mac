@@ -30,7 +30,7 @@
 # Setup the particle source and run 1e5 events evenly
 # distributed across the master and slaves ('true')
 /gps/ene/mono 0.662 MeV
-/MPIManager/beamOn 100000
+/MPIManager/beamOn 100000 true
 #
 # Write the ASIM file to disk
 /ASIM/write

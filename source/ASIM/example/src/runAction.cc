@@ -1,11 +1,11 @@
 #include "G4Event.hh"
-#include "G4RunManager.hh"
 #include "G4SDManager.hh"
 #include "G4UnitsTable.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4GeneralParticleSource.hh"
 
 #include "ASIMReadoutManager.hh"
+#include "MPIManager.hh"
 
 #include "runAction.hh"
 #include "geometryConstruction.hh"
@@ -31,15 +31,18 @@ void runAction::BeginOfRunAction(const G4Run *)
 }
 
 
-void runAction::EndOfRunAction(const G4Run *)
+void runAction::EndOfRunAction(const G4Run *currentRun)
 {
-  G4RunManager *theRunManager = G4RunManager::GetRunManager();
-
   ASIMReadoutManager *ARMgr = ASIMReadoutManager::GetInstance();
+  
+#ifdef MPI_ENABLED
+  MPIManager *MPIMgr = MPIManager::GetInstance();
+  MPIMgr->ForceBarrier("runAction::EndOfRunAction()");
+#endif
+
+  ARMgr->FillRunSummary(currentRun);
 
   const G4int NumReadouts = ARMgr->GetNumReadouts();
-
-  G4cout << NumReadouts << G4endl;
   
   G4cout << "\n\n"
 	 << "\n============== ASIMExample run-level results ==============\n\n";

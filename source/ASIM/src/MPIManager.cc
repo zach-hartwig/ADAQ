@@ -146,7 +146,7 @@ void MPIManager::BeamOn(G4double events, G4bool distribute)
     masterEvents = G4int(events-slaveEvents*(size-1));
     
     if(isMaster) {
-      G4cout << "\nMPI MANAGER ANNOUNCEMENT: # events in master = " << masterEvents 
+      G4cout << "\nMPIManager : # events in master = " << masterEvents 
 	     << " / # events in slave = "  << slaveEvents << "\n" << G4endl;
     }
     
@@ -171,7 +171,7 @@ void MPIManager::BeamOn(G4double events, G4bool distribute)
     masterEvents = G4int(events);
 
     if(isMaster)
-      G4cout << "\nMPI MANAGER ANNOUNCEMENT: # events in master = " << masterEvents 
+      G4cout << "\nMPIManager : # events in master = " << masterEvents 
 	     << " / # events in slave = "  << slaveEvents << G4endl;
     
     // Error check to ensure events < range_G4int
@@ -195,17 +195,17 @@ void MPIManager::ThrowEventError()
   // 2.1e9 data range of G4int) is actually passed. Therefore,
   // ensure that events is < 2.1e9 if the user has chosen NOT to
   // distribute events across the slaves
-  G4cout << "\nMPI MANAGER ANNOUNCMENT: You have chosen to run (n_events > n_G4int_range) on each of the \n"
-	 <<   "                         slaves! Since MPIManager passes n_events to the runManager\n"
-	 <<   "                         this could result in unspecified behavior. Please choose another\n"
-	 <<   "                         number of primary events or distribute them across nodes such that\n"
-	 <<   "                         (n_events < n_G4int_range = 2,147,483,647). SWS will now abort...\n"
+  G4cout << "\nMPIManager : You have chosen to run (n_events > n_G4int_range) on each of the \n"
+	 <<   "             slaves! Since MPIManager passes n_events to the runManager\n"
+	 <<   "             this could result in unspecified behavior. Please choose another\n"
+	 <<   "             number of primary events or distribute them across nodes such that\n"
+	 <<   "             (n_events < n_G4int_range = 2,147,483,647). SWS will now abort...\n"
 	 << G4endl;
   
   G4Exception("MPIManager::ThrowEventError()",
 	      "MPIManagerException002",
 	      FatalException,
-	      "MPI MANAGER ANNOUNCEMENT: Crashing this ship like the Hindenburg!\n");
+	      "MPIManager : Crashing this ship like the Hindenburg!\n");
 }
 
 
@@ -242,10 +242,12 @@ void MPIManager::CreateSeeds()
 // Distribute the seeds to the random number generator for each node
 void MPIManager::DistributeSeeds()
 {
+  /*
   if(rank==0){
     for(size_t i=0; i<seedPacket.size(); i++)
       G4cout << "Rank[" << i << "] seed = " << seedPacket[i] << G4endl;
   }
+  */
   CLHEP::HepRandom::setTheSeed(seedPacket[rank]);
 }
 
@@ -257,8 +259,8 @@ void MPIManager::ForceBarrier(G4String location)
 { 
   MPI::COMM_WORLD.Barrier();
 
-  G4cout << "\nMPI MANAGER ANNOUNCEMENT: All nodes have reached the MPI barrier at " << location << "!\n"
-         <<   "                          Nodes now proceeding onward ... \n"
+  G4cout << "\n\nMPIManager : All nodes have reached the MPI barrier at " << location << "!\n"
+         <<     "             Nodes now proceeding onward ..."
 	 << G4endl;
 }
 

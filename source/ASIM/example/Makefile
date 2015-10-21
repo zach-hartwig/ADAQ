@@ -1,7 +1,7 @@
 #############################################################################
 #
 # name: Makefile
-# date: 25 Jun 15
+# date: 20 OCt 15
 # auth: Zach Hartwig
 #
 # desc: This file is the GNU makefile that controls the ASIMExample build
@@ -13,10 +13,18 @@
 #       -- inclusion Boost C++ library dependencies
 #       -- inclusion of ADAQ simulation readout extension library
 #
+#       To build the simulation for sequential processing:
+#         $ make
+#
+#       To build the simulation with Open MPI for parallel processing
+#       (requires the ASIM libraries to be built with Open MPI)
+#         $ make PROC-PAR
+#
 # dpnd: 1. The ROOT toolkit (mandatory)
 #       2. The Boost C+ libraries (mandatory)
 #       3. ADAQ libraries (mandatory)
 #       4. Open MPI (optional)
+#
 #
 #############################################################################
 

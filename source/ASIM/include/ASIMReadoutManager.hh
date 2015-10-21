@@ -21,7 +21,7 @@ using namespace std;
 class ASIMReadoutManager
 {
 public:
-  ASIMReadoutManager(G4bool SequentialArchitecture=true);
+  ASIMReadoutManager();
   ~ASIMReadoutManager();
   
   static ASIMReadoutManager *GetInstance();
@@ -118,7 +118,11 @@ public:
   void SetPhotonsDetected(G4int);
   G4int GetPhotonsDetected(G4int);
 
-  // Set/Get methods for general purpose dadta members
+  // Set/Get methods for general purpose data members
+
+  void EnableSequentialMode() {parallelProcessing = false;}
+  void EnableParallelMode() {parallelProcessing = true;}
+    
 
   // Get total number of registered readouts
   G4int GetNumReadouts() {return NumReadouts;}
@@ -134,9 +138,9 @@ public:
 
 private:
   static ASIMReadoutManager *ASIMReadoutMgr;
-
+  
   // Variables to handle parellel architectures
-  G4bool parallelArchitecture;
+  G4bool parallelProcessing;
   G4int MPI_Rank, MPI_Size;
   vector<G4String> slaveFileNames;
 
@@ -152,7 +156,6 @@ private:
   vector<G4bool> EventActivated;
   
   // Readout settings
-  G4String fileName;
   G4int ActiveReadout;  
   vector<G4bool> EnergyBroadening;
   vector<G4double> EnergyResolution, EnergyEvaluation;

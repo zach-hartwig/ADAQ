@@ -54,10 +54,18 @@ int main(int argc, char *argv[])
   ////////////////////////////////////
   
   G4bool useParallelProcessing = false;
+
 #ifdef MPI_ENABLED
   useParallelProcessing = true;
-#endif
 
+  const G4int argcMPI = 2;
+  char *argvMPI[argcMPI];
+  argvMPI[0] = argv[0]; // binary name
+  argvMPI[1] = (char *)"slaveForum/Slave"; // slave file base name
+  
+  MPIManager *theMPIManager= new MPIManager(argcMPI,argvMPI);
+#endif
+  
   
   ////////////////////////////////
   // Parse command line options //
@@ -104,6 +112,8 @@ int main(int argc, char *argv[])
   /////////////////////////////////////////////////
 
   ASIMReadoutManager *theReadoutManager = new ASIMReadoutManager;
+  if(useParallelProcessing)
+    theReadoutManager->EnableParallelMode();
 
 
   //////////////////////////////////////////////////
@@ -149,25 +159,11 @@ int main(int argc, char *argv[])
 
   if(useParallelProcessing){
 
-#ifdef MPI_ENABLED
-
-    const G4int argcMPI = 2;
-    char *argvMPI[argcMPI];
-    argvMPI[0] = argv[0]; // binary name
-    argvMPI[1] = (char *)"slaveForum/Slave"; // slave file base name
-
-    MPIManager *theMPIManager= new MPIManager(argcMPI,argvMPI);
-    G4int MPI_Rank = theMPIManager->GetRank();
-    
-    std::string arg2 = argv[4];
-    if(arg2=="seed")
-      CLHEP::HepRandom::setTheSeed(time(0) + MPI_Rank);
-    
     G4String macroCmd = "/control/execute runtime/ASIMExample.mpi.mac";
     UI->ApplyCommand(macroCmd);
-    
+
+#ifdef MPI_ENABLED    
     delete theMPIManager;
-    
 #endif
     
   }

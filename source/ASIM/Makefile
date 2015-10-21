@@ -1,11 +1,11 @@
 ######################################################################
 #
 # name: Makefile
-# date: 24 Sep 15
+# date: 20 Oct 15
 # auth: Zach Hartwig
 # mail: hartwig@psfc.mit.edu
 #
-# desc: This GNUmakefile controls the building two ASIM libraries the
+# desc: This GNUmakefile controls building the two ASIM libraries for
 #       readout and analysis of Geant4 simulated data within the ADAQ
 #       framework. libASIMReadout.so contains a powerful set of
 #       classes that can dropped into a user's Geant4 simulation for
@@ -17,6 +17,13 @@
 #       any Geant4 libraries/headers. Thus, libASIMStorage.so may be
 #       compiled on any system without Geant4 and utilized into a
 #       user's code for the analysis of ASIM file.
+#
+#       If the user has Open MPI installed and wishes to use the ASIM
+#       libraries in parallelized Geant4 simulations (made very easy
+#       via ASIM's MPIManager class), he/she may choose to build the
+#       libraries with the Open MPI C++ compiler. Please ensure that
+#       the environmental variable MPIHOME points to the top-level
+#       Open MPI directory.
 #
 #       The libASIMStorage.so library is always built;
 #       libASIMReadout.so is only built if Geant4 is detected on the
@@ -37,8 +44,11 @@
 #       -- The ROOT toolkit (v5.34.30 latest tested)
 #       -- The Geant4 toolkit (v10.01.p02 latest tested)
 #
-# 2run: To build the libraries locally
+# 2run: To build the libraries for sequential simulations only
 #       $ make
+#
+#       To build the libraries with Open MPI for sequential and parallel
+#       # make PROC=PAR
 # 
 #       To install library and headers in $ADAQ/lib and $ADAQ/include
 #       $ make install

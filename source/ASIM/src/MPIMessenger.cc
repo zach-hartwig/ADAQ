@@ -71,22 +71,26 @@ void MPIMessenger::SetNewValue(G4UIcommand *cmd, G4String newValue)
     // across all nodes that exceeds this limit. A check is put in
     // place within MPIManager to ensure that the number of particles
     // handled by each slave is less than this limit.
+
+    // Total number of events to be processed
     G4double eventsToProcess;
 
     // String to control distribute/no-distribute of events to slaves
     G4String distributeString;
-    G4bool distributeBool = true;
 
     // Split the string command into number of events and distribute string
     is >> eventsToProcess >> distributeString;
     
-    if(distributeString == "false")
-      distributeBool = false;
-    
-    // Macro to exclude MPI-relevant commands for non-sequential
-    // builds of the user's Geant4 simulation 
 #ifdef MPI_ENABLED
-    theMPImanager->BeamOn(eventsToProcess, distributeBool);
+
+    // Run eventToProcess on each node
+    if(distributeString == "false")
+      theMPImanager->BeamOn(eventsToProcess, false);
+
+    // Distribute eventsToProcess evenly across all nodes
+    else if(distributeString == "true")
+      theMPImanager->BeamOn(eventsToProcess, true);
+      
 #endif
   }
 }

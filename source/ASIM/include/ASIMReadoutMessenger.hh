@@ -45,8 +45,8 @@ private:
   G4UIcmdWithAnInteger *setLowerPhotonThresholdCmd;
   G4UIcmdWithAnInteger *setUpperPhotonThresholdCmd;
 
-  G4UIcmdWithABool *setPSDStatusCmd;
-  G4UIcmdWithAString *setPSDParticleCmd;
+  // G4UIcmdWithABool *setPSDStatusCmd;
+  // G4UIcmdWithAString *setPSDParticleCmd;
 
   G4UIcmdWithABool *setWaveformStorageCmd;
 };

@@ -28,7 +28,7 @@ ASIMReadoutManager *ASIMReadoutManager::GetInstance()
 
 
 ASIMReadoutManager::ASIMReadoutManager()
-  : parallelProcessing(false), MPI_Rank(0), MPI_Size(1),
+  : parallelProcessing(false), MPI_Rank(0),
     ActiveReadout(0), NumReadouts(0)
 {
   if(ASIMReadoutMgr != NULL)

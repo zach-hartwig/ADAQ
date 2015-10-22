@@ -157,7 +157,7 @@ private:
   
   // Variables to handle parellel architectures
   G4bool parallelProcessing;
-  G4int MPI_Rank;
+  G4int MPI_Rank, MPI_Size;
   vector<G4String> slaveFileNames;
 
   // Run-level aggregator variables

@@ -74,7 +74,9 @@ void ASIMStorageManager::CreateSequentialFile(std::string Name)
 }
 
 
-void ASIMStorageManager::CreateParallelFile(std::string Name)
+void ASIMStorageManager::CreateParallelFile(std::string Name,
+					    Int_t Rank,
+					    Int_t Size)
 {
   if(ASIMFileOpen){
     std::cout << "ASIMStorageManager::CreateParallelFile():\n"
@@ -86,13 +88,9 @@ void ASIMStorageManager::CreateParallelFile(std::string Name)
     return;
   }
 
-  // Get the number of MPI nodes (MPI_Size) and the unique ID for the
-  // present node (MPI_Rank);
-#ifdef MPI_ENABLED
-  MPIManager *theMPIManager = MPIManager::GetInstance();
-  MPI_Size = theMPIManager->GetSize();
-  MPI_Rank = theMPIManager->GetRank();
-#endif
+  // Set the MPI rank and size data members for later use
+  MPI_Rank = Rank;
+  MPI_Size = Size;
   
   std::stringstream SS;
   SS << Name << ".slave" << MPI_Rank;

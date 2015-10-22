@@ -45,7 +45,7 @@ ASIMReadoutManager *ASIMReadoutManager::GetInstance()
 
 
 ASIMReadoutManager::ASIMReadoutManager()
-  : parallelProcessing(false), MPI_Rank(0),
+  : parallelProcessing(false), MPI_Rank(0), MPI_Size(1),
     ActiveReadout(0), NumReadouts(0)
 {
   if(ASIMReadoutMgr != NULL)
@@ -92,8 +92,14 @@ void ASIMReadoutManager::InitializeASIMFile()
   
   // Create new architecture-specific ASIM files to receive data
   
-  if(parallelProcessing)
-    ASIMStorageMgr->CreateParallelFile(ASIMFileName);
+  if(parallelProcessing){
+#ifdef MPI_ENABLED
+    MPIManager *MPIMgr = MPIManager::GetInstance();
+    MPI_Rank = MPIMgr->GetRank();
+    MPI_Size = MPIMgr->GetSize();
+#endif    
+    ASIMStorageMgr->CreateParallelFile(ASIMFileName, MPI_Rank, MPI_Size);
+  }
   else
     ASIMStorageMgr->CreateSequentialFile(ASIMFileName);
 }
@@ -357,7 +363,7 @@ void ASIMReadoutManager::FillRunSummary(const G4Run *currentRun)
   // information from this run...
 
   if(ASIMStorageMgr->GetASIMFileOpen() and MPI_Rank == 0){
-
+    
     ASIMRun *ASIMRunSummary = new ASIMRun;
 
     // Fill class with run-level data

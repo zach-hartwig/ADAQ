@@ -45,7 +45,7 @@ public:
   // Methods for ASIM file handling //
 
   void CreateSequentialFile(std::string);
-  void CreateParallelFile(std::string);
+  void CreateParallelFile(std::string, Int_t, Int_t);
   void GenerateSlaveFileNames();
   void WriteSequentialFile();
   void WriteParallelFile();

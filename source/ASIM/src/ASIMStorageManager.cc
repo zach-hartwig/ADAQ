@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
 // name: ASIMStorageManager.cc
-// date: 20 Oct 15
+// date: 26 Oct 15
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 // 
@@ -12,10 +12,16 @@
 //       data from within the Geant4 simulation and then hands it off
 //       to the ASIMStorageManager for persistent storage to
 //       disk. This class makes heavy use of ROOT classes to perform
-//       its data storage task. Stored data includes thereadout of
+//       its data storage task. Stored data includes the readout of
 //       file metadata, event-level information (e.g. energy
 //       deposition), and run-level information (e.g. total hits on a
 //       sensitive detector).
+//
+//       Note that an object of type ASIMStorageManager is uniquely
+//       instantiated by the ASIMReadoutManager to handle only a
+//       single ASIM file. Thus, multiple ASIMStorageManager classes
+//       will be created/deleted if multiple ASIM files are created
+//       during a Geant4 session.
 //
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -375,8 +381,3 @@ void ASIMStorageManager::WriteRuns()
     R->Write(Name);
   }
 }
-
-
-////////////////////////////////////
-// Methods for simulation readout //
-////////////////////////////////////

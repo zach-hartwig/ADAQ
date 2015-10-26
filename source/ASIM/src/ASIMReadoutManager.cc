@@ -45,8 +45,8 @@ ASIMReadoutManager *ASIMReadoutManager::GetInstance()
 
 
 ASIMReadoutManager::ASIMReadoutManager()
-  : parallelProcessing(false), MPI_Rank(0), MPI_Size(1),
-    ActiveReadout(0), NumReadouts(0)
+  : parallelProcessing(false), MPI_Rank(0), MPI_Size(1), 
+    ActiveReadout(0), NumReadouts(0), ASIMFileOpen(false)
 {
   if(ASIMReadoutMgr != NULL)
     G4Exception("ASIMReadoutManager::ASIMReadoutManager()", 
@@ -59,37 +59,49 @@ ASIMReadoutManager::ASIMReadoutManager()
   // Initialize ASIM readout classes
   
   ASIMFileName = "ASIMDefault.asim.root";
-  ASIMStorageMgr = new ASIMStorageManager;
-  ASIMRunSummary = new ASIMRun;
   
   theMessenger = new ASIMReadoutMessenger(this);
+
+  ASIMRunSummary = new ASIMRun;
 }
 
 
 ASIMReadoutManager::~ASIMReadoutManager()
 {
   delete theMessenger;
-  
-  for(size_t r=0; r<ASIMEvents.size(); r++)
-    delete ASIMEvents.at(r);
 
-  delete ASIMRunSummary;
-
-  delete ASIMStorageMgr;
+  vector<ASIMEvent *>::iterator It;
+  for(It=ASIMEvents.begin(); It!=ASIMEvents.end(); It++)
+    delete (*It);
 }
 
 
 void ASIMReadoutManager::InitializeASIMFile()
 {
-  if(ASIMStorageMgr->GetASIMFileOpen()){
+  if(ASIMFileOpen){
     G4cout << "\nASIMReadoutManager::InitializeASIMFile():\n"
-	   <<   "   An ASIM file is presently open for data output! A new file cannot be opened\n"
+	   <<   "  An ASIM file is presently open for data output! A new file cannot be opened\n"
 	   <<   "  until the existing ASIM file is written to disk via the /ASIM/write command.\n"
 	   << G4endl;
     
     return;
   }
   
+  // Create a new manager to handle persistent storage of readout data
+  // into an ASIM file. This ensures that all ROOT objects necessary
+  // for storage in an ASIM file are created within the TFile
+  // directory that is used for this specified ASIM file
+  ASIMStorageMgr = new ASIMStorageManager;
+  
+  // Clear the pointers to previous file's ASIMEvents
+  ASIMEvents.clear();
+  
+  // Iterate over the register readouts and create new event trees
+  for(size_t r=0; r<ASIMReadoutID.size(); r++)
+    ASIMEvents.push_back(ASIMStorageMgr->CreateEventTree(ASIMReadoutID.at(r),
+							 ASIMReadoutName.at(r),
+							 ASIMReadoutDesc.at(r)));
+
   // Create new architecture-specific ASIM files to receive data
   
   if(parallelProcessing){
@@ -102,12 +114,15 @@ void ASIMReadoutManager::InitializeASIMFile()
   }
   else
     ASIMStorageMgr->CreateSequentialFile(ASIMFileName);
+
+  // Flag that ASIM file(s) is(are) now open and waiting for data!
+  ASIMFileOpen = true;
 }
 
   
 void ASIMReadoutManager::WriteASIMFile(G4bool EmergencyWrite)
 {
-  if(!ASIMStorageMgr->GetASIMFileOpen()){
+  if(!ASIMFileOpen){
     G4cout << "\nASIMReadoutManager::WriteASIMFile():\n"
 	   <<   "  There is no valid ASIM file presently open for writing! A new ASIM file should\n"
            <<   "  first be created via the /ASIM/init command.\n"
@@ -129,6 +144,12 @@ void ASIMReadoutManager::WriteASIMFile(G4bool EmergencyWrite)
     ASIMStorageMgr->WriteParallelFile();
   else
     ASIMStorageMgr->WriteSequentialFile();
+
+  // Delete the ASIM file specific readout manager
+  delete ASIMStorageMgr;
+
+  // Flag that no ASIM file(s) is(are) open
+  ASIMFileOpen = false;
 }
 
 
@@ -148,12 +169,8 @@ void ASIMReadoutManager::RegisterNewReadout(G4String ReadoutDesc,
   // Store ASIM readout variables to use later for access
   ASIMReadoutID.push_back(ReadoutID);
   ASIMReadoutName.push_back(ReadoutName);
+  ASIMReadoutDesc.push_back(ReadoutDesc);
   ASIMReadoutNameMap[ReadoutName] = ReadoutID;
-  
-  // Create a ROOT TTree to hold ASIMEvent classes for this readout
-  ASIMEvents.push_back(ASIMStorageMgr->CreateEventTree(ReadoutID,
-						       ReadoutName,
-						       ReadoutDesc));
   
   // Store the readout name associated with a ScintillatorSD for later
   // use during event-level readout ...
@@ -377,16 +394,16 @@ void ASIMReadoutManager::FillRunSummary(const G4Run *currentRun)
     else
 #endif
       ASIMRunSummary->SetTotalEvents( currentRun->GetNumberOfEvent() );
-    
-    /*
-      ASIMRunSummary->SetParticlesIncident( detectorIncidents );
-      ASIMRunSummary->SetParticlesBetweenThresholds( detectorHits );
-      ASIMRunSummary->SetDetectorLowerThresholdInMeV( detectorEnergyLowerThreshold/MeV );
-      ASIMRunSummary->SetDetectorUpperThresholdInMeV( detectorEnergyUpperThreshold/MeV );
-      ASIMRunSummary->SetPhotonsCreated( detectorPhotonsCreated );
-      ASIMRunSummary->SetPhotonsDetected( detectorPhotonsDetected );
-    */
 
+    /*
+    ASIMRunSummary->SetParticlesIncident(Incidents);
+    ASIMRunSummary->SetParticlesBetweenThresholds(Hits);
+    ASIMRunSummary->SetDetectorLowerThresholdInMeV(LowerEnergyThreshold/MeV);
+    ASIMRunSummary->SetDetectorUpperThresholdInMeV(UpperEnergyThreshold/MeV);
+    ASIMRunSummary->SetPhotonsCreated(PhotonsCreated);
+    ASIMRunSummary->SetPhotonsDetected(detectorPhotonsDetected);
+    */
+    
     // Add the run class to the list for later readout
     ASIMStorageMgr->AddRun(ASIMRunSummary);
   }

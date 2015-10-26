@@ -92,7 +92,6 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARM)
   setUpperPhotonThresholdCmd->SetGuidance("tresholding must be enabled via the '/ASIM/enablePhotonThrehold' command");
   setUpperPhotonThresholdCmd->SetParameterName("Choice",false);
 
-
   /*
   setPSDStatusCmd = new G4UIcmdWithABool("/ASIM/setPSDStatus", this);
   setPSDStatusCmd->SetGuidance("Enable/disable pulse shape discrimination for the detectors. This features");

@@ -149,7 +149,7 @@ public:
   // Get the readout ID using the readout name
   G4int GetReadoutID(G4String Name) {return ASIMReadoutNameMap.at(Name);}
   
-  G4bool CheckForOpenASIMFile() {return ASIMStorageMgr->GetASIMFileOpen(); }
+  G4bool CheckForOpenASIMFile() {return ASIMFileOpen;}
   
 
 private:
@@ -185,12 +185,13 @@ private:
   G4int NumReadouts;
 
   // Variables for SD readout into an ASIM file
+  G4bool ASIMFileOpen;
   G4String ASIMFileName;
   ASIMStorageManager *ASIMStorageMgr;
   ASIMRun *ASIMRunSummary;
   vector<ASIMEvent *> ASIMEvents;
   vector<G4int> ASIMReadoutID;
-  vector<G4String> ASIMReadoutName;
+  vector<G4String> ASIMReadoutName, ASIMReadoutDesc;
   map<G4String, G4int> ASIMReadoutNameMap;
 
   // Messenger class for runtime command

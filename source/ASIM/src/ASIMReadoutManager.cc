@@ -154,7 +154,7 @@ void ASIMReadoutManager::RegisterNewReadout(G4String ReadoutDesc,
   ASIMEvents.push_back(ASIMStorageMgr->CreateEventTree(ReadoutID,
 						       ReadoutName,
 						       ReadoutDesc));
-
+  
   // Store the readout name associated with a ScintillatorSD for later
   // use during event-level readout ...
   string ScintillatorSDName = ReadoutName + "Collection";
@@ -191,7 +191,7 @@ void ASIMReadoutManager::RegisterNewReadout(G4String ReadoutDesc,
   UseEnergyThresholds.push_back(true);
   LowerEnergyThreshold.push_back(0.);
   UpperEnergyThreshold.push_back(1.*TeV);
-  UsePhotonThresholds.push_back(true);
+  UsePhotonThresholds.push_back(false);
   LowerPhotonThreshold.push_back(0);
   UpperPhotonThreshold.push_back(1000000000);
   WaveformStorage.push_back(false);
@@ -311,6 +311,7 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
 	// Activate the detector for this event
 	EventActivated[r] = true;
 	
+
 	// Fill detector trees if output to ASIM has been activated
 	if(ASIMStorageMgr->GetASIMFileOpen())
 	  ASIMStorageMgr->GetEventTree(ASIMReadoutID[r])->Fill();

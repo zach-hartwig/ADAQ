@@ -1,11 +1,20 @@
 ## The ADAQ Libraries Source Code Change Log
 
 name: Changelog.md  
-date: 21 Oct 15 (last updated)  
+date: 26 Oct 15 (last updated)  
 auth: Zach Hartwig  
 mail: hartwig@psfc.mit.edu
 
 ## Version 1.4 Series
+
+### 1.4.1
+
+ - Bug fix in ASIM libraries to enable linking against libASIMStorage
+   for systems without Geant4 or libASIMReadoutManager
+
+ - Bug fix to enable ASIM libraries to handle multiple ASIM files
+   (with option of multiple runs per file) within one Geant4 session
+
 
 ### 1.4.0
 

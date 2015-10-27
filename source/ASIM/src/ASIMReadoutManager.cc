@@ -89,8 +89,6 @@ void ASIMReadoutManager::InitializeASIMFile()
   // into an ASIM file. This ensures that all ROOT objects necessary
   // for storage in an ASIM file are created within the TFile
   // directory that is used for this specified ASIM file
-
-  delete ASIMStorageMgr;
   ASIMStorageMgr = new ASIMStorageManager;
   
   // Clear the pointers to previous file's ASIMEvents

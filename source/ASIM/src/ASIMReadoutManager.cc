@@ -46,7 +46,9 @@ ASIMReadoutManager *ASIMReadoutManager::GetInstance()
 
 ASIMReadoutManager::ASIMReadoutManager()
   : parallelProcessing(false), MPI_Rank(0), MPI_Size(1), 
-    ActiveReadout(0), NumReadouts(0), ASIMFileOpen(false)
+    ActiveReadout(0), NumReadouts(0),
+    ASIMFileOpen(false), ASIMFileName("ASIMDefault.asim.root"),
+    ASIMStorageMgr(new ASIMStorageManager), ASIMRunSummary(new ASIMRun)
 {
   if(ASIMReadoutMgr != NULL)
     G4Exception("ASIMReadoutManager::ASIMReadoutManager()", 
@@ -58,11 +60,7 @@ ASIMReadoutManager::ASIMReadoutManager()
   
   // Initialize ASIM readout classes
   
-  ASIMFileName = "ASIMDefault.asim.root";
-  
   theMessenger = new ASIMReadoutMessenger(this);
-
-  ASIMRunSummary = new ASIMRun;
 }
 
 
@@ -91,6 +89,8 @@ void ASIMReadoutManager::InitializeASIMFile()
   // into an ASIM file. This ensures that all ROOT objects necessary
   // for storage in an ASIM file are created within the TFile
   // directory that is used for this specified ASIM file
+
+  delete ASIMStorageMgr;
   ASIMStorageMgr = new ASIMStorageManager;
   
   // Clear the pointers to previous file's ASIMEvents
@@ -171,6 +171,14 @@ void ASIMReadoutManager::RegisterNewReadout(G4String ReadoutDesc,
   ASIMReadoutName.push_back(ReadoutName);
   ASIMReadoutDesc.push_back(ReadoutDesc);
   ASIMReadoutNameMap[ReadoutName] = ReadoutID;
+
+  // Create new ASIMEvents to hold event-level data. Note that these
+  // pointer will be overridden upon the creation of an ASIM file in
+  // order to ensure that a new ASIMStorageManager (which holds the
+  // ASIMEvent pointer addresses) can be attached to each ASIM file.
+  ASIMEvents.push_back(ASIMStorageMgr->CreateEventTree(ReadoutID,
+						       ReadoutName,
+						       ReadoutDesc));
   
   // Store the readout name associated with a ScintillatorSD for later
   // use during event-level readout ...
@@ -234,9 +242,9 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
   G4SDManager *TheSDManager = G4SDManager::GetSDMpointer();
   
   for(G4int r=0; r<NumReadouts; r++){
-
-    G4HCofThisEvent *HCE = currentEvent->GetHCofThisEvent();
     
+    G4HCofThisEvent *HCE = currentEvent->GetHCofThisEvent();
+
     ASIMEvents[r]->Initialize();
     ASIMEvents[r]->SetEventID(currentEvent->GetEventID());
     ASIMEvents[r]->SetRunID(G4RunManager::GetRunManager()->GetCurrentRun()->GetRunID());
@@ -330,7 +338,7 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
 	
 
 	// Fill detector trees if output to ASIM has been activated
-	if(ASIMStorageMgr->GetASIMFileOpen())
+	if(ASIMFileOpen)
 	  ASIMStorageMgr->GetEventTree(ASIMReadoutID[r])->Fill();
       }
     }
@@ -338,12 +346,12 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
     else if(UsePhotonThresholds[r]){
       if(ASIMEvents[r]->GetPhotonsDetected() > LowerPhotonThreshold[r] and
 	 ASIMEvents[r]->GetPhotonsDetected() < UpperPhotonThreshold[r]){
-
+	
 	// Activate the detector for this event
 	EventActivated[r] = true;
 	
 	// Fill detector trees if output to ASIM has been activated
-	if(ASIMStorageMgr->GetASIMFileOpen())
+	if(ASIMFileOpen)
 	  ASIMStorageMgr->GetEventTree(ASIMReadoutID[r])->Fill();
       }
     }
@@ -356,6 +364,9 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
 
 void ASIMReadoutManager::IncrementRunLevelData(vector<G4bool> &EventActivated)
 {
+  if(!ASIMFileOpen)
+    return;
+  
   G4int EventSum = 0;
   
   for(G4int r=0; r<NumReadouts; r++){
@@ -374,13 +385,16 @@ void ASIMReadoutManager::IncrementRunLevelData(vector<G4bool> &EventActivated)
 
 void ASIMReadoutManager::FillRunSummary(const G4Run *currentRun)
 {
+  if(!ASIMFileOpen)
+    return;
+  
   if(parallelProcessing)
     ReduceSlaveValuesToMaster();
 
   // In sequential or in parallel on the master node, add a class with
   // information from this run...
-
-  if(ASIMStorageMgr->GetASIMFileOpen() and MPI_Rank == 0){
+  
+  if(ASIMFileOpen and MPI_Rank == 0){
     
     ASIMRun *ASIMRunSummary = new ASIMRun;
 

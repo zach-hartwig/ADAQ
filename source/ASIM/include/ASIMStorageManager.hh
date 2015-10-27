@@ -76,8 +76,6 @@ public:
 
   // Set/Get methods for class member data
   
-  Bool_t GetASIMFileOpen() {return ASIMFileOpen;}
-  
   TString GetMachineName() {return MachineName->GetString();}
   TString GetMachineUser() {return MachineUser->GetString();}
   TString GetFileDate() {return FileDate->GetString();}

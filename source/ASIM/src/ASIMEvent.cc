@@ -29,11 +29,11 @@ ASIMEvent::~ASIMEvent()
 
 void ASIMEvent::Initialize()
 {
-  EventID = RunID = 0;
+  EventID = 0;
+  RunID = 0;
   EnergyDep = 0.;
-  PhotonsCreated = PhotonsDetected = 0;
+  PhotonsCreated = 0;
+  PhotonsDetected = 0;
   PhotonCreationTime.clear();
   PhotonDetectionTime.clear();
 }
-
-

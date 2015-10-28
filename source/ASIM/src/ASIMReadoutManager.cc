@@ -269,7 +269,7 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
 
 	EventEDep[r] = 0.;
 	EventActivated[r] = false;
-	
+
 	if(ScintillatorHC->entries() > 0)
 	  Incidents[r]++;
 
@@ -282,7 +282,7 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
 	  else
 	    EventEDep[r] += (*ScintillatorHC)[i]->GetEnergyDep();
 	}
-	
+
 	// Enable artificial gaussian energy broadening
 	if(EnergyBroadening[r]){
 	  
@@ -424,7 +424,6 @@ void ASIMReadoutManager::FillRunSummary(const G4Run *currentRun)
 
 void ASIMReadoutManager::HandleOpticalPhotonCreation(const G4Track *CurrentTrack)
 {
-
   ///////////////////////////////////////////
   // Handle the readout of created photons //
   ///////////////////////////////////////////
@@ -433,7 +432,7 @@ void ASIMReadoutManager::HandleOpticalPhotonCreation(const G4Track *CurrentTrack
   if(CurrentTrack->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition()){
     
     G4VPhysicalVolume *CurrentVolume = CurrentTrack->GetVolume();
-
+    
     // Handle the primary case: scintillation/cerenkov photons are
     // created within a scintillator/cerenkov-radiator volume that has
     // an ASIMScintillatorSD object registered to it
@@ -441,7 +440,7 @@ void ASIMReadoutManager::HandleOpticalPhotonCreation(const G4Track *CurrentTrack
     ASIMScintillatorSD *VolumeScintillatorSD = 
       dynamic_cast<ASIMScintillatorSD *>(CurrentVolume->GetLogicalVolume()->GetSensitiveDetector());
     
-    if(VolumeScintillatorSD)
+    if(VolumeScintillatorSD and CurrentTrack->GetParentID() > 0)
       VolumeScintillatorSD->ManualTrigger(CurrentTrack);
   }
 }

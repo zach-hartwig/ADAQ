@@ -78,9 +78,14 @@ G4bool ASIMScintillatorSD::ProcessHits(G4Step *currentStep, G4TouchableHistory *
 {
   G4Track *currentTrack = currentStep->GetTrack();
   
+  G4ParticleDefinition *particleDef = currentTrack->GetDefinition();
+  
   // Ensure that optical photons are excluded from registering hits
-  if(currentTrack->GetDefinition() != G4OpticalPhoton::OpticalPhotonDefinition()){
-    
+  if(particleDef == G4OpticalPhoton::OpticalPhotonDefinition())
+    return false;
+  
+  // Handle all other valid particles
+  else{
     ASIMScintillatorSDHit *newHit = new ASIMScintillatorSDHit;
     newHit->SetHitRGBA(hitR, hitG, hitB, hitA);
     newHit->SetHitSize(hitSize);
@@ -90,8 +95,7 @@ G4bool ASIMScintillatorSD::ProcessHits(G4Step *currentStep, G4TouchableHistory *
     G4double kineticEnergy = currentTrack->GetKineticEnergy();
     G4ThreeVector position = currentTrack->GetPosition();
     G4ThreeVector momentumDir = currentTrack->GetMomentumDirection();
-    G4ParticleDefinition *particleDef = currentTrack->GetDefinition();
-
+      
     // Set the quantities to the SD hit class
     newHit->SetEnergyDep(energyDep);
     newHit->SetKineticEnergy(kineticEnergy);
@@ -102,8 +106,9 @@ G4bool ASIMScintillatorSD::ProcessHits(G4Step *currentStep, G4TouchableHistory *
 
     // Insert the SD hit into the SD hit collection
     hitCollection->insert(newHit);
+    
+    return true;
   }
-  return true;
 }
 
 
@@ -113,33 +118,40 @@ G4bool ASIMScintillatorSD::ProcessHits(G4Step *currentStep, G4TouchableHistory *
 // in order to correctly add created photons at birth to the hit collection
 G4bool ASIMScintillatorSD::ManualTrigger(const G4Track *currentTrack)
 {
+  G4ParticleDefinition *particleDef = currentTrack->GetDefinition();
+  
   // Ensure that currently tracking particle is an optical photon
-  if(currentTrack->GetDefinition() != G4OpticalPhoton::OpticalPhotonDefinition())
+  if(particleDef == G4OpticalPhoton::OpticalPhotonDefinition()){
+    
+    ASIMScintillatorSDHit *newHit = new ASIMScintillatorSDHit;
+    newHit->SetHitRGBA(hitR, hitG, hitB, hitA);
+    newHit->SetHitSize(hitSize);
+    
+    // Get the relevant hit information
+    G4double kineticEnergy = currentTrack->GetKineticEnergy();
+    G4double creationTime = currentTrack->GetGlobalTime();
+    G4ThreeVector position = currentTrack->GetPosition();
+    
+    // Set the quantities to the SD hit class. Note that the
+    // IsOpticalPhoton flag is necessary to set since the
+    // ASIMScintillatorSD class is also responsible for scoring other
+    // particle types as well as optical photons.
+    
+    newHit->SetKineticEnergy(kineticEnergy);
+    newHit->SetCreationTime(creationTime);
+    newHit->SetPosition(position);
+    newHit->SetIsOpticalPhoton(true);
+    newHit->SetParticleDef(particleDef);
+    
+    // Insert the hit into the SD hit collection
+    hitCollection->insert(newHit);
+    
+    return true;
+  }
+  
+  // Handle all other particles
+  else
     return false;
-  
-  ASIMScintillatorSDHit *newHit = new ASIMScintillatorSDHit;
-  newHit->SetHitRGBA(hitR, hitG, hitB, hitA);
-  newHit->SetHitSize(hitSize);
-  
-  // Get the relevant hit information
-  G4double kineticEnergy = currentTrack->GetKineticEnergy();
-  G4double creationTime = currentTrack->GetGlobalTime();
-  G4ThreeVector position = currentTrack->GetPosition();
-
-  // Set the quantities to the SD hit class. Note that the
-  // IsOpticalPhoton flag is necessary to set since the
-  // ASIMScintillatorSD class is also responsible for scoring other
-  // particle types as well as optical photons.
-
-  newHit->SetKineticEnergy(kineticEnergy);
-  newHit->SetCreationTime(creationTime);
-  newHit->SetPosition(position);
-  newHit->SetIsOpticalPhoton(true);
-
-  // Insert the hit into the SD hit collection
-  hitCollection->insert(newHit);
-  
-  return true; 
 }
 
 

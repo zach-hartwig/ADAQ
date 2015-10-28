@@ -50,7 +50,7 @@ public:
   void SetPhotonsCreated(Int_t PC) {PhotonsCreated = PC;}
   void IncrementPhotonsCreated() {PhotonsCreated++;}
   Int_t GetPhotonsCreated() {return PhotonsCreated;}
-
+  
   // The number of scintillation/Cerenkov photons detected
   void SetPhotonsDetected(Int_t PD) {PhotonsDetected = PD;}
   void IncrementPhotonsDetected() {PhotonsDetected++;}

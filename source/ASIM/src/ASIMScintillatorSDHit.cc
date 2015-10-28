@@ -27,14 +27,7 @@ G4Allocator<ASIMScintillatorSDHit> ASIMScintillatorSDHitAllocator;
 
 
 ASIMScintillatorSDHit::ASIMScintillatorSDHit()
-  : hitColour(new G4Colour(1.0, 0.0, 0.0, 1.0)), hitSize(5),
-    energyDep(0.), kineticEnergy(0.), creationTime(0.),
-    position(0), momentumDir(0), isOpticalPhoton(false)
-{;}
-
-
-ASIMScintillatorSDHit::ASIMScintillatorSDHit(G4Colour *colour, G4double size)
-  : hitColour(colour), hitSize(size),
+  : hitR(1.), hitG(0.), hitB(0.), hitA(0.5), hitSize(5),
     energyDep(0.), kineticEnergy(0.), creationTime(0.),
     position(0), momentumDir(0), isOpticalPhoton(false)
 {;}
@@ -47,7 +40,10 @@ ASIMScintillatorSDHit::~ASIMScintillatorSDHit()
 ASIMScintillatorSDHit::ASIMScintillatorSDHit(const ASIMScintillatorSDHit &right)
   : G4VHit()
 {
-  hitColour = right.hitColour;
+  hitR = right.hitR;
+  hitG = right.hitG;
+  hitB = right.hitB;
+  hitA = right.hitA;
   hitSize = right.hitSize;
   
   energyDep = right.energyDep;
@@ -62,7 +58,10 @@ ASIMScintillatorSDHit::ASIMScintillatorSDHit(const ASIMScintillatorSDHit &right)
 
 const ASIMScintillatorSDHit& ASIMScintillatorSDHit::operator=(const ASIMScintillatorSDHit &right)
 {
-  hitColour = right.hitColour;
+  hitR = right.hitR;
+  hitG = right.hitG;
+  hitB = right.hitB;
+  hitA = right.hitA;
   hitSize = right.hitSize;
   
   energyDep = right.energyDep;
@@ -86,12 +85,7 @@ void ASIMScintillatorSDHit::Draw()
   G4VVisManager* pVVisManager = G4VVisManager::GetConcreteInstance();
   if(pVVisManager){
     
-    G4Colour hitColor(hitColour->GetRed(),
-		      hitColour->GetGreen(),
-		      hitColour->GetBlue(),
-		      hitColour->GetAlpha());
-    
-    G4VisAttributes attribs(hitColor);
+    G4VisAttributes attribs(G4Colour(hitR, hitG, hitB, hitA));
     
     G4Circle circle(position);
     circle.SetScreenSize(hitSize);

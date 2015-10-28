@@ -437,10 +437,10 @@ void ASIMReadoutManager::HandleOpticalPhotonCreation(const G4Track *CurrentTrack
     // Handle the primary case: scintillation/cerenkov photons are
     // created within a scintillator/cerenkov-radiator volume that has
     // an ASIMScintillatorSD object registered to it
-
+    
     ASIMScintillatorSD *VolumeScintillatorSD = 
       dynamic_cast<ASIMScintillatorSD *>(CurrentVolume->GetLogicalVolume()->GetSensitiveDetector());
-
+    
     if(VolumeScintillatorSD)
       VolumeScintillatorSD->ManualTrigger(CurrentTrack);
   }

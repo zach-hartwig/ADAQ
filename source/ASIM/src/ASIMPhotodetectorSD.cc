@@ -31,17 +31,9 @@
 
 ASIMPhotodetectorSD::ASIMPhotodetectorSD(G4String name)
   : G4VSensitiveDetector(name),
-    hitColour(new G4Colour(1.0, 0.0, 0.0, 1.0)), hitSize(5)
+    hitR(0.), hitG(0.), hitB(1.), hitA(0.5), hitSize(5)
 { InitializeCollections(name); }
-
-
-ASIMPhotodetectorSD::ASIMPhotodetectorSD(G4String name,
-					 G4Colour *colour,
-					 G4double size)
-  : G4VSensitiveDetector(name),
-    hitColour(colour), hitSize(size)
-{ InitializeCollections(name); }
-
+    
 
 void ASIMPhotodetectorSD::InitializeCollections(G4String name)
 {
@@ -104,7 +96,9 @@ G4bool ASIMPhotodetectorSD::ManualTrigger(const G4Step *currentStep)
     return false;
 
   // Create a new hit and store it in the hit collection
-  ASIMPhotodetectorSDHit *newHit = new ASIMPhotodetectorSDHit(hitColour, hitSize);
+  ASIMPhotodetectorSDHit *newHit = new ASIMPhotodetectorSDHit;
+  newHit->SetHitRGBA(hitR, hitG, hitB, hitA);
+  newHit->SetHitSize(hitSize);
   
   // Get the relevant hit information
   G4double kineticEnergy = currentTrack->GetKineticEnergy();

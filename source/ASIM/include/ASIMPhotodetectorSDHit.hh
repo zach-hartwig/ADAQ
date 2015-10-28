@@ -28,7 +28,6 @@ class ASIMPhotodetectorSDHit : public G4VHit
   
 public:
   ASIMPhotodetectorSDHit();
-  ASIMPhotodetectorSDHit(G4Colour *, G4double);
   ~ASIMPhotodetectorSDHit();
   
   ASIMPhotodetectorSDHit(const ASIMPhotodetectorSDHit &right);
@@ -42,13 +41,18 @@ public:
   void Print();
   
 private:
-  G4Colour *hitColour;
+  G4double hitR, hitB, hitG, hitA;
   G4double hitSize;
   
   G4double kineticEnergy, detectionTime;
   G4ThreeVector position;
   
 public:
+  void SetHitRGBA(double R, double G, double B, double A)
+  {hitR = R; hitG = G; hitB = B; hitA = A;}
+  
+  void SetHitSize(double S) {hitSize = S;}
+  
   inline G4double GetKineticEnergy() const {return kineticEnergy;};
   inline void SetKineticEnergy(G4double KE) {kineticEnergy = KE;};
   

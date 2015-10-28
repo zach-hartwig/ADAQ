@@ -31,7 +31,6 @@ class ASIMScintillatorSDHit : public G4VHit
 
 public:
   ASIMScintillatorSDHit();
-  ASIMScintillatorSDHit(G4Colour *, G4double);
   ~ASIMScintillatorSDHit();
   
   ASIMScintillatorSDHit(const ASIMScintillatorSDHit &right);
@@ -45,7 +44,7 @@ public:
   void Print();
   
 private:
-  G4Colour *hitColour;
+  G4double hitR, hitB, hitG, hitA;
   G4double hitSize;
   
   G4double energyDep, kineticEnergy, creationTime;
@@ -54,6 +53,11 @@ private:
   G4ParticleDefinition *particleDef;
   
 public:
+  void SetHitRGBA(double R, double G, double B, double A)
+  {hitR = R; hitG = G; hitB = B; hitA = A;}
+  
+  void SetHitSize(double S) {hitSize = S;}
+  
   inline G4double GetEnergyDep() const {return energyDep;}
   inline void SetEnergyDep(G4double eDep) {energyDep = eDep;}
   

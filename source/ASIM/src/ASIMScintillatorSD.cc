@@ -38,15 +38,7 @@
 
 ASIMScintillatorSD::ASIMScintillatorSD(G4String name)
   : G4VSensitiveDetector(name),
-    hitColour(new G4Colour(1.0, 0.0, 0.0, 1.0)), hitSize(4)
-{ InitializeCollections(name); }
-
-
-ASIMScintillatorSD::ASIMScintillatorSD(G4String name,
-				       G4Colour *colour,
-				       G4double size)
-  : G4VSensitiveDetector(name),
-    hitColour(colour), hitSize(size)
+    hitR(1.), hitG(0.), hitB(0.), hitA(0.5), hitSize(5)
 { InitializeCollections(name); }
 
 
@@ -89,7 +81,9 @@ G4bool ASIMScintillatorSD::ProcessHits(G4Step *currentStep, G4TouchableHistory *
   // Ensure that optical photons are excluded from registering hits
   if(currentTrack->GetDefinition() != G4OpticalPhoton::OpticalPhotonDefinition()){
     
-    ASIMScintillatorSDHit *newHit = new ASIMScintillatorSDHit(hitColour, hitSize);
+    ASIMScintillatorSDHit *newHit = new ASIMScintillatorSDHit;
+    newHit->SetHitRGBA(hitR, hitG, hitB, hitA);
+    newHit->SetHitSize(hitSize);
     
     // Obtain the quantities from the step/track objects
     G4double energyDep = currentStep->GetTotalEnergyDeposit() * currentTrack->GetWeight();
@@ -134,6 +128,7 @@ G4bool ASIMScintillatorSD::ManualTrigger(const G4Track *currentTrack)
   // IsOpticalPhoton flag is necessary to set since the
   // ASIMScintillatorSD class is also responsible for scoring other
   // particle types as well as optical photons.
+
   newHit->SetKineticEnergy(kineticEnergy);
   newHit->SetCreationTime(creationTime);
   newHit->SetPosition(position);

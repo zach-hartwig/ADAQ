@@ -26,13 +26,7 @@ G4Allocator<ASIMPhotodetectorSDHit> ASIMPhotodetectorSDHitAllocator;
 
 
 ASIMPhotodetectorSDHit::ASIMPhotodetectorSDHit()
-  : hitColour(new G4Colour(1.0, 0.0, 0.0, 1.0)), hitSize(5),
-    kineticEnergy(0.), detectionTime(0.), position(0)
-{;}
-
-
-ASIMPhotodetectorSDHit::ASIMPhotodetectorSDHit(G4Colour *colour, G4double size)
-  : hitColour(colour), hitSize(size),
+  : hitR(0.), hitG(0.), hitB(1.0), hitA(0.5), hitSize(5),
     kineticEnergy(0.), detectionTime(0.), position(0)
 {;}
 
@@ -44,6 +38,12 @@ ASIMPhotodetectorSDHit::~ASIMPhotodetectorSDHit()
 ASIMPhotodetectorSDHit::ASIMPhotodetectorSDHit(const ASIMPhotodetectorSDHit &right)
   : G4VHit()
 {
+  hitR = right.hitR;
+  hitG = right.hitG;
+  hitB = right.hitB;
+  hitA = right.hitA;
+  hitSize = right.hitSize;
+  
   kineticEnergy = right.kineticEnergy;
   detectionTime = right.detectionTime;
   position = right.position;
@@ -52,6 +52,12 @@ ASIMPhotodetectorSDHit::ASIMPhotodetectorSDHit(const ASIMPhotodetectorSDHit &rig
 
 const ASIMPhotodetectorSDHit& ASIMPhotodetectorSDHit::operator=(const ASIMPhotodetectorSDHit &right)
 {
+  hitR = right.hitR;
+  hitG = right.hitG;
+  hitB = right.hitB;
+  hitA = right.hitA;
+  hitSize = right.hitSize;
+  
   kineticEnergy = right.kineticEnergy;
   detectionTime = right.detectionTime;
   position = right.position;
@@ -68,12 +74,7 @@ void ASIMPhotodetectorSDHit::Draw()
   G4VVisManager* pVVisManager = G4VVisManager::GetConcreteInstance();
   if(pVVisManager){
     
-    G4Colour hitColor(hitColour->GetRed(),
-		      hitColour->GetGreen(),
-		      hitColour->GetBlue(),
-		      hitColour->GetAlpha());
-
-    G4VisAttributes attribs(hitColor);
+    G4VisAttributes attribs(G4Colour(hitR, hitB, hitG, hitA));
     
     G4Circle circle(position);
     circle.SetScreenSize(hitSize);

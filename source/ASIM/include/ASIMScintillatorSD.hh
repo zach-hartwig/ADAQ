@@ -37,7 +37,6 @@ class ASIMScintillatorSD : public G4VSensitiveDetector
   
 public:
   ASIMScintillatorSD(G4String);
-  ASIMScintillatorSD(G4String, G4Colour *, G4double);
   ~ASIMScintillatorSD();
 
   void InitializeCollections(G4String);
@@ -49,14 +48,16 @@ public:
   std::vector<G4String> GetCollectionNameList()
   {return collectionNameList;}
 
-  void SetHitColor(G4Colour *HC) {hitColour = HC;}
+  void SetHitRGBA(double R, double G, double B, double A)
+  {hitR = R; hitG = G; hitB = B; hitA = A;}
+  
   void SetHitSize(G4double HS) {hitSize = HS;}
   
 private:
   ASIMScintillatorSDHitCollection *hitCollection;
   std::vector<G4String> collectionNameList;
 
-  G4Colour *hitColour;
+  G4double hitR, hitG, hitB, hitA;
   G4double hitSize;
 };
 

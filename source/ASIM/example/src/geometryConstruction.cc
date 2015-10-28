@@ -353,9 +353,10 @@ void geometryConstruction::BuildReadouts()
 
   // The BGO scintillator
 
-  ASIMScintillatorSD *BGO_SD = new ASIMScintillatorSD("BGO-Detector",
-						      new G4Colour(1.0, 0.0, 0.0, 0.4),
-						      8); 
+  ASIMScintillatorSD *BGO_SD = new ASIMScintillatorSD("BGO-Detector");
+  BGO_SD->SetHitRGBA(1.0, 0.0, 0.0, 0.4);
+  BGO_SD->SetHitSize(8);
+
   SDMgr->AddNewDetector(BGO_SD);
   BGO_L->SetSensitiveDetector(BGO_SD);
   
@@ -364,17 +365,19 @@ void geometryConstruction::BuildReadouts()
 
   // The NaI(Tl) scintillator ...
   
-  ASIMScintillatorSD *NaI_SD = new ASIMScintillatorSD("NaI(Tl)-Detector",
-						      new G4Colour(1.0, 1.0, 0.0, 0.4),
-						      8); 
+  ASIMScintillatorSD *NaI_SD = new ASIMScintillatorSD("NaI(Tl)-Detector");
+  NaI_SD->SetHitRGBA(1.0, 1.0, 0.0, 0.4);
+  NaI_SD->SetHitSize(8);
+
   SDMgr->AddNewDetector(NaI_SD);
   NaI_L->SetSensitiveDetector(NaI_SD);
 
   // ... and the NaI(Tl) photomultiplier tube
   
-  ASIMPhotodetectorSD *NaIPMT_SD = new ASIMPhotodetectorSD("NaI(Tl)-PMT",
-							   new G4Colour(0.0, 1.0, 1.0, 1.0),
-							   4); 
+  ASIMPhotodetectorSD *NaIPMT_SD = new ASIMPhotodetectorSD("NaI(Tl)-PMT");
+  NaIPMT_SD->SetHitRGBA(0.0, 1.0, 1.0, 1.0);
+  NaIPMT_SD->SetHitSize(4);
+
   SDMgr->AddNewDetector(NaIPMT_SD);
   NaIPMT_L->SetSensitiveDetector(NaIPMT_SD);
   

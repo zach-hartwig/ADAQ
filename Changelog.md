@@ -15,6 +15,11 @@ mail: hartwig@psfc.mit.edu
  - Bug fix to enable ASIM libraries to handle multiple ASIM files
    (with option of multiple runs per file) within one Geant4 session
 
+ - Bug fix to prevent massive memory leak with ASIM*SD/SDHit classes
+
+ - Updated ASIMExample Geant4 simulation for compatibility with ASIM
+   library bug fixes above.
+
 
 ### 1.4.0
 

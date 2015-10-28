@@ -117,8 +117,10 @@ G4bool ASIMScintillatorSD::ManualTrigger(const G4Track *currentTrack)
   if(currentTrack->GetDefinition() != G4OpticalPhoton::OpticalPhotonDefinition())
     return false;
   
-  ASIMScintillatorSDHit *newHit = new ASIMScintillatorSDHit();
-
+  ASIMScintillatorSDHit *newHit = new ASIMScintillatorSDHit;
+  newHit->SetHitRGBA(hitR, hitG, hitB, hitA);
+  newHit->SetHitSize(hitSize);
+  
   // Get the relevant hit information
   G4double kineticEnergy = currentTrack->GetKineticEnergy();
   G4double creationTime = currentTrack->GetGlobalTime();

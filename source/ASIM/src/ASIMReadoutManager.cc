@@ -362,9 +362,6 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
 
 void ASIMReadoutManager::IncrementRunLevelData(vector<G4bool> &EventActivated)
 {
-  if(!ASIMFileOpen)
-    return;
-  
   G4int EventSum = 0;
   
   for(G4int r=0; r<NumReadouts; r++){
@@ -383,9 +380,6 @@ void ASIMReadoutManager::IncrementRunLevelData(vector<G4bool> &EventActivated)
 
 void ASIMReadoutManager::FillRunSummary(const G4Run *currentRun)
 {
-  if(!ASIMFileOpen)
-    return;
-  
   if(parallelProcessing)
     ReduceSlaveValuesToMaster();
 

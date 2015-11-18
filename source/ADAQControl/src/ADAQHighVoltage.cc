@@ -266,11 +266,10 @@ int ADAQHighVoltage::OpenLink()
 	   << endl;
   }
   else{
-
     if(IsV653X)
-      CommandStatus = CAENComm_OpenDevice(CAENComm_USB, 
-					  0, 
-					  0, 
+      CommandStatus = CAENComm_OpenDevice(CAENComm_USB,
+					  BoardLinkNumber,
+					  BoardCONETNode,
 					  BoardAddress, 
 					  &BoardHandle);
     else if(IsDT5790){

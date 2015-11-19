@@ -1,11 +1,23 @@
 ## The ADAQ Libraries Source Code Change Log
 
 name: Changelog.md  
-date: 26 Oct 15 (last updated)  
+date: 18 Nov 15 (last updated)  
 auth: Zach Hartwig  
 mail: hartwig@psfc.mit.edu
 
 ## Version 1.4 Series
+
+### 1.4.2
+
+ - Bug fix in ADAQControl library preventing connection to high
+   voltage units with non-zero USB link numbers
+
+ - Bug fix in ASIM libaries removing depracated "file open" checks
+   that were preventing run-level aggregation when ASIM files were
+   intentionally not open
+
+ - Updated CAENUpgraderGUI to most-recent version (1.5.2)
+
 
 ### 1.4.1
 

@@ -44,7 +44,7 @@ public:
   void Print();
   
 private:
-  G4double hitR, hitB, hitG, hitA;
+  G4double hitR, hitG, hitB, hitA;
   G4double hitSize;
   
   G4double energyDep, kineticEnergy, creationTime;

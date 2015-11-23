@@ -7,6 +7,17 @@ mail: hartwig@psfc.mit.edu
 
 ## Version 1.4 Series
 
+### 1.4.3
+
+ - Removed MPIManager header include from ASIMStorageManager class;
+   enables ADAQAnalysis to compile on non-Geant4 systems
+
+ - Upgraded CAENDigitizer library to 2.6.8; upgraded all board
+   firmware version
+
+ - Cleanup of compilation warnings in ASIM libraries
+ 
+
 ### 1.4.2
 
  - Bug fix in ADAQControl library preventing connection to high

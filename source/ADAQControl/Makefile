@@ -65,6 +65,9 @@ ifeq ($(ARCH),x86_64)
   CXXFLAGS += -fPIC
 endif
 
+# Add C++11 capabilitoes
+CXXFLAGS += -std=c++11
+
 # Specify the directories
 BUILDDIR = build
 INCLDIR = include

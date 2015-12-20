@@ -210,5 +210,5 @@ install:
 	@echo -e "\nInstalling the ASIM libraries into $(ADAQ)/lib/$(ARCH) ..."
 	@cp -v $(TARGETS) $(DESTLIB)
 	@echo -e "\nInstalling the ASIM headers into $(ADAQ)/include ..."
-	@cp -v include/*.hh $(DESTINCL)
+	@cp -v include/*.hh build/*.pcm $(DESTINCL)
 	@echo -e ""

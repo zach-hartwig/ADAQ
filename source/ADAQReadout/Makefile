@@ -123,5 +123,5 @@ install:
 	@echo -e "\nInstalling the ADAQReadout library in $(ADAQ)/lib/$(ARCH) ..."
 	@cp -v $(TARGET) $(DESTLIB)
 	@echo -e "\nInstalling the ADAQReadout  headers in $(ADAQ)/include ..."
-	@cp -v include/*.hh $(DESTINCL)
+	@cp -v include/*.hh build/*.pcm $(DESTINCL)
 	@echo -e ""

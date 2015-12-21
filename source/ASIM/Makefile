@@ -207,8 +207,9 @@ clean:
 
 # Install libs and headers into top-level ADAQ directory
 install:
-	@echo -e "\nInstalling the ASIM libraries into $(ADAQ)/lib/$(ARCH) ..."
+	@echo -e "\nInstalling the ASIM libraries and PCM files into $(ADAQ)/lib/$(ARCH) ..."
 	@cp -v $(TARGETS) $(DESTLIB)
+	@cp -v build/*.pcm $(DESTLIB)
 	@echo -e "\nInstalling the ASIM headers into $(ADAQ)/include ..."
-	@cp -v include/*.hh build/*.pcm $(DESTINCL)
+	@cp -v include/*.hh $(DESTINCL)
 	@echo -e ""

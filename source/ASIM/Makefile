@@ -179,7 +179,7 @@ $(BUILDDIR)/ASIMStorageDict.o : $(BUILDDIR)/ASIMStorageDict.cc
 
 $(BUILDDIR)/ASIMStorageDict.cc : $(ROOTDICTINCLS)
 	@echo -e "\nGenerating ROOT dictionary '$@' ..."
-	rootcint -f $@ -c $^
+	rootcling -f $@ -c $^
 
 # Build the libASIMReadout.so library
 

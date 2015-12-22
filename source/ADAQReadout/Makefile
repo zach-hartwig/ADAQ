@@ -106,7 +106,7 @@ $(BUILDDIR)/ADAQReadoutDict.o : $(BUILDDIR)/ADAQReadoutDict.cc
 
 $(BUILDDIR)/ADAQReadoutDict.cc : $(INCLS) $(INCLDIR)/RootLinkDef.h
 	@echo -e "\nGenerating ROOT dictionary '$@' ..."
-	rootcint -f $@ -c -I$(ADAQHOME)/source/extensions/ADAQReadout/$(INCLDIR) $^
+	rootcling -f $@ -c -I$(ADAQHOME)/source/extensions/ADAQReadout/$(INCLDIR) $^
 
 # PHONY rules
 

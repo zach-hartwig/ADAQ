@@ -42,8 +42,12 @@ public:
   void CreateWaveformTreeBranches(Int_t, vector<uint16_t> *, ADAQWaveformData *);
 #endif
   TTree *GetWaveformTree() {return WaveformTree;}
+
   void SetWaveformBranchStatus(Int_t, Bool_t);
+  Bool_t GetWaveformBranchStatus(Int_t);
+
   void SetDataBranchStatus(Int_t, Bool_t);
+  Bool_t GetDataBranchStatus(Int_t);
   
   // Action methods for run-level data
   

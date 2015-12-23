@@ -179,7 +179,7 @@ $(BUILDDIR)/ASIMStorageDict.o : $(BUILDDIR)/ASIMStorageDict.cc
 
 $(BUILDDIR)/ASIMStorageDict.cc : $(ROOTDICTINCLS)
 	@echo -e "\nGenerating ROOT dictionary '$@' ..."
-	rootcint -f $@ -c $^
+	rootcling -f $@ -c $^
 
 # Build the libASIMReadout.so library
 
@@ -209,7 +209,7 @@ clean:
 install:
 	@echo -e "\nInstalling the ASIM libraries and PCM files into $(ADAQ)/lib/$(ARCH) ..."
 	@cp -v $(TARGETS) $(DESTLIB)
-#	@cp -v build/*.pcm $(DESTLIB)
+	@cp -v build/*.pcm $(DESTLIB)
 	@echo -e "\nInstalling the ASIM headers into $(ADAQ)/include ..."
 	@cp -v include/*.hh $(DESTINCL)
 	@echo -e ""

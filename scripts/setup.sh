@@ -28,6 +28,7 @@ else
     export ADAQHOME=${SCRIPTDIR///scripts/}
     export PATH=$ADAQHOME/bin:$PATH
     export LD_LIBRARY_PATH=$ADAQHOME/lib/$HOSTTYPE:$LD_LIBRARY_PATH
+    export ROOT_INCLUDE_PATH=$ADAQHOME/include:$ROOT_INCLUDE_PATH
     export PYTHONPATH=$ADAQHOME/lib/$HOSTTYPE:$PYTHONPATH
     
     echo -e "\nADAQ : The environment has been successfully configured!"

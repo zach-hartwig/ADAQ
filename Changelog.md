@@ -1,9 +1,25 @@
 ## The ADAQ Libraries Source Code Change Log
 
 name: Changelog.md  
-date: 18 Nov 15 (last updated)  
+date: 23 Dec 15 (last updated)  
 auth: Zach Hartwig  
 mail: hartwig@psfc.mit.edu
+
+## Version 1.6 Series
+
+### 1.6.0
+
+ - Upgraded all libraries for compatibility with ROOT6 (v6.06.00);
+   ADAQ v1.4.3 is last tagged version compatible with ROOT5 (v5.34.00)
+
+ - Adding C++11 compiler flags to all three libraries. Necessary for
+   compiling ASIM libraries against newest Geant4 (v10.02)
+   
+ - Upgraded BuildLibraries.sh script to handle sequential and parallel
+   builds of the ASIM libraries
+
+ - Minor updates to libraries, Makefiles, and setup.sh script
+
 
 ## Version 1.4 Series
 

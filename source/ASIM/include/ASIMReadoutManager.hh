@@ -69,13 +69,16 @@ public:
   // appropriate readout; for all 'Get' methods, the argument should
   // be the reaodut ID for which the desired member data is returned.
   
-  // Set/Get methods for ASIMReadoutMessenger member data
+  // Set/Get methods for readout settings controlled by messenger
   
   void SetFileName(G4String FN) {ASIMFileName = FN;}
   G4String GetFileName() {return ASIMFileName;}
 
   void SetActiveReadout(G4int);
   G4int GetActiveReadout();
+  
+  void SetReadoutEnabled(G4bool);
+  G4bool GetReadoutEnabled(G4int);
   
   void SetEnergyBroadening(G4bool);
   G4bool GetEnergyBroadening(G4int);
@@ -115,10 +118,12 @@ public:
   G4String GetDetectorPSDParticle(){return "";}
   */
 
-  // Set/Get methods for data-collection members
-  
-  void SetReadoutEnabled(G4bool);
-  G4bool GetReadoutEnabled(G4int);
+  // Set/Get methods for event-level data
+
+  void SetEventActivated(G4bool);
+  G4bool GetEventActivated(G4int);
+
+  // Set/Get methods for run-level data
 
   void SetIncidents(G4int);
   G4int GetIncidents(G4int);

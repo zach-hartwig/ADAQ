@@ -37,6 +37,11 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARM)
   setActiveReadoutCmd->SetParameterName("Choice", false);
   setActiveReadoutCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
   
+  setReadoutEnabledCmd = new G4UIcmdWithABool("/ASIM/setReadoutEnabled", this);
+  setReadoutEnabledCmd->SetGuidance("Enables/disabled the presently active readout.");
+  setReadoutEnabledCmd->SetParameterName("Choice", false);
+  setReadoutEnabledCmd->SetDefaultValue(false);
+  
   setEnergyBroadeningCmd = new G4UIcmdWithABool("/ASIM/setEnergyBroadening", this);
   setEnergyBroadeningCmd->SetGuidance("Enables the ability to broadening the value of energy deposited by a Gaussian function");
   setEnergyBroadeningCmd->SetGuidance("in order to more realistically mimick the detector's response function without the need");
@@ -131,6 +136,7 @@ ASIMReadoutMessenger::~ASIMReadoutMessenger()
   delete setEnergyBroadeningCmd;
   delete setEnergyEvaluationCmd;
   delete setEnergyResolutionCmd;
+  delete setReadoutEnabledCmd;
   delete setActiveReadoutCmd;
   delete asimWriteCmd;
   delete asimInitCmd;
@@ -155,6 +161,11 @@ void ASIMReadoutMessenger::SetNewValue(G4UIcommand *cmd, G4String newValue)
   if(cmd == setActiveReadoutCmd)
     theManager->SetActiveReadout(setActiveReadoutCmd->GetNewIntValue(newValue));
 
+  // Enable/disable the readout
+  
+  if(cmd == setReadoutEnabledCmd)
+    theManager->SetReadoutEnabled(setReadoutEnabledCmd->GetNewBoolValue(newValue));
+  
   // Energy broadening 
 
   if(cmd == setEnergyBroadeningCmd)

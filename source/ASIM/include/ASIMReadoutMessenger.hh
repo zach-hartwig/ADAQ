@@ -32,6 +32,8 @@ private:
   G4UIcmdWithoutParameter *asimWriteCmd;
 
   G4UIcmdWithAnInteger *setActiveReadoutCmd;
+
+  G4UIcmdWithABool *setReadoutEnabledCmd;
   
   G4UIcmdWithABool *setEnergyBroadeningCmd;
   G4UIcmdWithADouble *setEnergyResolutionCmd;

@@ -64,18 +64,19 @@ public:
   // Set/Get Methods //
   /////////////////////
   
-  // For all 'Set' methods, the active readout ID must be specified
-  // before calling the desired 'Set' method to ensure setting the
-  // appropriate readout; for all 'Get' methods, the argument should
-  // be the reaodut ID for which the desired member data is returned.
-  
+  // For all 'Set' methods, the user must first select the readout for
+  // which all following settings will be applied.
+
+  // For all 'Get' methods, the user should pass the readout ID as the
+  // method argument to return the desired member data.
+
   // Set/Get methods for readout settings controlled by messenger
   
   void SetFileName(G4String FN) {ASIMFileName = FN;}
   G4String GetFileName() {return ASIMFileName;}
 
-  void SetActiveReadout(G4int);
-  G4int GetActiveReadout();
+  void SelectReadout(G4int);
+  G4int GetSelectedReadout();
   
   void SetReadoutEnabled(G4bool);
   G4bool GetReadoutEnabled(G4int);
@@ -177,7 +178,7 @@ private:
   vector<G4bool> EventActivated;
   
   // Readout settings
-  G4int ActiveReadout;  
+  G4int SelectedReadout;
   vector<G4bool> EnergyBroadening;
   vector<G4double> EnergyResolution, EnergyEvaluation;
   vector<G4bool> UseEnergyThresholds;

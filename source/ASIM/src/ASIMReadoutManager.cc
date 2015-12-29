@@ -46,7 +46,7 @@ ASIMReadoutManager *ASIMReadoutManager::GetInstance()
 
 ASIMReadoutManager::ASIMReadoutManager()
   : parallelProcessing(false), MPI_Rank(0), MPI_Size(1), 
-    ActiveReadout(0), NumReadouts(0),
+    SelectedReadout(0), NumReadouts(0),
     ASIMFileOpen(false), ASIMFileName("ASIMDefault.asim.root"),
     ASIMStorageMgr(new ASIMStorageManager), ASIMRunSummary(new ASIMRun)
 {
@@ -207,7 +207,7 @@ void ASIMReadoutManager::RegisterNewReadout(G4String ReadoutDesc,
   EventActivated.push_back(false);
 
   // Readout settings
-  ActiveReadout = 0;
+  SelectedReadout = 0;
   EnergyBroadening.push_back(false);
   EnergyResolution.push_back(0.);
   EnergyEvaluation.push_back(0.);
@@ -536,13 +536,13 @@ void ASIMReadoutManager::ReduceSlaveValuesToMaster()
 }
 
 
-void ASIMReadoutManager::SetActiveReadout(G4int R)
+void ASIMReadoutManager::SelectReadout(G4int R)
 {
   if(R<NumReadouts)
-    ActiveReadout = R;
+    SelectedReadout = R;
   else
-    G4cout << "\nASIMReadoutManager::SetActiveReadout():\n"
-	   <<   "  The specified readout does not exist and therefore cannot be activated!\n"
+    G4cout << "\nASIMReadoutManager::SelectReadout():\n"
+	   <<   "  The readout selected does not exist!\n"
 	   << G4endl;
 }
 
@@ -551,77 +551,77 @@ void ASIMReadoutManager::SetActiveReadout(G4int R)
 // Set/Get methods for readout settings //
 //////////////////////////////////////////
 
-G4int ASIMReadoutManager::GetActiveReadout()
-{ return ActiveReadout;}
+G4int ASIMReadoutManager::GetSelectedReadout()
+{ return SelectedReadout;}
 
 void ASIMReadoutManager::SetReadoutEnabled(G4bool RE)
-{ ReadoutEnabled.at(ActiveReadout) = RE; }
+{ ReadoutEnabled.at(SelectedReadout) = RE; }
 
 G4bool ASIMReadoutManager::GetReadoutEnabled(G4int R)
 { return ReadoutEnabled.at(R); }
 
 void ASIMReadoutManager::SetEnergyBroadening(G4bool B)
-{ EnergyBroadening.at(ActiveReadout) = B; }
+{ EnergyBroadening.at(SelectedReadout) = B; }
 
 G4bool ASIMReadoutManager::GetEnergyBroadening(G4int R)
 { return EnergyBroadening.at(R); }
 
 void ASIMReadoutManager::SetEnergyResolution(G4double E)
-{ EnergyResolution.at(ActiveReadout) = E; }
+{ EnergyResolution.at(SelectedReadout) = E; }
 
 G4double ASIMReadoutManager::GetEnergyResolution(G4int R)
 { return EnergyResolution.at(R); }
 
 void ASIMReadoutManager::SetEnergyEvaluation(G4double E)
-{ EnergyEvaluation.at(ActiveReadout) = E; }
+{ EnergyEvaluation.at(SelectedReadout) = E; }
 
 G4double ASIMReadoutManager::GetEnergyEvaluation(G4int R)
 { return EnergyEvaluation.at(R); }
 
 void ASIMReadoutManager::EnableEnergyThresholds()
 {
-  UseEnergyThresholds.at(ActiveReadout) = true;
-  UsePhotonThresholds.at(ActiveReadout) = false;
+  UseEnergyThresholds.at(SelectedReadout) = true;
+  UsePhotonThresholds.at(SelectedReadout) = false;
 }
 
 G4bool ASIMReadoutManager::GetUseEnergyThresholds(G4int R)
 { return UseEnergyThresholds.at(R); }
 
 void ASIMReadoutManager::SetLowerEnergyThreshold(G4double LET)
-{ LowerEnergyThreshold.at(ActiveReadout) = LET; }
+{ LowerEnergyThreshold.at(SelectedReadout) = LET; }
 
 G4double ASIMReadoutManager::GetLowerEnergyThreshold(G4int R)
 { return LowerEnergyThreshold.at(R); }
 
 void ASIMReadoutManager::SetUpperEnergyThreshold(G4double UET)
-{ UpperEnergyThreshold.at(ActiveReadout) = UET; }
+{ UpperEnergyThreshold.at(SelectedReadout) = UET; }
 
 G4double ASIMReadoutManager::GetUpperEnergyThreshold(G4int R)
 { return UpperEnergyThreshold.at(R); }
 
 void ASIMReadoutManager::EnablePhotonThresholds()
 {
-  UseEnergyThresholds.at(ActiveReadout) = false;
-  UsePhotonThresholds.at(ActiveReadout) = true;
+  UseEnergyThresholds.at(SelectedReadout) = false;
+  UsePhotonThresholds.at(SelectedReadout) = true;
 }
 
 G4bool ASIMReadoutManager::GetUsePhotonThresholds(G4int R)
 { return UsePhotonThresholds.at(R); }
 
 void ASIMReadoutManager::SetLowerPhotonThreshold(G4int LPT)
-{ LowerPhotonThreshold.at(ActiveReadout) = LPT; }
+{ LowerPhotonThreshold.at(SelectedReadout) = LPT; }
 
 G4int ASIMReadoutManager::GetLowerPhotonThreshold(G4int R)
 { return LowerPhotonThreshold.at(R); }
 
 void ASIMReadoutManager::SetUpperPhotonThreshold(G4int UPT)
-{ UpperPhotonThreshold.at(ActiveReadout) = UPT; }
+{ UpperPhotonThreshold.at(SelectedReadout) = UPT; }
 
 G4int ASIMReadoutManager::GetUpperPhotonThreshold(G4int R)
 { return UpperPhotonThreshold.at(R); }
 
 void ASIMReadoutManager::SetWaveformStorage(G4bool WS)
-{ WaveformStorage.at(ActiveReadout) = WS; }
+{ WaveformStorage.at(SelectedReadout) = WS; }
 
 G4bool ASIMReadoutManager::GetWaveformStorage(G4int R)
 { return WaveformStorage.at(R); }
@@ -632,7 +632,7 @@ G4bool ASIMReadoutManager::GetWaveformStorage(G4int R)
 //////////////////////////////////////////
 
 void ASIMReadoutManager::SetEventActivated(G4bool EA)
-{ EventActivated.at(ActiveReadout) = EA; }
+{ EventActivated.at(SelectedReadout) = EA; }
 
 G4bool ASIMReadoutManager::GetEventActivated(G4int R)
 { return EventActivated.at(R); }
@@ -643,31 +643,31 @@ G4bool ASIMReadoutManager::GetEventActivated(G4int R)
 ////////////////////////////////////////
 
 void ASIMReadoutManager::SetIncidents(G4int I)
-{ Incidents.at(ActiveReadout) = I; }
+{ Incidents.at(SelectedReadout) = I; }
 
 G4int ASIMReadoutManager::GetIncidents(G4int R)
 { return Incidents.at(R); }
 
 void ASIMReadoutManager::SetHits(G4int H)
-{ Hits.at(ActiveReadout) = H; }
+{ Hits.at(SelectedReadout) = H; }
 
 G4int ASIMReadoutManager::GetHits(G4int R)
 { return Hits.at(R); }
 
 void ASIMReadoutManager::SetRunEDep(G4double E)
-{ RunEDep.at(ActiveReadout) = E; }
+{ RunEDep.at(SelectedReadout) = E; }
 
 G4double ASIMReadoutManager::GetRunEDep(G4int R)
 { return RunEDep.at(R); }
 
 void ASIMReadoutManager::SetPhotonsCreated(G4int P)
-{ PhotonsCreated.at(ActiveReadout) = P; }
+{ PhotonsCreated.at(SelectedReadout) = P; }
 
 G4int ASIMReadoutManager::GetPhotonsCreated(G4int R)
 { return PhotonsCreated.at(R); }
 
 void ASIMReadoutManager::SetPhotonsDetected(G4int P)
-{ PhotonsDetected.at(ActiveReadout) = P; }
+{ PhotonsDetected.at(SelectedReadout) = P; }
 
 G4int ASIMReadoutManager::GetPhotonsDetected(G4int R)
 { return PhotonsDetected.at(R); }

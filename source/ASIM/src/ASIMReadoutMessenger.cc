@@ -13,6 +13,10 @@
 ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARM)
   : theManager(ARM)
 {
+  ////////////////////////
+  // ASIM file commands //
+  ////////////////////////
+  
   asimDirectory = new G4UIdirectory("/ASIM/");
   asimDirectory->SetGuidance("Settings for SWS I/O via persistent data storage in ASIM files");
 
@@ -32,10 +36,15 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARM)
   asimWriteCmd->SetGuidance("the ASIM objects have already been created and initialized.");
   asimWriteCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
 
-  setActiveReadoutCmd = new G4UIcmdWithAnInteger("/ASIM/setActiveReadout", this);
-  setActiveReadoutCmd->SetGuidance("Set the readout for which settings will be modified. Use the readout ID to specify.");
-  setActiveReadoutCmd->SetParameterName("Choice", false);
-  setActiveReadoutCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
+
+  ///////////////////////////
+  // ASIM readout commands //
+  ///////////////////////////
+  
+  selectReadoutCmd = new G4UIcmdWithAnInteger("/ASIM/selectReadout", this);
+  selectReadoutCmd->SetGuidance("Set the readout for which settings will be modified. Use the readout ID to specify.");
+  selectReadoutCmd->SetParameterName("Choice", false);
+  selectReadoutCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
   
   setReadoutEnabledCmd = new G4UIcmdWithABool("/ASIM/setReadoutEnabled", this);
   setReadoutEnabledCmd->SetGuidance("Enables/disabled the presently active readout.");
@@ -97,6 +106,14 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARM)
   setUpperPhotonThresholdCmd->SetGuidance("tresholding must be enabled via the '/ASIM/enablePhotonThrehold' command");
   setUpperPhotonThresholdCmd->SetParameterName("Choice",false);
 
+  setWaveformStorageCmd = new G4UIcmdWithABool("/ASIM/setWaveformStorage", this);
+  setWaveformStorageCmd->SetGuidance("Set/disable the storage of individual waveforms (e.g. a vector of optical photon");
+  setWaveformStorageCmd->SetGuidance("creation/detection times) on disk. Warning: when setd ASIM file sizes on disk can");
+  setWaveformStorageCmd->SetGuidance("quickly become very large");
+  setWaveformStorageCmd->SetParameterName("Choice", false);
+  setWaveformStorageCmd->SetDefaultValue(false);
+
+
   /*
   setPSDStatusCmd = new G4UIcmdWithABool("/ASIM/setPSDStatus", this);
   setPSDStatusCmd->SetGuidance("Enable/disable pulse shape discrimination for the detectors. This features");
@@ -112,13 +129,6 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARM)
   setPSDParticleCmd->SetParameterName("Choice",false);
   setPSDParticleCmd->SetCandidates("gamma neutron");
   */
-
-  setWaveformStorageCmd = new G4UIcmdWithABool("/ASIM/setWaveformStorage", this);
-  setWaveformStorageCmd->SetGuidance("Set/disable the storage of individual waveforms (e.g. a vector of optical photon");
-  setWaveformStorageCmd->SetGuidance("creation/detection times) on disk. Warning: when setd ASIM file sizes on disk can");
-  setWaveformStorageCmd->SetGuidance("quickly become very large");
-  setWaveformStorageCmd->SetParameterName("Choice", false);
-  setWaveformStorageCmd->SetDefaultValue(false);
 }
 
 
@@ -137,7 +147,7 @@ ASIMReadoutMessenger::~ASIMReadoutMessenger()
   delete setEnergyEvaluationCmd;
   delete setEnergyResolutionCmd;
   delete setReadoutEnabledCmd;
-  delete setActiveReadoutCmd;
+  delete selectReadoutCmd;
   delete asimWriteCmd;
   delete asimInitCmd;
   delete asimFileNameCmd;
@@ -156,11 +166,11 @@ void ASIMReadoutMessenger::SetNewValue(G4UIcommand *cmd, G4String newValue)
   if(cmd == asimWriteCmd)
     theManager->WriteASIMFile();
 
-  // Set the active readout via readout ID
+  // Select the active readout via readout ID
 
-  if(cmd == setActiveReadoutCmd)
-    theManager->SetActiveReadout(setActiveReadoutCmd->GetNewIntValue(newValue));
-
+  if(cmd == selectReadoutCmd)
+    theManager->SelectReadout(selectReadoutCmd->GetNewIntValue(newValue));
+  
   // Enable/disable the readout
   
   if(cmd == setReadoutEnabledCmd)

@@ -73,7 +73,11 @@ ASIMReadoutManager::~ASIMReadoutManager()
   delete theMessenger;
 
   vector<ASIMEvent *>::iterator It;
+
   for(It=ASIMEvents.begin(); It!=ASIMEvents.end(); It++)
+    delete (*It);
+
+  for(It=ASIMArrayEvents.begin(); It!=ASIMArrayEvents.end(); It++)
     delete (*It);
 }
 
@@ -97,13 +101,20 @@ void ASIMReadoutManager::InitializeASIMFile()
   
   // Clear the pointers to previous file's ASIMEvents
   ASIMEvents.clear();
+  ASIMArrayEvents.clear();
   
   // Iterate over the register readouts and create new event trees
   for(size_t r=0; r<ASIMReadoutID.size(); r++)
     ASIMEvents.push_back(ASIMStorageMgr->CreateEventTree(ASIMReadoutID.at(r),
 							 ASIMReadoutName.at(r),
 							 ASIMReadoutDesc.at(r)));
-
+  
+  for(size_t a=0; a<ASIMArrayID.size(); a++)
+    ASIMArrayEvents.push_back(ASIMStorageMgr->CreateEventTree(ASIMArrayID.at(a),
+							      ASIMArrayName.at(a),
+							      ASIMArrayDesc.at(a)));
+  
+  
   // Create new architecture-specific ASIM files to receive data
   
   if(parallelProcessing){
@@ -233,6 +244,10 @@ void ASIMReadoutManager::ClearReadouts()
   ASIMReadoutDesc.clear();
   ASIMReadoutNameMap.clear();
   ASIMEvents.clear();
+
+  ASIMArrayID.clear();
+  ASIMArrayName.clear();
+  ASIMArrayDesc.clear();
 
   ScintillatorSDNames.clear();
   PhotodetectorSDNames.clear();
@@ -428,6 +443,29 @@ void ASIMReadoutManager::AnalyzeAndStoreEvent()
   }
   else
     EventApproved = EventActivated;
+
+
+  ////////////////////
+  // Array analysis //
+  ////////////////////
+
+  for(size_t a=0; a<ArrayStore.size(); a++){
+    
+    G4double EDep = 0.;
+    G4int PhotonsCreated = 0, PhotonsDetected = 0;
+
+    for(size_t r=0; r<ArrayStore.at(a).size(); r++){
+      EDep += ASIMEvents[r]->GetEnergyDep();
+      PhotonsCreated += ASIMEvents[r]->GetPhotonsCreated();
+      PhotonsDetected += ASIMEvents[r]->GetPhotonsDetected();
+    }
+    
+    ASIMArrayEvents[a]->SetEnergyDep(EDep);
+    ASIMArrayEvents[a]->SetPhotonsCreated(PhotonsCreated);
+    ASIMArrayEvents[a]->SetPhotonsDetected(PhotonsDetected);
+    
+    ASIMStorageMgr->GetEventTree(-1*a)->Fill();
+  }      
   
 
   //////////////////
@@ -601,6 +639,36 @@ void ASIMReadoutManager::HandleOpticalPhotonDetection(const G4Step *CurrentStep)
     }
   }
 }
+
+
+void ASIMReadoutManager::CreateArray(vector<int> Array)
+{
+  ArrayStore.push_back(Array);
+
+  G4int ArrayID = -1 * ArrayStore.size();
+  
+  stringstream SS;
+  SS << "ReadoutArray" << ArrayID;
+  G4String ArrayName = SS.str();
+
+  SS.str("");
+  SS << "Array of ASIM readouts ";
+  for(size_t a=0; a<Array.size(); a++)
+    SS << Array.at(a) << " ";
+  G4String ArrayDesc = SS.str();
+
+  ASIMArrayID.push_back(ArrayID);
+  ASIMArrayName.push_back(ArrayName);
+  ASIMArrayDesc.push_back(ArrayDesc);
+
+  ASIMArrayEvents.push_back(ASIMStorageMgr->CreateEventTree(ArrayID,
+							    ArrayName,
+							    ArrayDesc));
+}
+
+
+void ASIMReadoutManager::ClearArrayStore()
+{ ArrayStore.clear(); }
 
 
 void ASIMReadoutManager::AddCoincidence(G4String CString)

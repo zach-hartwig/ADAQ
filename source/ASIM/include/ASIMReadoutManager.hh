@@ -58,6 +58,9 @@ public:
   
   void HandleOpticalPhotonCreation(const G4Track *);
   void HandleOpticalPhotonDetection(const G4Step *);
+  
+  void CreateArray(vector<G4int>);
+  void ClearArrayStore();
 
   void AddCoincidence(G4String);
   void ClearCoincidenceStore();
@@ -184,10 +187,14 @@ private:
 
   // High-level readout variables
   G4int NumReadouts, SelectedReadout;
+
   G4bool CoincidenceEnabled;
   vector<vector<G4bool> > CoincidenceStore;
   vector<int> CoincidenceHits;
   int NonCoincidenceHits;
+
+  vector<vector<G4int> > ArrayStore;
+  
   vector<G4String> ScintillatorSDNames, PhotodetectorSDNames;
 
   // Run-level aggregator variables
@@ -220,6 +227,10 @@ private:
   vector<G4String> ASIMReadoutName, ASIMReadoutDesc;
   map<G4String, G4int> ASIMReadoutNameMap;
 
+  vector<ASIMEvent *> ASIMArrayEvents;
+  vector<G4int> ASIMArrayID;
+  vector<G4String> ASIMArrayName, ASIMArrayDesc;
+  
   // Messenger class for runtime command
   ASIMReadoutMessenger *theMessenger;
 };

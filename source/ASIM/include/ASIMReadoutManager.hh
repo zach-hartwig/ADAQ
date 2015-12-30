@@ -193,7 +193,7 @@ private:
   vector<int> CoincidenceHits;
   int NonCoincidenceHits;
 
-  vector<vector<G4int> > ArrayStore;
+  vector<vector<G4bool> > ArrayStore;
   
   vector<G4String> ScintillatorSDNames, PhotodetectorSDNames;
 

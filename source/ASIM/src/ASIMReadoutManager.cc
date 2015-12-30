@@ -245,6 +245,7 @@ void ASIMReadoutManager::ClearReadouts()
   ASIMReadoutDesc.clear();
   ASIMReadoutNameMap.clear();
   ASIMEvents.clear();
+  ASIMArrayEvents.clear();
 
   ASIMArrayID.clear();
   ASIMArrayName.clear();
@@ -416,13 +417,13 @@ void ASIMReadoutManager::AnalyzeAndStoreEvent()
   //////////////////////////
   // Coincidence analysis //
   //////////////////////////
-
+  
   vector<G4bool> EventApproved(NumReadouts, false);
   
   if(CoincidenceEnabled){
-
+    
     G4bool CoincidenceFound = false;
-
+    
     // Iterate over each registerd coincidence in the store
     vector<vector<G4bool> >::iterator It = CoincidenceStore.begin();
     for(; It!=CoincidenceStore.end(); It++){
@@ -444,40 +445,11 @@ void ASIMReadoutManager::AnalyzeAndStoreEvent()
   }
   else
     EventApproved = EventActivated;
-
-
-  ////////////////////
-  // Array analysis //
-  ////////////////////
   
-  for(size_t a=0; a<ArrayStore.size(); a++){
-    
-    G4double EDep = 0.;
-    G4int PhotonsCreated = 0, PhotonsDetected = 0;
-    
-    for(size_t r=0; r<ArrayStore.at(a).size(); r++){
-      
-      if(EventActivated[r] and EventApproved[r]){
-	EDep += ASIMEvents[r]->GetEnergyDep();
-	PhotonsCreated += ASIMEvents[r]->GetPhotonsCreated();
-	PhotonsDetected += ASIMEvents[r]->GetPhotonsDetected();
-      }
-    }
-    
-    ASIMArrayEvents[a]->SetEnergyDep(EDep);
-    ASIMArrayEvents[a]->SetPhotonsCreated(PhotonsCreated);
-    ASIMArrayEvents[a]->SetPhotonsDetected(PhotonsDetected);
-    
-    if(ASIMFileOpen){
-      G4int ArrayID = ASIMArrayIDOffset + a;
-      ASIMStorageMgr->GetEventTree(ArrayID)->Fill();
-    }
-  }      
   
-
-  //////////////////
-  // Data readout //
-  //////////////////
+  /////////////////////
+  // Readout storage //
+  /////////////////////
 
   if(ASIMFileOpen){
     
@@ -489,8 +461,66 @@ void ASIMReadoutManager::AnalyzeAndStoreEvent()
 	continue;
       
       // Fill event trees if the event passed energy/photon threshold
-      if(EventActivated[r] and EventApproved[r])
+      if(EventApproved[r])
 	ASIMStorageMgr->GetEventTree(ASIMReadoutID[r])->Fill();
+    }
+  }
+  
+  ///////////////////
+  // Array storage //
+  ///////////////////
+  
+  if(ASIMFileOpen){
+    
+    // Iterate over all arrays in the store
+    for(size_t a=0; a<ArrayStore.size(); a++){
+
+      // Reset array event aggregators to zero
+      ASIMArrayEvents[a]->Initialize();
+
+      // Reset scope aggregators to zero
+      G4double EDep = 0.;
+      G4int PhotonsCreated = 0, PhotonsDetected = 0;
+
+      // Get the array vector: the length is the total number of
+      // readouts; the index is the readout ID; the value is a bool
+      // specifying if the corresponding readout is part of the array
+      vector<G4bool> Array = ArrayStore[a];
+
+      // In coincidence mode, only ASIM arrays that are identical to
+      // ASIM coincidences will be filled. This enables realistic
+      // output to ASIM files based on coincidence triggering. So, if
+      // the coincidence mode is enabled and the present array is not
+      // identical to the approved events, continue to the next array
+
+      if(CoincidenceEnabled){
+	if(EventApproved != Array)
+	  continue;
+      }
+      
+      // Iterate over all readouts 
+      for(size_t r=0; r<Array.size(); r++){
+	
+	// Skip readouts that are not part of the array
+	if(!Array[r])
+	  continue;
+
+	// Aggregate event-level data for readouts in the array
+	if(EventApproved[r]){
+	  EDep += ASIMEvents[r]->GetEnergyDep();
+	  PhotonsCreated += ASIMEvents[r]->GetPhotonsCreated();
+	  PhotonsDetected += ASIMEvents[r]->GetPhotonsDetected();
+	}
+      }
+
+      ASIMArrayEvents[a]->SetEnergyDep(EDep/MeV);
+      ASIMArrayEvents[a]->SetPhotonsCreated(PhotonsCreated);
+      ASIMArrayEvents[a]->SetPhotonsDetected(PhotonsDetected);
+      
+      if(ASIMFileOpen){
+	G4int ArrayID = ASIMArrayIDOffset + a;
+	ASIMStorageMgr->GetEventTree(ArrayID)->Fill();
+      }
     }
   }
 }
@@ -653,25 +683,33 @@ void ASIMReadoutManager::CreateArray(G4String ArrayName,
 {
   // Create a unique ID for the new array
   G4int ArrayID = ASIMArrayIDOffset + ArrayStore.size();
-
+  
   stringstream SS;
   SS << "ASIM array of readouts ";
+
+  vector<G4bool> Array(NumReadouts, false);
 
   vector<int>::iterator It=ArrayList.begin();
   for(; It!=ArrayList.end(); It++){
     
-    if((*It) < NumReadouts)
+    if((*It) < NumReadouts){
+      
+      // Mark this readout ID as part of the array
+      Array.at(*It) = true;
+      
+      // Add the readout ID to the array description
       SS << (*It) << " ";
+    }
     else{
       G4cout << "\nASIMReadoutManager::CreateArray():\n"
 	     <<   "  Warning! A readout ID was specified in the array that does not exist,\n"
 	     <<   "  i.e. (ReadoutID >= NumReadouts)! The array has not been created!\n"
 	     << G4endl;
-
+      
       return;
     }
   }
-
+  
   // Create an array description that contains the involved readouts
   G4String ArrayDesc = SS.str();
   
@@ -686,7 +724,7 @@ void ASIMReadoutManager::CreateArray(G4String ArrayName,
 							    ArrayDesc));
   
   // Add this array to the store of readout arrays
-  ArrayStore.push_back(ArrayList);
+  ArrayStore.push_back(Array);
 }
 
 

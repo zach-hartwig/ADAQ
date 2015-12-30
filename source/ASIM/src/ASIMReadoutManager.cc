@@ -49,7 +49,8 @@ ASIMReadoutManager *ASIMReadoutManager::GetInstance()
 
 ASIMReadoutManager::ASIMReadoutManager()
   : parallelProcessing(false), MPI_Rank(0), MPI_Size(1), 
-    NumReadouts(0), SelectedReadout(0), CoincidenceEnabled(true),
+    NumReadouts(0), SelectedReadout(0),
+    CoincidenceEnabled(true), NonCoincidenceHits(0),
     ASIMFileOpen(false), ASIMFileName("ASIMDefault.asim.root"),
     ASIMStorageMgr(new ASIMStorageManager), ASIMRunSummary(new ASIMRun)
 {
@@ -221,9 +222,6 @@ void ASIMReadoutManager::RegisterNewReadout(G4String ReadoutDesc,
   LowerPhotonThreshold.push_back(0);
   UpperPhotonThreshold.push_back(1000000000);
   WaveformStorage.push_back(false);
-
-  // Coincidence counter
-  CoincidenceHits.push_back(0);
 }
 
 
@@ -238,6 +236,7 @@ void ASIMReadoutManager::InitializeForRun()
     PhotonsDetected[r] = 0;
     
     CoincidenceHits[r] = 0;
+    NonCoincidenceHits = 0;
   }
 }
 
@@ -369,6 +368,8 @@ void ASIMReadoutManager::AnalyzeAndStoreEvent()
   
   if(CoincidenceEnabled){
 
+    G4bool CoincidenceFound = false;
+
     // Iterate over each registerd coincidence in the store
     vector<vector<G4bool> >::iterator It = CoincidenceStore.begin();
     for(; It!=CoincidenceStore.end(); It++){
@@ -380,8 +381,13 @@ void ASIMReadoutManager::AnalyzeAndStoreEvent()
 	
 	for(size_t r=0; r<(*It).size(); r++)
 	  EventApproved[r] = (*It)[r];
+	
+	CoincidenceFound = true;
       }
     }
+    
+    if(!CoincidenceFound)
+      NonCoincidenceHits++;
   }
   else
     EventApproved = EventActivated;
@@ -593,8 +599,10 @@ void ASIMReadoutManager::AddCoincidence(G4String CString)
   }
   
   // Add this coincidence to the store of coincidences
-  
   CoincidenceStore.push_back(Coincidence);
+  
+  // Initialize hit counter for this coincidence
+  CoincidenceHits.push_back(0);
 }
 
 

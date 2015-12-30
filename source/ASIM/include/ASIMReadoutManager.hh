@@ -155,6 +155,7 @@ public:
 
   int GetNumCoincidences() {return CoincidenceHits.size();}
   int GetCoincidenceHits(G4int C) {return CoincidenceHits.at(C);}
+  int GetNonCoincidenceHits() {return NonCoincidenceHits;}
   
   // Set/Get methods for general purpose data members
 
@@ -186,6 +187,7 @@ private:
   G4bool CoincidenceEnabled;
   vector<vector<G4bool> > CoincidenceStore;
   vector<int> CoincidenceHits;
+  int NonCoincidenceHits;
   vector<G4String> ScintillatorSDNames, PhotodetectorSDNames;
 
   // Run-level aggregator variables

@@ -50,6 +50,7 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARM)
   setReadoutEnabledCmd->SetGuidance("Enables/disabled the presently active readout.");
   setReadoutEnabledCmd->SetParameterName("Choice", false);
   setReadoutEnabledCmd->SetDefaultValue(false);
+
   
   setEnergyBroadeningCmd = new G4UIcmdWithABool("/ASIM/setEnergyBroadening", this);
   setEnergyBroadeningCmd->SetGuidance("Enables the ability to broadening the value of energy deposited by a Gaussian function");
@@ -70,6 +71,7 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARM)
   setEnergyEvaluationCmd->SetParameterName("Choice",false);
   setEnergyEvaluationCmd->SetUnitCategory("Energy");
   setEnergyEvaluationCmd->SetDefaultUnit("MeV");
+
   
   setLowerEnergyThresholdCmd = new G4UIcmdWithADoubleAndUnit("/ASIM/setLowerEnergyThreshold", this);
   setLowerEnergyThresholdCmd->SetGuidance("Set the lower energy threshold for scoring hits on the detector. Note that energy");
@@ -90,6 +92,7 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARM)
   enableEnergyThresholdCmd->SetGuidance("may be set via '/ASIM/set{Lower,Upper}EnergyThreshold' command. Note that energy");
   enableEnergyThresholdCmd->SetGuidance("and photon thresholding are mutually exclusive. Setting this will undo the other!");
 
+
   enablePhotonThresholdCmd = new G4UIcmdWithoutParameter("/ASIM/enablePhotonThreshold", this);
   enablePhotonThresholdCmd->SetGuidance("Enables the lower/upper photon thresholds for scoring hits on the detector. The photon");
   enablePhotonThresholdCmd->SetGuidance("thresholds may be set via '/ASIM/set{Lower,Upper}EnergyThreshold' command.");
@@ -106,6 +109,21 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARM)
   setUpperPhotonThresholdCmd->SetGuidance("tresholding must be enabled via the '/ASIM/enablePhotonThrehold' command");
   setUpperPhotonThresholdCmd->SetParameterName("Choice",false);
 
+  
+  setCoincidenceEnabledCmd = new G4UIcmdWithABool("/ASIM/setCoincidenceEnabled", this);
+  setCoincidenceEnabledCmd->SetGuidance("Enables/disables the use of coincidences as filters for readout of events.");
+  setCoincidenceEnabledCmd->SetParameterName("Choice", false);
+  setCoincidenceEnabledCmd->SetDefaultValue(false);
+  
+  addCoincidenceCmd = new G4UIcmdWithAString("/ASIM/addCoincidence", this);
+  addCoincidenceCmd->SetGuidance("Add a new coincidence string for use in readout. The string should be a series of");
+  addCoincidenceCmd->SetGuidance("ASIM readout IDs that form the coincidence.");
+  addCoincidenceCmd->SetParameterName("Choice", false);
+  addCoincidenceCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
+
+  clearCoincidencesCmd = new G4UIcmdWithoutParameter("/ASIM/clearCoincidences", this);
+  clearCoincidencesCmd->SetGuidance("Clears the list of coincidences used as filters for readout of events.");
+  
   setWaveformStorageCmd = new G4UIcmdWithABool("/ASIM/setWaveformStorage", this);
   setWaveformStorageCmd->SetGuidance("Set/disable the storage of individual waveforms (e.g. a vector of optical photon");
   setWaveformStorageCmd->SetGuidance("creation/detection times) on disk. Warning: when setd ASIM file sizes on disk can");
@@ -137,6 +155,9 @@ ASIMReadoutMessenger::~ASIMReadoutMessenger()
   //delete setPSDParticleCmd;
   //delete setPSDStatusCmd;
   delete setWaveformStorageCmd;
+  delete clearCoincidencesCmd;
+  delete addCoincidenceCmd;
+  delete setCoincidenceEnabledCmd;
   delete enablePhotonThresholdCmd;
   delete setUpperPhotonThresholdCmd;
   delete setLowerPhotonThresholdCmd;

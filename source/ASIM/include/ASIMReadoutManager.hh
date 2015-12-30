@@ -52,14 +52,19 @@ public:
 
   void InitializeForRun();
   void ReadoutEvent(const G4Event *);
+  void AnalyzeAndStoreEvent();
   void FillRunSummary(const G4Run *);
   void IncrementRunLevelData(vector<G4bool> &);
   
   void HandleOpticalPhotonCreation(const G4Track *);
   void HandleOpticalPhotonDetection(const G4Step *);
+
+  void AddCoincidence(G4String);
+  void ClearCoincidenceStore();
   
   void ReduceSlaveValuesToMaster();
 
+  
   /////////////////////
   // Set/Get Methods //
   /////////////////////
@@ -70,10 +75,15 @@ public:
   // For all 'Get' methods, the user should pass the readout ID as the
   // method argument to return the desired member data.
 
-  // Set/Get methods for readout settings controlled by messenger
-  
+  // Set/Get methods for high-level readout control
+
   void SetFileName(G4String FN) {ASIMFileName = FN;}
   G4String GetFileName() {return ASIMFileName;}
+
+  void SetCoincidenceEnabled(G4bool CE) {CoincidenceEnabled = CE;}
+  G4bool GetCoincidenceEnabled() {return CoincidenceEnabled;}
+
+  // Set/Get methods for readout settings
 
   void SelectReadout(G4int);
   G4int GetSelectedReadout();
@@ -107,7 +117,7 @@ public:
   
   void SetUpperPhotonThreshold(G4int);
   G4int GetUpperPhotonThreshold(G4int);
-  
+
   void SetWaveformStorage(G4bool);
   G4bool GetWaveformStorage(G4int);
 
@@ -141,6 +151,11 @@ public:
   void SetPhotonsDetected(G4int);
   G4int GetPhotonsDetected(G4int);
 
+  // Get methods for voincidence data
+
+  int GetNumCoincidences() {return CoincidenceHits.size();}
+  int GetCoincidenceHits(G4int C) {return CoincidenceHits.at(C);}
+  
   // Set/Get methods for general purpose data members
 
   void EnableSequentialMode() {parallelProcessing = false;}
@@ -154,7 +169,7 @@ public:
 
   // Get the readout ID using the readout name
   G4int GetReadoutID(G4String Name) {return ASIMReadoutNameMap.at(Name);}
-  
+
   G4bool CheckForOpenASIMFile() {return ASIMFileOpen;}
   
 
@@ -165,6 +180,13 @@ private:
   G4bool parallelProcessing;
   G4int MPI_Rank, MPI_Size;
   vector<G4String> slaveFileNames;
+
+  // High-level readout variables
+  G4int NumReadouts, SelectedReadout;
+  G4bool CoincidenceEnabled;
+  vector<vector<G4bool> > CoincidenceStore;
+  vector<int> CoincidenceHits;
+  vector<G4String> ScintillatorSDNames, PhotodetectorSDNames;
 
   // Run-level aggregator variables
   vector<G4bool> ReadoutEnabled;
@@ -177,8 +199,7 @@ private:
   vector<G4double> EventEDep;
   vector<G4bool> EventActivated;
   
-  // Readout settings
-  G4int SelectedReadout;
+  // ASIM readout-specific settings
   vector<G4bool> EnergyBroadening;
   vector<G4double> EnergyResolution, EnergyEvaluation;
   vector<G4bool> UseEnergyThresholds;
@@ -186,9 +207,6 @@ private:
   vector<G4bool> UsePhotonThresholds;
   vector<G4int> LowerPhotonThreshold, UpperPhotonThreshold;
   vector<G4bool> WaveformStorage;
-
-  vector<G4String> ScintillatorSDNames, PhotodetectorSDNames;
-  G4int NumReadouts;
 
   // Variables for SD readout into an ASIM file
   G4bool ASIMFileOpen;

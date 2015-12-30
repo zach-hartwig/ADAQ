@@ -29,6 +29,9 @@
 // C++
 #include <sstream>
 
+// Boost
+#include <boost/tokenizer.hpp>
+
 // ASIM
 #include "ASIMScintillatorSD.hh"
 #include "ASIMPhotodetectorSD.hh"
@@ -46,7 +49,7 @@ ASIMReadoutManager *ASIMReadoutManager::GetInstance()
 
 ASIMReadoutManager::ASIMReadoutManager()
   : parallelProcessing(false), MPI_Rank(0), MPI_Size(1), 
-    SelectedReadout(0), NumReadouts(0),
+    NumReadouts(0), SelectedReadout(0), CoincidenceEnabled(true),
     ASIMFileOpen(false), ASIMFileName("ASIMDefault.asim.root"),
     ASIMStorageMgr(new ASIMStorageManager), ASIMRunSummary(new ASIMRun)
 {
@@ -54,7 +57,7 @@ ASIMReadoutManager::ASIMReadoutManager()
     G4Exception("ASIMReadoutManager::ASIMReadoutManager()", 
 		"ASIMReadoutManager-Exception00", 
 		FatalException, 
-		"\nThe Meyer's singletone ASIMReadoutManager was constructed twice!\n");
+		"\nThe Meyer's singleton ASIMReadoutManager was constructed twice!\n");
   else 
     ASIMReadoutMgr = this;
   
@@ -195,7 +198,7 @@ void ASIMReadoutManager::RegisterNewReadout(G4String ReadoutDesc,
   // Increment the event-, run-, and readout setting vectors 
 
   // Run-level aggregators
-  ReadoutEnabled.push_back(0);
+  ReadoutEnabled.push_back(true);
   Incidents.push_back(0);
   Hits.push_back(0);
   RunEDep.push_back(0.);
@@ -206,7 +209,7 @@ void ASIMReadoutManager::RegisterNewReadout(G4String ReadoutDesc,
   EventEDep.push_back(0.);
   EventActivated.push_back(false);
 
-  // Readout settings
+  // Readout-specific settings
   SelectedReadout = 0;
   EnergyBroadening.push_back(false);
   EnergyResolution.push_back(0.);
@@ -218,6 +221,9 @@ void ASIMReadoutManager::RegisterNewReadout(G4String ReadoutDesc,
   LowerPhotonThreshold.push_back(0);
   UpperPhotonThreshold.push_back(1000000000);
   WaveformStorage.push_back(false);
+
+  // Coincidence counter
+  CoincidenceHits.push_back(0);
 }
 
 
@@ -230,6 +236,8 @@ void ASIMReadoutManager::InitializeForRun()
     RunEDep[r] = 0;
     PhotonsCreated[r] = 0;
     PhotonsDetected[r] = 0;
+    
+    CoincidenceHits[r] = 0;
   }
 }
 
@@ -331,31 +339,72 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
       if(EventEDep[r] > LowerEnergyThreshold[r] and
 	 EventEDep[r] < UpperEnergyThreshold[r]){
 	
-	// Activate the detector for this event
+	// Activate the readout for this event
 	EventActivated[r] = true;
-
-	// Fill detector trees if output to ASIM has been activated
-	if(ASIMFileOpen)
-	  ASIMStorageMgr->GetEventTree(ASIMReadoutID[r])->Fill();
       }
     }
-    
     else if(UsePhotonThresholds[r]){
       if(ASIMEvents[r]->GetPhotonsDetected() > LowerPhotonThreshold[r] and
 	 ASIMEvents[r]->GetPhotonsDetected() < UpperPhotonThreshold[r]){
 	
-	// Activate the detector for this event
+	// Activate the readout for this event
 	EventActivated[r] = true;
-	
-	// Fill detector trees if output to ASIM has been activated
-	if(ASIMFileOpen)
-	  ASIMStorageMgr->GetEventTree(ASIMReadoutID[r])->Fill();
       }
     }
   }
   
-  // Handle incrementing run-level information
   IncrementRunLevelData(EventActivated);
+
+  AnalyzeAndStoreEvent();
+}
+
+
+void ASIMReadoutManager::AnalyzeAndStoreEvent()
+{
+  //////////////////////////
+  // Coincidence analysis //
+  //////////////////////////
+
+  vector<G4bool> EventApproved(NumReadouts, false);
+  
+  if(CoincidenceEnabled){
+
+    // Iterate over each registerd coincidence in the store
+    vector<vector<G4bool> >::iterator It = CoincidenceStore.begin();
+    for(; It!=CoincidenceStore.end(); It++){
+      
+      // If the event activated vector is identical to the coincidence
+      // then increment the counter for this coincidence
+      if((*It) == EventActivated){
+	CoincidenceHits[It-CoincidenceStore.begin()]++;
+	
+	for(size_t r=0; r<(*It).size(); r++)
+	  EventApproved[r] = (*It)[r];
+      }
+    }
+  }
+  else
+    EventApproved = EventActivated;
+  
+
+  //////////////////
+  // Data readout //
+  //////////////////
+
+  if(ASIMFileOpen){
+  
+    // Iterate over all readouts
+    for(G4int r=0; r<NumReadouts; r++){
+      
+      // Skip disabled readouts
+      if(!ReadoutEnabled[r])
+	continue;
+      
+      // Fill event trees if the event passed energy/photon threshold
+      if(EventActivated[r] and EventApproved[r])
+	ASIMStorageMgr->GetEventTree(ASIMReadoutID[r])->Fill();
+    }
+  }
 }
 
 
@@ -511,6 +560,48 @@ void ASIMReadoutManager::HandleOpticalPhotonDetection(const G4Step *CurrentStep)
 }
 
 
+void ASIMReadoutManager::AddCoincidence(G4String CString)
+{
+  if(!CoincidenceEnabled){
+    G4cout << "\nASIMReadoutManager::AddCOincidence():\n"
+	   <<   " Coincidence mode is not presently enabled! Enable before adding a coincidence.\n"
+	   << G4endl;
+    return;
+  }
+  
+  // Create a coincidence vector: each element is a readout ID; all
+  // elements together for the list of readout IDs in the coincidence
+
+  vector<G4bool> Coincidence(NumReadouts,0);  
+
+  // Tokenize the coincidence string (list of readout IDs); use each
+  // token to activate the readout ID in the coincidence
+  
+  boost::tokenizer<> Tok(CString);
+  boost::tokenizer<>::iterator It = Tok.begin();
+  for(; It!=Tok.end(); ++It){
+    int Readout = atoi((*It).c_str());
+    
+    if(Readout < NumReadouts)
+      Coincidence.at(Readout) = true;
+    else
+      G4cout << "\nASIMReadoutManager::AddCoincidence():\n"
+	     <<   "  Warning! A readout ID was specified in the coincidence string that\n"
+	     <<   "  does not exist (ReadoutID > NumReadouts)! This coincidence will not\n"
+	     <<   "  not work as intended.\n"
+	     << G4endl;
+  }
+  
+  // Add this coincidence to the store of coincidences
+  
+  CoincidenceStore.push_back(Coincidence);
+}
+
+
+void ASIMReadoutManager::ClearCoincidenceStore()
+{ CoincidenceStore.clear(); }
+
+
 // Method used in parallel to aggregate run-level data on each slave
 // into single values on the master after the run has concluded
 void ASIMReadoutManager::ReduceSlaveValuesToMaster()
@@ -536,6 +627,10 @@ void ASIMReadoutManager::ReduceSlaveValuesToMaster()
 }
 
 
+//////////////////////////////////////////
+// Set/Get methods for readout settings //
+//////////////////////////////////////////
+
 void ASIMReadoutManager::SelectReadout(G4int R)
 {
   if(R<NumReadouts)
@@ -546,10 +641,6 @@ void ASIMReadoutManager::SelectReadout(G4int R)
 	   << G4endl;
 }
 
-
-//////////////////////////////////////////
-// Set/Get methods for readout settings //
-//////////////////////////////////////////
 
 G4int ASIMReadoutManager::GetSelectedReadout()
 { return SelectedReadout;}

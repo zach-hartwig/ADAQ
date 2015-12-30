@@ -46,10 +46,14 @@ private:
   G4UIcmdWithAnInteger *setLowerPhotonThresholdCmd;
   G4UIcmdWithAnInteger *setUpperPhotonThresholdCmd;
 
-  // G4UIcmdWithABool *setPSDStatusCmd;
-  // G4UIcmdWithAString *setPSDParticleCmd;
+  G4UIcmdWithABool *setCoincidenceEnabledCmd;
+  G4UIcmdWithAString *addCoincidenceCmd;
+  G4UIcmdWithoutParameter *clearCoincidencesCmd;
 
   G4UIcmdWithABool *setWaveformStorageCmd;
+  
+  // G4UIcmdWithABool *setPSDStatusCmd;
+  // G4UIcmdWithAString *setPSDParticleCmd;
 };
 
 #endif

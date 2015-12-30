@@ -641,22 +641,22 @@ void ASIMReadoutManager::HandleOpticalPhotonDetection(const G4Step *CurrentStep)
 }
 
 
-void ASIMReadoutManager::CreateArray(vector<int> Array)
+void ASIMReadoutManager::CreateArray(vector<int> ArrayList)
 {
-  ArrayStore.push_back(Array);
-
+  ArrayStore.push_back(ArrayList);
+  
   G4int ArrayID = -1 * ArrayStore.size();
   
   stringstream SS;
   SS << "ReadoutArray" << ArrayID;
   G4String ArrayName = SS.str();
-
+  
   SS.str("");
   SS << "Array of ASIM readouts ";
-  for(size_t a=0; a<Array.size(); a++)
-    SS << Array.at(a) << " ";
+  for(size_t a=0; a<ArrayList.size(); a++)
+    SS << ArrayList.at(a) << " ";
   G4String ArrayDesc = SS.str();
-
+  
   ASIMArrayID.push_back(ArrayID);
   ASIMArrayName.push_back(ArrayName);
   ASIMArrayDesc.push_back(ArrayDesc);
@@ -671,7 +671,7 @@ void ASIMReadoutManager::ClearArrayStore()
 { ArrayStore.clear(); }
 
 
-void ASIMReadoutManager::AddCoincidence(G4String CString)
+void ASIMReadoutManager::CreateCoincidence(vector<G4int> CoincidenceList)
 {
   if(!CoincidenceEnabled){
     G4cout << "\nASIMReadoutManager::AddCOincidence():\n"
@@ -680,21 +680,16 @@ void ASIMReadoutManager::AddCoincidence(G4String CString)
     return;
   }
   
-  // Create a coincidence vector: each element is a readout ID; all
-  // elements together for the list of readout IDs in the coincidence
+  // Create a coincidence vector: the index number corresponds to the
+  // readout ID; the boolean state at the index includes (true) or
+  // excludes (false) the readout from the coincidence
+  vector<G4bool> Coincidence(NumReadouts, false);  
 
-  vector<G4bool> Coincidence(NumReadouts,0);  
-
-  // Tokenize the coincidence string (list of readout IDs); use each
-  // token to activate the readout ID in the coincidence
-  
-  boost::tokenizer<> Tok(CString);
-  boost::tokenizer<>::iterator It = Tok.begin();
-  for(; It!=Tok.end(); ++It){
-    int Readout = atoi((*It).c_str());
+  vector<G4int>::iterator It = CoincidenceList.begin();
+  for(; It!=CoincidenceList.end(); It++){
     
-    if(Readout < NumReadouts)
-      Coincidence.at(Readout) = true;
+    if((*It) < NumReadouts)
+      Coincidence.at(*It) = true;
     else
       G4cout << "\nASIMReadoutManager::AddCoincidence():\n"
 	     <<   "  Warning! A readout ID was specified in the coincidence string that\n"
@@ -725,7 +720,7 @@ void ASIMReadoutManager::ReduceSlaveValuesToMaster()
 	 << G4endl;
   
   MPIManager *theMPImanager = MPIManager::GetInstance();
-
+  
   for(G4int r=0; r<NumReadouts; r++){
     Incidents[r] = theMPImanager->SumIntsToMaster(Incidents[r]);
     Hits[r] = theMPImanager->SumIntsToMaster(Hits[r]);

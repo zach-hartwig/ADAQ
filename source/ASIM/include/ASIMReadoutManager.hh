@@ -62,7 +62,7 @@ public:
   void CreateArray(vector<G4int>);
   void ClearArrayStore();
 
-  void AddCoincidence(G4String);
+  void CreateCoincidence(vector<G4int>);
   void ClearCoincidenceStore();
   
   void ReduceSlaveValuesToMaster();

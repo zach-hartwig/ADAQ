@@ -52,7 +52,8 @@ ASIMReadoutManager::ASIMReadoutManager()
     NumReadouts(0), SelectedReadout(0),
     CoincidenceEnabled(false), NonCoincidenceHits(0),
     ASIMFileOpen(false), ASIMFileName("ASIMDefault.asim.root"),
-    ASIMStorageMgr(new ASIMStorageManager), ASIMRunSummary(new ASIMRun)
+    ASIMStorageMgr(new ASIMStorageManager), ASIMRunSummary(new ASIMRun),
+    ASIMReadoutIDOffset(0), ASIMArrayIDOffset(1000)
 {
   if(ASIMReadoutMgr != NULL)
     G4Exception("ASIMReadoutManager::ASIMReadoutManager()", 
@@ -448,23 +449,29 @@ void ASIMReadoutManager::AnalyzeAndStoreEvent()
   ////////////////////
   // Array analysis //
   ////////////////////
-
+  
   for(size_t a=0; a<ArrayStore.size(); a++){
     
     G4double EDep = 0.;
     G4int PhotonsCreated = 0, PhotonsDetected = 0;
-
+    
     for(size_t r=0; r<ArrayStore.at(a).size(); r++){
-      EDep += ASIMEvents[r]->GetEnergyDep();
-      PhotonsCreated += ASIMEvents[r]->GetPhotonsCreated();
-      PhotonsDetected += ASIMEvents[r]->GetPhotonsDetected();
+      
+      if(EventActivated[r] and EventApproved[r]){
+	EDep += ASIMEvents[r]->GetEnergyDep();
+	PhotonsCreated += ASIMEvents[r]->GetPhotonsCreated();
+	PhotonsDetected += ASIMEvents[r]->GetPhotonsDetected();
+      }
     }
     
     ASIMArrayEvents[a]->SetEnergyDep(EDep);
     ASIMArrayEvents[a]->SetPhotonsCreated(PhotonsCreated);
     ASIMArrayEvents[a]->SetPhotonsDetected(PhotonsDetected);
     
-    ASIMStorageMgr->GetEventTree(-1*a)->Fill();
+    if(ASIMFileOpen){
+      G4int ArrayID = ASIMArrayIDOffset + a;
+      ASIMStorageMgr->GetEventTree(ArrayID)->Fill();
+    }
   }      
   
 
@@ -641,29 +648,45 @@ void ASIMReadoutManager::HandleOpticalPhotonDetection(const G4Step *CurrentStep)
 }
 
 
-void ASIMReadoutManager::CreateArray(vector<int> ArrayList)
+void ASIMReadoutManager::CreateArray(G4String ArrayName,
+				     vector<int> ArrayList)
 {
-  ArrayStore.push_back(ArrayList);
-  
-  G4int ArrayID = -1 * ArrayStore.size();
-  
+  // Create a unique ID for the new array
+  G4int ArrayID = ASIMArrayIDOffset + ArrayStore.size();
+
   stringstream SS;
-  SS << "ReadoutArray" << ArrayID;
-  G4String ArrayName = SS.str();
-  
-  SS.str("");
-  SS << "Array of ASIM readouts ";
-  for(size_t a=0; a<ArrayList.size(); a++)
-    SS << ArrayList.at(a) << " ";
+  SS << "ASIM array of readouts ";
+
+  vector<int>::iterator It=ArrayList.begin();
+  for(; It!=ArrayList.end(); It++){
+    
+    if((*It) < NumReadouts)
+      SS << (*It) << " ";
+    else{
+      G4cout << "\nASIMReadoutManager::CreateArray():\n"
+	     <<   "  Warning! A readout ID was specified in the array that does not exist,\n"
+	     <<   "  i.e. (ReadoutID >= NumReadouts)! The array has not been created!\n"
+	     << G4endl;
+
+      return;
+    }
+  }
+
+  // Create an array description that contains the involved readouts
   G4String ArrayDesc = SS.str();
   
+  // Store the array descriptors for later use
   ASIMArrayID.push_back(ArrayID);
   ASIMArrayName.push_back(ArrayName);
   ASIMArrayDesc.push_back(ArrayDesc);
-
+  
+  // Create a new TTree on the ASIM file to hold array data
   ASIMArrayEvents.push_back(ASIMStorageMgr->CreateEventTree(ArrayID,
 							    ArrayName,
 							    ArrayDesc));
+  
+  // Add this array to the store of readout arrays
+  ArrayStore.push_back(ArrayList);
 }
 
 
@@ -671,7 +694,8 @@ void ASIMReadoutManager::ClearArrayStore()
 { ArrayStore.clear(); }
 
 
-void ASIMReadoutManager::CreateCoincidence(vector<G4int> CoincidenceList)
+void ASIMReadoutManager::CreateCoincidence(G4String CoincidenceName,
+					   vector<G4int> CoincidenceList)
 {
   if(!CoincidenceEnabled){
     G4cout << "\nASIMReadoutManager::AddCOincidence():\n"
@@ -690,15 +714,18 @@ void ASIMReadoutManager::CreateCoincidence(vector<G4int> CoincidenceList)
     
     if((*It) < NumReadouts)
       Coincidence.at(*It) = true;
-    else
-      G4cout << "\nASIMReadoutManager::AddCoincidence():\n"
-	     <<   "  Warning! A readout ID was specified in the coincidence string that\n"
-	     <<   "  does not exist (ReadoutID > NumReadouts)! This coincidence will not\n"
+    else{
+      G4cout << "\nASIMReadoutManager::CreateCoincidence():\n"
+	     <<   "  Warning! A readout ID was specified in the coincidence that does not exist,\n"
+	     <<   "  i.e. (ReadoutID >= NumReadouts)! The coincidence has not been created!\n"
 	     <<   "  not work as intended.\n"
 	     << G4endl;
+      
+      return;
+    }
   }
   
-  // Add this coincidence to the store of coincidences
+  // Add this coincidence to the store of readout coincidences
   CoincidenceStore.push_back(Coincidence);
   
   // Initialize hit counter for this coincidence

@@ -59,10 +59,10 @@ public:
   void HandleOpticalPhotonCreation(const G4Track *);
   void HandleOpticalPhotonDetection(const G4Step *);
   
-  void CreateArray(vector<G4int>);
+  void CreateArray(G4String, vector<G4int>);
   void ClearArrayStore();
 
-  void CreateCoincidence(vector<G4int>);
+  void CreateCoincidence(G4String, vector<G4int>);
   void ClearCoincidenceStore();
   
   void ReduceSlaveValuesToMaster();
@@ -226,10 +226,12 @@ private:
   vector<G4int> ASIMReadoutID;
   vector<G4String> ASIMReadoutName, ASIMReadoutDesc;
   map<G4String, G4int> ASIMReadoutNameMap;
+  G4int ASIMReadoutIDOffset;
 
   vector<ASIMEvent *> ASIMArrayEvents;
   vector<G4int> ASIMArrayID;
   vector<G4String> ASIMArrayName, ASIMArrayDesc;
+  G4int ASIMArrayIDOffset;
   
   // Messenger class for runtime command
   ASIMReadoutMessenger *theMessenger;

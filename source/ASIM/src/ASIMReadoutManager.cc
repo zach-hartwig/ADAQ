@@ -50,7 +50,7 @@ ASIMReadoutManager *ASIMReadoutManager::GetInstance()
 ASIMReadoutManager::ASIMReadoutManager()
   : parallelProcessing(false), MPI_Rank(0), MPI_Size(1), 
     NumReadouts(0), SelectedReadout(0),
-    CoincidenceEnabled(true), NonCoincidenceHits(0),
+    CoincidenceEnabled(false), NonCoincidenceHits(0),
     ASIMFileOpen(false), ASIMFileName("ASIMDefault.asim.root"),
     ASIMStorageMgr(new ASIMStorageManager), ASIMRunSummary(new ASIMRun)
 {
@@ -211,7 +211,6 @@ void ASIMReadoutManager::RegisterNewReadout(G4String ReadoutDesc,
   EventActivated.push_back(false);
 
   // Readout-specific settings
-  SelectedReadout = 0;
   EnergyBroadening.push_back(false);
   EnergyResolution.push_back(0.);
   EnergyEvaluation.push_back(0.);
@@ -225,6 +224,42 @@ void ASIMReadoutManager::RegisterNewReadout(G4String ReadoutDesc,
 }
 
 
+void ASIMReadoutManager::ClearReadouts()
+{
+  NumReadouts = 0;
+
+  ASIMReadoutID.clear();
+  ASIMReadoutName.clear();
+  ASIMReadoutDesc.clear();
+  ASIMReadoutNameMap.clear();
+  ASIMEvents.clear();
+
+  ScintillatorSDNames.clear();
+  PhotodetectorSDNames.clear();
+
+  ReadoutEnabled.clear();
+  Incidents.clear();
+  Hits.clear();
+  RunEDep.clear();
+  PhotonsCreated.clear();
+  PhotonsDetected.clear();
+
+  EventEDep.clear();
+  EventActivated.clear();
+
+  EnergyBroadening.clear();
+  EnergyResolution.clear();
+  EnergyEvaluation.clear();
+  UseEnergyThresholds.clear();
+  LowerEnergyThreshold.clear();
+  UpperEnergyThreshold.clear();
+  UsePhotonThresholds.clear();
+  LowerPhotonThreshold.clear();
+  UpperPhotonThreshold.clear();
+  WaveformStorage.clear();
+}
+
+
 void ASIMReadoutManager::InitializeForRun()
 {
   // Set all run-level aggregators to zero to prepare for a new run
@@ -234,10 +269,12 @@ void ASIMReadoutManager::InitializeForRun()
     RunEDep[r] = 0;
     PhotonsCreated[r] = 0;
     PhotonsDetected[r] = 0;
-    
-    CoincidenceHits[r] = 0;
-    NonCoincidenceHits = 0;
   }
+
+  // Set all coincidence variables to zero
+  for(size_t c=0; c<CoincidenceHits.size(); c++)
+    CoincidenceHits[c] = 0;
+  NonCoincidenceHits = 0;
 }
 
 
@@ -352,9 +389,9 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
     }
   }
   
-  IncrementRunLevelData(EventActivated);
-
   AnalyzeAndStoreEvent();
+  
+  IncrementRunLevelData();
 }
 
 
@@ -398,7 +435,7 @@ void ASIMReadoutManager::AnalyzeAndStoreEvent()
   //////////////////
 
   if(ASIMFileOpen){
-  
+    
     // Iterate over all readouts
     for(G4int r=0; r<NumReadouts; r++){
       
@@ -414,7 +451,7 @@ void ASIMReadoutManager::AnalyzeAndStoreEvent()
 }
 
 
-void ASIMReadoutManager::IncrementRunLevelData(vector<G4bool> &EventActivated)
+void ASIMReadoutManager::IncrementRunLevelData()
 {
   G4int EventSum = 0;
   

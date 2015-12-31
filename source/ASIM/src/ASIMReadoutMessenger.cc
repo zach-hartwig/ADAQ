@@ -53,7 +53,7 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARMgr)
   //////////////////////
   
   setCoincidenceEnabledCmd = new G4UIcmdWithABool("/ASIM/control/setCoincidenceEnabled", this);
-  setCoincidenceEnabledCmd->SetGuidance("Enabls/disable the use of ASIM coincidences as filters for event readout");
+  setCoincidenceEnabledCmd->SetGuidance("Enable/disable the use of ASIM coincidences as filters for event readout");
   setCoincidenceEnabledCmd->SetParameterName("Choice", false);
   setCoincidenceEnabledCmd->SetDefaultValue(false);
   
@@ -73,14 +73,14 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARMgr)
   // Enable/disable the readout
   
   setReadoutEnabledCmd = new G4UIcmdWithABool("/ASIM/readout/setReadoutEnabled", this);
-  setReadoutEnabledCmd->SetGuidance("Enables/disabled the presently active readout.");
+  setReadoutEnabledCmd->SetGuidance("Enable/disable the presently active readout.");
   setReadoutEnabledCmd->SetParameterName("Choice", false);
   setReadoutEnabledCmd->SetDefaultValue(false);
 
   // Energy broadening
   
   setEnergyBroadeningCmd = new G4UIcmdWithABool("/ASIM/readout/setEnergyBroadening", this);
-  setEnergyBroadeningCmd->SetGuidance("Enables the ability to broadening the value of energy deposited by a Gaussian function");
+  setEnergyBroadeningCmd->SetGuidance("Enable the ability to broadening the value of energy deposited by a Gaussian function");
   setEnergyBroadeningCmd->SetGuidance("in order to more realistically mimick the detector's response function without the need");
   setEnergyBroadeningCmd->SetGuidance("utilize scintillation photon generation/detection.");
   setEnergyBroadeningCmd->SetParameterName("Choice", false);
@@ -116,14 +116,14 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARMgr)
   setUpperEnergyThresholdCmd->SetDefaultUnit("MeV");
 
   enableEnergyThresholdCmd = new G4UIcmdWithoutParameter("/ASIM/readout/enableEnergyThreshold", this);
-  enableEnergyThresholdCmd->SetGuidance("Enables the minimum energy threshold for scoring hits on the detector. The energy");
+  enableEnergyThresholdCmd->SetGuidance("Enable the minimum energy threshold for scoring hits on the detector. The energy");
   enableEnergyThresholdCmd->SetGuidance("may be set via '/ASIM/readout/set{Lower,Upper}EnergyThreshold' command. Note that energy");
   enableEnergyThresholdCmd->SetGuidance("and photon thresholding are mutually exclusive. Setting this will undo the other!");
 
   // Photon threshold
 
   enablePhotonThresholdCmd = new G4UIcmdWithoutParameter("/ASIM/readout/enablePhotonThreshold", this);
-  enablePhotonThresholdCmd->SetGuidance("Enables the lower/upper photon thresholds for scoring hits on the detector. The photon");
+  enablePhotonThresholdCmd->SetGuidance("Enable the lower/upper photon thresholds for scoring hits on the detector. The photon");
   enablePhotonThresholdCmd->SetGuidance("thresholds may be set via '/ASIM/readout/set{Lower,Upper}EnergyThreshold' command.");
   enablePhotonThresholdCmd->SetGuidance("Note that energy and photon thresholding are mutually exclusive with energy thresholding.");
   enablePhotonThresholdCmd->SetGuidance("Setting this will undor the other!");
@@ -141,7 +141,7 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARMgr)
   // Enable/disable readout of full waveforms
   
   setWaveformStorageCmd = new G4UIcmdWithABool("/ASIM/readout/setWaveformStorage", this);
-  setWaveformStorageCmd->SetGuidance("Set/disable the storage of individual waveforms (e.g. a vector of optical photon");
+  setWaveformStorageCmd->SetGuidance("Enable/disable the storage of individual waveforms (e.g. a vector of optical photon");
   setWaveformStorageCmd->SetGuidance("creation/detection times) on disk. Warning: when setd ASIM file sizes on disk can");
   setWaveformStorageCmd->SetGuidance("quickly become very large");
   setWaveformStorageCmd->SetParameterName("Choice", false);

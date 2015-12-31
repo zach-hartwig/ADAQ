@@ -25,35 +25,35 @@ public:
 private:
   ASIMReadoutManager *theManager;
   
-  G4UIdirectory *asimDirectory;
-  
+  G4UIdirectory *asimDir;
+  G4UIdirectory *asimFileDir;
+  G4UIdirectory *asimControlDir;
+  G4UIdirectory *asimReadoutDir;
+
+  // File commands
+
   G4UIcmdWithAString *asimFileNameCmd;
   G4UIcmdWithoutParameter *asimInitCmd;
   G4UIcmdWithoutParameter *asimWriteCmd;
 
+  // Control commands
+  
+  G4UIcmdWithABool *setCoincidenceEnabledCmd;
+
+  // Readout commands
+  
   G4UIcmdWithAnInteger *selectReadoutCmd;
   G4UIcmdWithABool *setReadoutEnabledCmd;
-  
   G4UIcmdWithABool *setEnergyBroadeningCmd;
   G4UIcmdWithADouble *setEnergyResolutionCmd;
   G4UIcmdWithADoubleAndUnit *setEnergyEvaluationCmd;
-
   G4UIcmdWithoutParameter *enableEnergyThresholdCmd;  
   G4UIcmdWithADoubleAndUnit *setLowerEnergyThresholdCmd;
   G4UIcmdWithADoubleAndUnit *setUpperEnergyThresholdCmd;
-
   G4UIcmdWithoutParameter *enablePhotonThresholdCmd;
   G4UIcmdWithAnInteger *setLowerPhotonThresholdCmd;
   G4UIcmdWithAnInteger *setUpperPhotonThresholdCmd;
-
-  G4UIcmdWithABool *setCoincidenceEnabledCmd;
-  G4UIcmdWithAString *addCoincidenceCmd;
-  G4UIcmdWithoutParameter *clearCoincidencesCmd;
-
   G4UIcmdWithABool *setWaveformStorageCmd;
-  
-  // G4UIcmdWithABool *setPSDStatusCmd;
-  // G4UIcmdWithAString *setPSDParticleCmd;
 };
 
 #endif

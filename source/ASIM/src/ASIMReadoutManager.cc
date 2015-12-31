@@ -500,7 +500,7 @@ void ASIMReadoutManager::AnalyzeAndStoreEvent()
       
       // Iterate over all readouts 
       for(size_t r=0; r<Array.size(); r++){
-	
+
 	// Skip readouts that are not part of the array
 	if(!Array[r])
 	  continue;
@@ -512,12 +512,13 @@ void ASIMReadoutManager::AnalyzeAndStoreEvent()
 	  PhotonsDetected += ASIMEvents[r]->GetPhotonsDetected();
 	}
       }
-
+      
       ASIMArrayEvents[a]->SetEnergyDep(EDep/MeV);
       ASIMArrayEvents[a]->SetPhotonsCreated(PhotonsCreated);
       ASIMArrayEvents[a]->SetPhotonsDetected(PhotonsDetected);
-      
-      if(ASIMFileOpen){
+
+      // Only accumulate if meaningful data aggregated in array
+      if(EDep>0. or PhotonsCreated>0){
 	G4int ArrayID = ASIMArrayIDOffset + a;
 	ASIMStorageMgr->GetEventTree(ArrayID)->Fill();
       }

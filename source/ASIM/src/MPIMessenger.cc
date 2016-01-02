@@ -38,11 +38,11 @@ MPIMessenger::MPIMessenger(MPIManager *MPI)
   // distribute events across all nodes.
 
   mpiBeamOnCmd = new G4UIcmdWithAString("/MPIManager/beamOn", this);
-  mpiBeamOnCmd->SetGuidance("Start a parallel run using the MPIManager to distribute events across the master");
-  mpiBeamOnCmd->SetGuidance("and slaves according to the specified command line arguments. The distributeEvents");
-  mpiBeamOnCmd->SetGuidance("flag determines if N events should be distributed evenly across all the available");
-  mpiBeamOnCmd->SetGuidance("nodes (true) or whether to run N events on each node.");
-  mpiBeamOnCmd->SetGuidance("Command line arguments: int = <numberOfEvents>;  bool = <distributeEvents>");
+  mpiBeamOnCmd->SetGuidance("Start a parallel run using the MPIManager to distribute events to N nodes.");
+  mpiBeamOnCmd->SetGuidance("Cmd line arguments: int  = <M numberOfEvents> (mandatory)");
+  mpiBeamOnCmd->SetGuidance("                    bool = <distributeEvents> (optional; default == true)");
+  mpiBeamOnCmd->SetGuidance("  --> If distributeEvents == true: each node receives N/M events to process");
+  mpiBeamOnCmd->SetGuidance("  --> If distributeEvents == false: each node receives N events to process");
 }
 
 
@@ -73,10 +73,11 @@ void MPIMessenger::SetNewValue(G4UIcommand *cmd, G4String newValue)
     // handled by each slave is less than this limit.
 
     // Total number of events to be processed
-    G4double eventsToProcess;
+    G4double eventsToProcess = 0.;
 
-    // String to control distribute/no-distribute of events to slaves
-    G4String distributeString;
+    // String to control distribute/no-distribute of events to
+    // slaves. The default behavior is to distribute
+    G4String distributeString = "true";
 
     // Split the string command into number of events and distribute string
     is >> eventsToProcess >> distributeString;
@@ -90,7 +91,13 @@ void MPIMessenger::SetNewValue(G4UIcommand *cmd, G4String newValue)
     // Distribute eventsToProcess evenly across all nodes
     else if(distributeString == "true")
       theMPImanager->BeamOn(eventsToProcess, true);
-      
+    
+    // Issue exception for incorrect second argument
+    else
+      G4Exception("MPIMessenger::SetNewValue()",
+		  "MPIMessenger-Exception00",
+		  FatalException,
+		  "The second argument to /MPIManager/beamOn must be either 'true' or 'false'!");
 #endif
   }
 }

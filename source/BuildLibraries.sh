@@ -38,8 +38,10 @@ do
     BUILD="-e -j$NPROC"
 
     # Override is ASIM should be built in parallel
-    if [ "$1" = "par" ]; then
-	BUILD="PROC=PAR -e -j$NPROC"
+    if [ "$lib" = "ASIM" ]; then
+	if [ "$1" = "par" ]; then
+	    BUILD="par"
+	fi
     fi
 	
     if [ -z "$G4INSTALL" ]; then

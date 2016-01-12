@@ -48,7 +48,7 @@
 #       $ make
 #
 #       To build the libraries with Open MPI for sequential and parallel
-#       # make PROC=PAR
+#       # make par
 # 
 #       To install library and headers in $ADAQ/lib and $ADAQ/include
 #       $ make install
@@ -198,6 +198,16 @@ $(BUILDDIR)/%.o : $(SRCDIR)/%.cc $(INCLS)
 #********************#
 
 .PHONY:
+
+# Build the libraries for parallel processing
+# Get the number of processors
+NPROC=$(nproc)
+
+# Build in parallel
+par:
+	@echo -e "\nBuilding the ASIM libraries with Open MPI parallelization...\n"
+	@make PROC=PAR -j$(NPROC)
+	@echo -e "\nThe ASIM libraries have been built with Open MPI parallelization!\n"
 
 # Clean up build files and libraries
 clean:

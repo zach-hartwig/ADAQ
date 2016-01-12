@@ -1,17 +1,19 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
 // name: ASIMReadoutManager.cc
-// date: 20 Oct 15
+// date: 11 Jan 16
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 // 
 // desc: The ASIMReadoutManager class handles the automated extraction
-//       of Geant4 simulated detector data for "readouts" that are
-//       registered by the user. Each "readout" is attached to an
-//       individual G4SensitiveDetector object as the hook into
-//       extracting Geant4 data. Once extracted, the data is handed to
-//       its sister class ASIMStorageManager for persistent storage to
-//       disk in a standardized ROOT file known as an ASIM File.
+//       of Geant4 simulated detector data for registered "readouts"
+//       (data readout from a single G4SensitiveDetector object) and
+//       "arrays" (data readout from a collection of readouts); arrays
+//       have the option of readout only if a coincidence if found
+//       between all readouts that compose the array. The event- and
+//       run-level data is aggregated and made available to the user
+//       via standard "Get" methods. Data can optionally be stored
+//       into an ASIM file for offline analysis.
 //
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -50,7 +52,6 @@ ASIMReadoutManager *ASIMReadoutManager::GetInstance()
 ASIMReadoutManager::ASIMReadoutManager()
   : parallelProcessing(false), MPI_Rank(0), MPI_Size(1), 
     NumReadouts(0), SelectedReadout(0),
-    CoincidenceEnabled(false), NonCoincidenceHits(0),
     ASIMFileOpen(false), ASIMFileName("ASIMDefault.asim.root"),
     ASIMStorageMgr(new ASIMStorageManager), ASIMRunSummary(new ASIMRun),
     ASIMReadoutIDOffset(0), ASIMArrayIDOffset(1000)
@@ -114,7 +115,6 @@ void ASIMReadoutManager::InitializeASIMFile()
     ASIMArrayEvents.push_back(ASIMStorageMgr->CreateEventTree(ASIMArrayID.at(a),
 							      ASIMArrayName.at(a),
 							      ASIMArrayDesc.at(a)));
-  
   
   // Create new architecture-specific ASIM files to receive data
   
@@ -212,11 +212,11 @@ void ASIMReadoutManager::RegisterNewReadout(G4String ReadoutDesc,
 
   // Run-level aggregators
   ReadoutEnabled.push_back(true);
-  Incidents.push_back(0);
-  Hits.push_back(0);
-  RunEDep.push_back(0.);
-  PhotonsCreated.push_back(0);
-  PhotonsDetected.push_back(0);
+  RIncidents.push_back(0);
+  RHits.push_back(0);
+  REDep.push_back(0.);
+  RPhotonsCreated.push_back(0);
+  RPhotonsDetected.push_back(0);
 
   // Event-level variables
   EventEDep.push_back(0.);
@@ -245,21 +245,31 @@ void ASIMReadoutManager::ClearReadouts()
   ASIMReadoutDesc.clear();
   ASIMReadoutNameMap.clear();
   ASIMEvents.clear();
-  ASIMArrayEvents.clear();
-
-  ASIMArrayID.clear();
-  ASIMArrayName.clear();
-  ASIMArrayDesc.clear();
 
   ScintillatorSDNames.clear();
   PhotodetectorSDNames.clear();
 
   ReadoutEnabled.clear();
-  Incidents.clear();
-  Hits.clear();
-  RunEDep.clear();
-  PhotonsCreated.clear();
-  PhotonsDetected.clear();
+  RIncidents.clear();
+  RHits.clear();
+  REDep.clear();
+  RPhotonsCreated.clear();
+  RPhotonsDetected.clear();
+
+  NumArrays = 0;
+
+  ASIMArrayID.clear();
+  ASIMArrayName.clear();
+  ASIMArrayDesc.clear();
+  ASIMArrayCoincident.clear();
+  ASIMArrayEvents.clear();
+
+  ArrayEnabled.clear();
+  AIncidents.clear();
+  AHits.clear();
+  AEDep.clear();
+  APhotonsCreated.clear();
+  APhotonsDetected.clear();
 
   EventEDep.clear();
   EventActivated.clear();
@@ -279,19 +289,23 @@ void ASIMReadoutManager::ClearReadouts()
 
 void ASIMReadoutManager::InitializeForRun()
 {
-  // Set all run-level aggregators to zero to prepare for a new run
+  // Set all run-level readout and array aggreators to zero
+
   for(G4int r=0; r<NumReadouts; r++){
-    Incidents[r] = 0;
-    Hits[r] = 0;
-    RunEDep[r] = 0;
-    PhotonsCreated[r] = 0;
-    PhotonsDetected[r] = 0;
+    RIncidents[r] = 0;
+    RHits[r] = 0;
+    REDep[r] = 0;
+    RPhotonsCreated[r] = 0;
+    RPhotonsDetected[r] = 0;
   }
 
-  // Set all coincidence variables to zero
-  for(size_t c=0; c<CoincidenceHits.size(); c++)
-    CoincidenceHits[c] = 0;
-  NonCoincidenceHits = 0;
+  for(G4int a=0; a<NumArrays; a++){
+    AIncidents[a] = 0;
+    AHits[a] = 0;
+    AEDep[a] = 0;
+    APhotonsCreated[a] = 0;
+    APhotonsDetected[a] = 0;
+  }
 }
 
 
@@ -330,10 +344,10 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
 
 	EventEDep[r] = 0.;
 	EventActivated[r] = false;
-
+	
 	if(ScintillatorHC->entries() > 0)
-	  Incidents[r]++;
-
+	  RIncidents[r]++;
+	
 	for(G4int i=0; i<ScintillatorHC->entries(); i++){
 	  if( (*ScintillatorHC)[i]->GetIsOpticalPhoton() ){
 	    ASIMEvents[r]->IncrementPhotonsCreated();
@@ -405,141 +419,93 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
       }
     }
   }
-  
   AnalyzeAndStoreEvent();
-  
-  IncrementRunLevelData();
 }
 
 
 void ASIMReadoutManager::AnalyzeAndStoreEvent()
 {
-  //////////////////////////
-  // Coincidence analysis //
-  //////////////////////////
-  
-  vector<G4bool> EventApproved(NumReadouts, false);
-  
-  if(CoincidenceEnabled){
-    
-    G4bool CoincidenceFound = false;
-    
-    // Iterate over each registerd coincidence in the store
-    vector<vector<G4bool> >::iterator It = CoincidenceStore.begin();
-    for(; It!=CoincidenceStore.end(); It++){
-      
-      // If the event activated vector is identical to the coincidence
-      // then increment the counter for this coincidence
-      if((*It) == EventActivated){
-	CoincidenceHits[It-CoincidenceStore.begin()]++;
-	
-	for(size_t r=0; r<(*It).size(); r++)
-	  EventApproved[r] = (*It)[r];
-	
-	CoincidenceFound = true;
-      }
-    }
-    
-    if(!CoincidenceFound)
-      NonCoincidenceHits++;
-  }
-  else
-    EventApproved = EventActivated;
-  
-  
-  /////////////////////
-  // Readout storage //
-  /////////////////////
+  /////////////////////////
+  // Individual readouts //
+  /////////////////////////
 
-  if(ASIMFileOpen){
+  // Iterate over all individual readouts
+  for(G4int r=0; r<NumReadouts; r++){
     
-    // Iterate over all readouts
-    for(G4int r=0; r<NumReadouts; r++){
-      
-      // Skip disabled readouts
-      if(!ReadoutEnabled[r])
-	continue;
-      
-      // Fill event trees if the event passed energy/photon threshold
-      if(EventApproved[r])
-	ASIMStorageMgr->GetEventTree(ASIMReadoutID[r])->Fill();
+    // Skip disabled readouts
+    if(!ReadoutEnabled[r])
+      continue;
+    
+    // Aggregate run-level readout data for activated readouts
+    if(EventActivated[r]){
+      RHits[r]++;
+      REDep[r] += EventEDep[r];
+      RPhotonsCreated[r] += ASIMEvents[r]->GetPhotonsCreated();
+      RPhotonsDetected[r] += ASIMEvents[r]->GetPhotonsDetected();
     }
+    
+    // Fill event trees if the event passed energy/photon threshold
+    if(EventActivated[r] and ASIMFileOpen)
+      ASIMStorageMgr->GetEventTree(ASIMReadoutID[r])->Fill();
   }
+
   
   ///////////////////
   // Array storage //
   ///////////////////
   
-  if(ASIMFileOpen){
+  // Iterate over all arrays in the store
+  for(size_t a=0; a<ArrayStore.size(); a++){
     
-    // Iterate over all arrays in the store
-    for(size_t a=0; a<ArrayStore.size(); a++){
-
-      // Reset array event aggregators to zero
-      ASIMArrayEvents[a]->Initialize();
-
-      // Reset scope aggregators to zero
-      G4double EDep = 0.;
-      G4int PhotonsCreated = 0, PhotonsDetected = 0;
-
-      // Get the array vector: the length is the total number of
-      // readouts; the index is the readout ID; the value is a bool
-      // specifying if the corresponding readout is part of the array
-      vector<G4bool> Array = ArrayStore[a];
-
-      // In coincidence mode, only ASIM arrays that are identical to
-      // ASIM coincidences will be filled. This enables realistic
-      // output to ASIM files based on coincidence triggering. So, if
-      // the coincidence mode is enabled and the present array is not
-      // identical to the approved events, continue to the next array
-
-      if(CoincidenceEnabled){
-	if(EventApproved != Array)
-	  continue;
-      }
+    // Reset array event aggregators to zero
+    ASIMArrayEvents[a]->Initialize();
+    
+    // Create and initialize local aggregators
+    G4double EDep = 0.;
+    G4int PhotonsCreated = 0, PhotonsDetected = 0;
+    
+    // Get the array vector: the length is the total number of
+    // readouts; the index is the readout ID; the value is a bool
+    // specifying if the corresponding readout is part of the array
+    vector<G4bool> Array = ArrayStore[a];
+    
+    if(ASIMArrayCoincident.at(a) and EventActivated != Array)
+      continue;
+    
+    // Iterate over all readouts 
+    for(size_t r=0; r<Array.size(); r++){
       
-      // Iterate over all readouts 
-      for(size_t r=0; r<Array.size(); r++){
-
-	// Skip readouts that are not part of the array
-	if(!Array[r])
-	  continue;
-
-	// Aggregate event-level data for readouts in the array
-	if(EventApproved[r]){
-	  EDep += ASIMEvents[r]->GetEnergyDep();
-	  PhotonsCreated += ASIMEvents[r]->GetPhotonsCreated();
-	  PhotonsDetected += ASIMEvents[r]->GetPhotonsDetected();
-	}
-      }
+      // Skip readouts that are not part of the array
+      if(!Array[r])
+	continue;
       
-      ASIMArrayEvents[a]->SetEnergyDep(EDep/MeV);
-      ASIMArrayEvents[a]->SetPhotonsCreated(PhotonsCreated);
-      ASIMArrayEvents[a]->SetPhotonsDetected(PhotonsDetected);
-
-      // Only accumulate if meaningful data aggregated in array
-      if(EDep>0. or PhotonsCreated>0){
-	G4int ArrayID = ASIMArrayIDOffset + a;
-	ASIMStorageMgr->GetEventTree(ArrayID)->Fill();
+      // Aggregate event-level data for readouts in the array. Note
+      // that energy is stored in the ASIMEvent class in units of MeV
+      // so we'll multiply by MeV here to return to default G4 unit
+      
+      if(EventActivated[r]){
+	EDep += ASIMEvents[r]->GetEnergyDep()*MeV;
+	PhotonsCreated += ASIMEvents[r]->GetPhotonsCreated();
+	PhotonsDetected += ASIMEvents[r]->GetPhotonsDetected();
       }
     }
-  }
-}
 
-
-void ASIMReadoutManager::IncrementRunLevelData()
-{
-  G4int EventSum = 0;
-  
-  for(G4int r=0; r<NumReadouts; r++){
+    // Set values in the array's ASIMArrayEvent object
+    ASIMArrayEvents[a]->SetEnergyDep(EDep/MeV);
+    ASIMArrayEvents[a]->SetPhotonsCreated(PhotonsCreated);
+    ASIMArrayEvents[a]->SetPhotonsDetected(PhotonsDetected);
     
-    EventSum += EventActivated[r];
+    // Aggregate run-level data for the array
+    AHits[a]++;
+    AEDep[a] += EDep;
+    APhotonsCreated[a] += PhotonsCreated;
+    APhotonsDetected[a] += PhotonsDetected;
     
-    if(EventActivated[r]){
-      Hits[r]++;
-      RunEDep[r] += EventEDep[r];
-      PhotonsCreated[r] += ASIMEvents[r]->GetPhotonsCreated();
-      PhotonsDetected[r] += ASIMEvents[r]->GetPhotonsDetected();
+    if(ASIMFileOpen){
+      // Only accumulate if meaningful data aggregated in array
+      if(EDep>0. or PhotonsCreated>0){
+	ASIMStorageMgr->GetEventTree(ASIMArrayID[a])->Fill();
+      }
     }
   }
 }
@@ -680,15 +646,19 @@ void ASIMReadoutManager::HandleOpticalPhotonDetection(const G4Step *CurrentStep)
 
 
 void ASIMReadoutManager::CreateArray(G4String ArrayName,
-				     vector<int> ArrayList)
+				     vector<int> ArrayList,
+				     G4bool ArrayCoincident=false)
 {
+  // Increment total number of registered arrays
+  NumArrays++;
+  
   // Create a unique ID for the new array
-  G4int ArrayID = ASIMArrayIDOffset + ArrayStore.size();
+  G4int ArrayID = ASIMArrayIDOffset + NumArrays;
+  
+  vector<G4bool> Array(NumReadouts, false);
   
   stringstream SS;
   SS << "ASIM array of readouts ";
-
-  vector<G4bool> Array(NumReadouts, false);
 
   vector<int>::iterator It=ArrayList.begin();
   for(; It!=ArrayList.end(); It++){
@@ -718,6 +688,7 @@ void ASIMReadoutManager::CreateArray(G4String ArrayName,
   ASIMArrayID.push_back(ArrayID);
   ASIMArrayName.push_back(ArrayName);
   ASIMArrayDesc.push_back(ArrayDesc);
+  ASIMArrayCoincident.push_back(ArrayCoincident);
   
   // Create a new TTree on the ASIM file to hold array data
   ASIMArrayEvents.push_back(ASIMStorageMgr->CreateEventTree(ArrayID,
@@ -726,54 +697,19 @@ void ASIMReadoutManager::CreateArray(G4String ArrayName,
   
   // Add this array to the store of readout arrays
   ArrayStore.push_back(Array);
+
+  // Create run-level aggregators for this array
+  ArrayEnabled.push_back(true);
+  AIncidents.push_back(0);
+  AHits.push_back(0);
+  AEDep.push_back(0.);
+  APhotonsCreated.push_back(0);
+  APhotonsDetected.push_back(0);
 }
 
 
 void ASIMReadoutManager::ClearArrayStore()
 { ArrayStore.clear(); }
-
-
-void ASIMReadoutManager::CreateCoincidence(G4String CoincidenceName,
-					   vector<G4int> CoincidenceList)
-{
-  if(!CoincidenceEnabled){
-    G4cout << "\nASIMReadoutManager::AddCOincidence():\n"
-	   <<   " Coincidence mode is not presently enabled! Enable before adding a coincidence.\n"
-	   << G4endl;
-    return;
-  }
-  
-  // Create a coincidence vector: the index number corresponds to the
-  // readout ID; the boolean state at the index includes (true) or
-  // excludes (false) the readout from the coincidence
-  vector<G4bool> Coincidence(NumReadouts, false);  
-
-  vector<G4int>::iterator It = CoincidenceList.begin();
-  for(; It!=CoincidenceList.end(); It++){
-    
-    if((*It) < NumReadouts)
-      Coincidence.at(*It) = true;
-    else{
-      G4cout << "\nASIMReadoutManager::CreateCoincidence():\n"
-	     <<   "  Warning! A readout ID was specified in the coincidence that does not exist,\n"
-	     <<   "  i.e. (ReadoutID >= NumReadouts)! The coincidence has not been created!\n"
-	     <<   "  not work as intended.\n"
-	     << G4endl;
-      
-      return;
-    }
-  }
-  
-  // Add this coincidence to the store of readout coincidences
-  CoincidenceStore.push_back(Coincidence);
-  
-  // Initialize hit counter for this coincidence
-  CoincidenceHits.push_back(0);
-}
-
-
-void ASIMReadoutManager::ClearCoincidenceStore()
-{ CoincidenceStore.clear(); }
 
 
 // Method used in parallel to aggregate run-level data on each slave
@@ -788,11 +724,19 @@ void ASIMReadoutManager::ReduceSlaveValuesToMaster()
   MPIManager *theMPImanager = MPIManager::GetInstance();
   
   for(G4int r=0; r<NumReadouts; r++){
-    Incidents[r] = theMPImanager->SumIntsToMaster(Incidents[r]);
-    Hits[r] = theMPImanager->SumIntsToMaster(Hits[r]);
-    RunEDep[r] = theMPImanager->SumDoublesToMaster(RunEDep[r]);
-    PhotonsCreated[r] = theMPImanager->SumDoublesToMaster(PhotonsCreated[r]);
-    PhotonsDetected[r] = theMPImanager->SumDoublesToMaster(PhotonsDetected[r]);
+    RIncidents[r] = theMPImanager->SumIntsToMaster(RIncidents[r]);
+    RHits[r] = theMPImanager->SumIntsToMaster(RHits[r]);
+    REDep[r] = theMPImanager->SumDoublesToMaster(REDep[r]);
+    RPhotonsCreated[r] = theMPImanager->SumDoublesToMaster(RPhotonsCreated[r]);
+    RPhotonsDetected[r] = theMPImanager->SumDoublesToMaster(RPhotonsDetected[r]);
+  }
+
+  for(G4int a=0; a<NumArrays; a++){
+    AIncidents[a] = theMPImanager->SumIntsToMaster(AIncidents[a]);
+    AHits[a] = theMPImanager->SumIntsToMaster(AHits[a]);
+    AEDep[a] = theMPImanager->SumDoublesToMaster(AEDep[a]);
+    APhotonsCreated[a] = theMPImanager->SumDoublesToMaster(APhotonsCreated[a]);
+    APhotonsDetected[a] = theMPImanager->SumDoublesToMaster(APhotonsDetected[a]);
   }
   
   G4cout << "\nASIMReadoutManager : Finished the MPI reduction of values to the master!\n"
@@ -903,36 +847,97 @@ G4bool ASIMReadoutManager::GetEventActivated(G4int R)
 { return EventActivated.at(R); }
 
 
-////////////////////////////////////////
-// Set/Get methods for run-level data //
-////////////////////////////////////////
+////////////////////////////////////
+// Get methods for run-level data //
+////////////////////////////////////
 
-void ASIMReadoutManager::SetIncidents(G4int I)
-{ Incidents.at(SelectedReadout) = I; }
+// Readouts
 
-G4int ASIMReadoutManager::GetIncidents(G4int R)
-{ return Incidents.at(R); }
+G4int ASIMReadoutManager::GetReadoutIncidents(G4int R)
+{
+  if(R < (G4int)ASIMReadoutID.size())
+    return RIncidents[R];
+  else
+    return 0;
+}
 
-void ASIMReadoutManager::SetHits(G4int H)
-{ Hits.at(SelectedReadout) = H; }
 
-G4int ASIMReadoutManager::GetHits(G4int R)
-{ return Hits.at(R); }
+G4int ASIMReadoutManager::GetReadoutHits(G4int R)
+{
+   if(R < (G4int)ASIMReadoutID.size())
+     return RHits[R];
+   else
+     return 0;
+}
 
-void ASIMReadoutManager::SetRunEDep(G4double E)
-{ RunEDep.at(SelectedReadout) = E; }
 
-G4double ASIMReadoutManager::GetRunEDep(G4int R)
-{ return RunEDep.at(R); }
+G4double ASIMReadoutManager::GetReadoutEDep(G4int R)
+{
+  if(R < (G4int)ASIMReadoutID.size())
+    return REDep[R];
+  else
+    return 0.;
+}
 
-void ASIMReadoutManager::SetPhotonsCreated(G4int P)
-{ PhotonsCreated.at(SelectedReadout) = P; }
+G4int ASIMReadoutManager::GetReadoutPhotonsCreated(G4int R)
+{
+  if(R < (G4int)ASIMReadoutID.size())
+    return RPhotonsCreated[R];
+  else
+    return 0;
+}
 
-G4int ASIMReadoutManager::GetPhotonsCreated(G4int R)
-{ return PhotonsCreated.at(R); }
+G4int ASIMReadoutManager::GetReadoutPhotonsDetected(G4int R)
+{
+  if(R < (G4int)ASIMReadoutID.size())
+    return RPhotonsDetected[R];
+  else
+    return 0;
+}
 
-void ASIMReadoutManager::SetPhotonsDetected(G4int P)
-{ PhotonsDetected.at(SelectedReadout) = P; }
+// Arrays
 
-G4int ASIMReadoutManager::GetPhotonsDetected(G4int R)
-{ return PhotonsDetected.at(R); }
+G4int ASIMReadoutManager::GetArrayIncidents(G4int A)
+{
+  if(A < (G4int)ASIMArrayID.size())
+    return AIncidents[A];
+  else
+    return 0;
+}
+
+
+G4int ASIMReadoutManager::GetArrayHits(G4int A)
+{
+  if(A < (G4int)ASIMArrayID.size())
+    return AHits[A];
+  else
+    return 0;
+}
+
+
+G4double ASIMReadoutManager::GetArrayEDep(G4int A)
+{
+  if(A < (G4int)ASIMArrayID.size())
+    return AEDep[A];
+  else
+    return 0.;
+}
+
+
+G4int ASIMReadoutManager::GetArrayPhotonsCreated(G4int A)
+{
+  if(A < (G4int)ASIMArrayID.size())
+    return APhotonsCreated[A];
+  else
+    return 0;
+}
+
+
+G4int ASIMReadoutManager::GetArrayPhotonsDetected(G4int A)
+{
+  if(A < (G4int)ASIMArrayID.size())
+    return APhotonsDetected[A];
+  else
+    return 0;
+}
+

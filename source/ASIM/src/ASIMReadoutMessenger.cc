@@ -51,12 +51,7 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARMgr)
   //////////////////////
   // Control commands //
   //////////////////////
-  
-  setCoincidenceEnabledCmd = new G4UIcmdWithABool("/ASIM/control/setCoincidenceEnabled", this);
-  setCoincidenceEnabledCmd->SetGuidance("Enable/disable the use of ASIM coincidences as filters for event readout");
-  setCoincidenceEnabledCmd->SetParameterName("Choice", false);
-  setCoincidenceEnabledCmd->SetDefaultValue(false);
-  
+
 
   //////////////////////
   // Readout commands //
@@ -164,8 +159,6 @@ ASIMReadoutMessenger::~ASIMReadoutMessenger()
   delete setReadoutEnabledCmd;
   delete selectReadoutCmd;
 
-  delete setCoincidenceEnabledCmd;
-
   delete asimWriteCmd;
   delete asimInitCmd;
   delete asimFileNameCmd;
@@ -235,9 +228,4 @@ void ASIMReadoutMessenger::SetNewValue(G4UIcommand *cmd, G4String newValue)
   
   if(cmd == setWaveformStorageCmd)
     theManager->SetWaveformStorage(setWaveformStorageCmd->GetNewBoolValue(newValue));
-  
-  // Coincidence commands
-  
-  if(cmd == setCoincidenceEnabledCmd)
-    theManager->SetCoincidenceEnabled(setCoincidenceEnabledCmd->GetNewBoolValue(newValue));
 }

@@ -36,10 +36,6 @@ private:
   G4UIcmdWithoutParameter *asimInitCmd;
   G4UIcmdWithoutParameter *asimWriteCmd;
 
-  // Control commands
-  
-  G4UIcmdWithABool *setCoincidenceEnabledCmd;
-
   // Readout commands
   
   G4UIcmdWithAnInteger *selectReadoutCmd;

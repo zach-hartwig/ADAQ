@@ -40,7 +40,7 @@ void runAction::EndOfRunAction(const G4Run *currentRun)
   MPIMgr->ForceBarrier("runAction::EndOfRunAction()");
 #endif
 
-  ARMgr->FillRunSummary(currentRun);
+  ARMgr->CreateRunSummary(currentRun);
 
   const G4int NumReadouts = ARMgr->GetNumReadouts();
   
@@ -48,14 +48,14 @@ void runAction::EndOfRunAction(const G4Run *currentRun)
 	 << "\n============== ASIMExample run-level results ==============\n\n";
   
   for(G4int r=0; r<NumReadouts; r++){
-    G4int Incs = ARMgr->GetIncidents(r);
-    G4int Hits = ARMgr->GetHits(r);
+    G4int Incs = ARMgr->GetReadoutIncidents(r);
+    G4int Hits = ARMgr->GetReadoutHits(r);
     G4double Eff = 0.;
     if(Incs > 0)
       Eff = Hits * 1. / Incs;
 
-    G4int Created = ARMgr->GetPhotonsCreated(r);
-    G4int Detected = ARMgr->GetPhotonsDetected(r);
+    G4int Created = ARMgr->GetReadoutPhotonsCreated(r);
+    G4int Detected = ARMgr->GetReadoutPhotonsDetected(r);
     G4double OpticalEff = 0.;
     if(Created > 0)
       OpticalEff = Detected * 1. / Created;

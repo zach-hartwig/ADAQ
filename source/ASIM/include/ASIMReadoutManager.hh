@@ -51,18 +51,20 @@ public:
   void RegisterNewReadout(G4String,
 			  G4VPhysicalVolume *,
 			  G4VPhysicalVolume *Photodetector = NULL);
-  void ClearReadouts();
+
+  void CreateArray(G4String, vector<G4int>, G4bool);
+
+  void ClearReadoutsAndArrays();
+
   void InitializeForRun();
   void ReadoutEvent(const G4Event *);
   void AnalyzeAndStoreEvent();
-  void IncrementRunLevelData();
-  void FillRunSummary(const G4Run *);
+  void CreateRunSummary(const G4Run *);
   
   void HandleOpticalPhotonCreation(const G4Track *);
   void HandleOpticalPhotonDetection(const G4Step *);
   
-  void CreateArray(G4String, vector<G4int>, G4bool);
-  void ClearArrayStore();
+  
 
   void ReduceSlaveValuesToMaster();
 

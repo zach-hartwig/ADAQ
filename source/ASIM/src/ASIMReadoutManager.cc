@@ -235,8 +235,70 @@ void ASIMReadoutManager::RegisterNewReadout(G4String ReadoutDesc,
   WaveformStorage.push_back(false);
 }
 
+void ASIMReadoutManager::CreateArray(G4String ArrayName,
+				     vector<int> ArrayList,
+				     G4bool ArrayCoincident=false)
+{
+  // Increment total number of registered arrays
+  NumArrays++;
+  
+  // Create a unique ID for the new array
+  G4int ArrayID = ASIMArrayIDOffset + NumArrays;
+  
+  vector<G4bool> Array(NumReadouts, false);
+  
+  stringstream SS;
+  SS << "ASIM array of readouts ";
 
-void ASIMReadoutManager::ClearReadouts()
+  vector<int>::iterator It=ArrayList.begin();
+  for(; It!=ArrayList.end(); It++){
+    
+    if((*It) < NumReadouts){
+      
+      // Mark this readout ID as part of the array
+      Array.at(*It) = true;
+      
+      // Add the readout ID to the array description
+      SS << (*It) << " ";
+    }
+    else{
+      G4cout << "\nASIMReadoutManager::CreateArray():\n"
+	     <<   "  Warning! A readout ID was specified in the array that does not exist,\n"
+	     <<   "  i.e. (ReadoutID >= NumReadouts)! The array has not been created!\n"
+	     << G4endl;
+      
+      return;
+    }
+  }
+  
+  // Create an array description that contains the involved readouts
+  G4String ArrayDesc = SS.str();
+  
+  // Store the array descriptors for later use
+  ASIMArrayID.push_back(ArrayID);
+  ASIMArrayName.push_back(ArrayName);
+  ASIMArrayDesc.push_back(ArrayDesc);
+  ASIMArrayCoincident.push_back(ArrayCoincident);
+  
+  // Create a new TTree on the ASIM file to hold array data
+  ASIMArrayEvents.push_back(ASIMStorageMgr->CreateEventTree(ArrayID,
+							    ArrayName,
+							    ArrayDesc));
+  
+  // Add this array to the store of readout arrays
+  ArrayStore.push_back(Array);
+
+  // Create run-level aggregators for this array
+  ArrayEnabled.push_back(true);
+  AIncidents.push_back(0);
+  AHits.push_back(0);
+  AEDep.push_back(0.);
+  APhotonsCreated.push_back(0);
+  APhotonsDetected.push_back(0);
+}
+
+
+void ASIMReadoutManager::ClearReadoutsAndArrays()
 {
   NumReadouts = 0;
 
@@ -263,6 +325,7 @@ void ASIMReadoutManager::ClearReadouts()
   ASIMArrayDesc.clear();
   ASIMArrayCoincident.clear();
   ASIMArrayEvents.clear();
+  ArrayStore.clear();
 
   ArrayEnabled.clear();
   AIncidents.clear();
@@ -511,7 +574,7 @@ void ASIMReadoutManager::AnalyzeAndStoreEvent()
 }
 
 
-void ASIMReadoutManager::FillRunSummary(const G4Run *currentRun)
+void ASIMReadoutManager::CreateRunSummary(const G4Run *currentRun)
 {
   if(parallelProcessing)
     ReduceSlaveValuesToMaster();
@@ -643,73 +706,6 @@ void ASIMReadoutManager::HandleOpticalPhotonDetection(const G4Step *CurrentStep)
     }
   }
 }
-
-
-void ASIMReadoutManager::CreateArray(G4String ArrayName,
-				     vector<int> ArrayList,
-				     G4bool ArrayCoincident=false)
-{
-  // Increment total number of registered arrays
-  NumArrays++;
-  
-  // Create a unique ID for the new array
-  G4int ArrayID = ASIMArrayIDOffset + NumArrays;
-  
-  vector<G4bool> Array(NumReadouts, false);
-  
-  stringstream SS;
-  SS << "ASIM array of readouts ";
-
-  vector<int>::iterator It=ArrayList.begin();
-  for(; It!=ArrayList.end(); It++){
-    
-    if((*It) < NumReadouts){
-      
-      // Mark this readout ID as part of the array
-      Array.at(*It) = true;
-      
-      // Add the readout ID to the array description
-      SS << (*It) << " ";
-    }
-    else{
-      G4cout << "\nASIMReadoutManager::CreateArray():\n"
-	     <<   "  Warning! A readout ID was specified in the array that does not exist,\n"
-	     <<   "  i.e. (ReadoutID >= NumReadouts)! The array has not been created!\n"
-	     << G4endl;
-      
-      return;
-    }
-  }
-  
-  // Create an array description that contains the involved readouts
-  G4String ArrayDesc = SS.str();
-  
-  // Store the array descriptors for later use
-  ASIMArrayID.push_back(ArrayID);
-  ASIMArrayName.push_back(ArrayName);
-  ASIMArrayDesc.push_back(ArrayDesc);
-  ASIMArrayCoincident.push_back(ArrayCoincident);
-  
-  // Create a new TTree on the ASIM file to hold array data
-  ASIMArrayEvents.push_back(ASIMStorageMgr->CreateEventTree(ArrayID,
-							    ArrayName,
-							    ArrayDesc));
-  
-  // Add this array to the store of readout arrays
-  ArrayStore.push_back(Array);
-
-  // Create run-level aggregators for this array
-  ArrayEnabled.push_back(true);
-  AIncidents.push_back(0);
-  AHits.push_back(0);
-  AEDep.push_back(0.);
-  APhotonsCreated.push_back(0);
-  APhotonsDetected.push_back(0);
-}
-
-
-void ASIMReadoutManager::ClearArrayStore()
-{ ArrayStore.clear(); }
 
 
 // Method used in parallel to aggregate run-level data on each slave

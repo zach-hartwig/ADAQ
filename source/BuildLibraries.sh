@@ -42,14 +42,13 @@ do
 	if [ "$1" = "par" ]; then
 	    BUILD="par"
 	fi
-    fi
 	
-    if [ -z "$G4INSTALL" ]; then
-	echo -e "\n--------------------------------------------------------"
-	echo -e "\nWARNING: Geant4 does not appear to exist on this system!"
-	echo -e   "         The ASIM libraries will not be built.\n"
-	echo -e   "--------------------------------------------------------\n"
-	continue
+	if [ -z "$G4INSTALL" ]; then
+	    echo -e "\n--------------------------------------------------------"
+	    echo -e "\nWARNING: Geant4 does not appear to exist on this system!"
+	    echo -e   "         The ASIMReadout library will not be built.\n"
+	    echo -e   "--------------------------------------------------------\n"
+	fi
     fi
     
     cd $DIR/$lib

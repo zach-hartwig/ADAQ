@@ -29,6 +29,7 @@ private:
   G4UIdirectory *asimFileDir;
   G4UIdirectory *asimControlDir;
   G4UIdirectory *asimReadoutDir;
+  G4UIdirectory *asimArrayDir;
 
   // File commands
 
@@ -50,6 +51,13 @@ private:
   G4UIcmdWithAnInteger *setLowerPhotonThresholdCmd;
   G4UIcmdWithAnInteger *setUpperPhotonThresholdCmd;
   G4UIcmdWithABool *setWaveformStorageCmd;
+
+  // Array commands
+  G4UIcmdWithAnInteger *selectArrayCmd;
+  G4UIcmdWithABool *setArrayEnabledCmd;
+  G4UIcmdWithoutParameter *enableArrayEnergyThresholdCmd;
+  G4UIcmdWithADoubleAndUnit *setArrayLowerEnergyThresholdCmd;
+  G4UIcmdWithADoubleAndUnit *setArrayUpperEnergyThresholdCmd;
 };
 
 #endif

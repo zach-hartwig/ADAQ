@@ -122,6 +122,23 @@ public:
   void SetWaveformStorage(G4bool);
   G4bool GetWaveformStorage(G4int);
 
+  // Set/Get methods for array settings
+
+  void SelectArray(G4int);
+  G4int GetSelectedArray();
+
+  void SetArrayEnabled(G4bool);
+  G4bool GetArrayEnabled(G4int);
+
+  void EnableArrayEnergyThresholds();
+  G4bool GetEnableArrayEnergyThresholds(G4int);
+
+  void SetArrayLowerEnergyThreshold(G4double);
+  G4double GetArrayLowerEnergyThreshold(G4int);
+
+  void SetArrayUpperEnergyThreshold(G4double);
+  G4double GetArrayUpperrEnergyThreshold(G4int);
+
   // Set/Get methods for event-level data
 
   void SetEventActivated(G4bool);
@@ -173,7 +190,7 @@ private:
   vector<G4String> ScintillatorSDNames, PhotodetectorSDNames;
 
   // High level array variables
-  G4int NumArrays;
+  G4int NumArrays, SelectedArray;
   vector<vector<G4bool> > ArrayStore;
   
   // Run-level readout aggregators

@@ -29,6 +29,9 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARMgr)
   asimReadoutDir = new G4UIdirectory("/ASIM/readout/");
   asimReadoutDir->SetGuidance("Settings to control individual ASIM readouts");
 
+  asimArrayDir = new G4UIdirectory("/ASIM/array/");
+  asimArrayDir->SetGuidance("Settings to control ASIM array readout behavior");
+
   
   ///////////////////
   // File aommands //
@@ -141,11 +144,47 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARMgr)
   setWaveformStorageCmd->SetGuidance("quickly become very large");
   setWaveformStorageCmd->SetParameterName("Choice", false);
   setWaveformStorageCmd->SetDefaultValue(false);
+
+    // Enable/disable the readout
+
+  selectArrayCmd = new G4UIcmdWithAnInteger("/ASIM/array/select", this);
+  selectArrayCmd->SetGuidance("Set the array for which settings will be modified. Use the array ID to specify.");
+  selectArrayCmd->SetParameterName("Choice", false);
+  selectArrayCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
+  
+  setArrayEnabledCmd = new G4UIcmdWithABool("/ASIM/array/setEnabled", this);
+  setArrayEnabledCmd->SetGuidance("Enable/disable the presently active readout.");
+  setArrayEnabledCmd->SetParameterName("Choice", false);
+  setArrayEnabledCmd->SetDefaultValue(false);
+
+  enableArrayEnergyThresholdCmd = new G4UIcmdWithoutParameter("/ASIM/array/enableEnergyThreshold", this);
+  enableArrayEnergyThresholdCmd->SetGuidance("Enable the minimum energy threshold for scoring hits on the array. The energy");
+  enableArrayEnergyThresholdCmd->SetGuidance("may be set via '/ASIM/array/set{Lower,Upper}EnergyThreshold' command. Note that energy");
+  enableArrayEnergyThresholdCmd->SetGuidance("and photon thresholding are mutually exclusive. Setting this will undo the other!");
+  
+  setArrayLowerEnergyThresholdCmd = new G4UIcmdWithADoubleAndUnit("/ASIM/array/setLowerEnergyThreshold", this);
+  setArrayLowerEnergyThresholdCmd->SetGuidance("Set the lower energy threshold for scoring hits on the array. Note that energy");
+  setArrayLowerEnergyThresholdCmd->SetGuidance("energy thresholding must be enabled via the '/ASIM/array/enableEnergyThrehold' command");
+  setArrayLowerEnergyThresholdCmd->SetParameterName("Choice",false);
+  setArrayLowerEnergyThresholdCmd->SetUnitCategory("Energy");
+  setArrayLowerEnergyThresholdCmd->SetDefaultUnit("MeV");
+
+  setArrayUpperEnergyThresholdCmd = new G4UIcmdWithADoubleAndUnit("/ASIM/array/setUpperEnergyThreshold", this);
+  setArrayUpperEnergyThresholdCmd->SetGuidance("Set the upper energy threshold for scoring hits on the array. Note that energy");
+  setArrayUpperEnergyThresholdCmd->SetGuidance("energy tresholding must be enabled via the '/ASIM/array/enableEnergyThrehold' command");
+  setArrayUpperEnergyThresholdCmd->SetParameterName("Choice",false);
+  setArrayUpperEnergyThresholdCmd->SetUnitCategory("Energy");
+  setArrayUpperEnergyThresholdCmd->SetDefaultUnit("MeV");
 }
 
 
 ASIMReadoutMessenger::~ASIMReadoutMessenger()
 {
+  delete setArrayUpperEnergyThresholdCmd;
+  delete setArrayLowerEnergyThresholdCmd;
+  delete setArrayEnabledCmd;
+  delete selectArrayCmd;
+  
   delete setWaveformStorageCmd;
   delete enablePhotonThresholdCmd;
   delete setUpperPhotonThresholdCmd;
@@ -172,6 +211,10 @@ ASIMReadoutMessenger::~ASIMReadoutMessenger()
 
 void ASIMReadoutMessenger::SetNewValue(G4UIcommand *cmd, G4String newValue)
 {
+  ///////////////////
+  // File commands //
+  ///////////////////
+  
   if(cmd == asimFileNameCmd)
     theManager->SetFileName(newValue);
 
@@ -180,6 +223,11 @@ void ASIMReadoutMessenger::SetNewValue(G4UIcommand *cmd, G4String newValue)
   
   if(cmd == asimWriteCmd)
     theManager->WriteASIMFile();
+
+
+  //////////////////////
+  // Readout commands //
+  //////////////////////
 
   // Select the active readout via readout ID
 
@@ -228,4 +276,24 @@ void ASIMReadoutMessenger::SetNewValue(G4UIcommand *cmd, G4String newValue)
   
   if(cmd == setWaveformStorageCmd)
     theManager->SetWaveformStorage(setWaveformStorageCmd->GetNewBoolValue(newValue));
+
+  
+  ////////////////////
+  // Array commands //
+  ////////////////////
+
+  if(cmd == selectArrayCmd)
+    theManager->SelectArray(selectArrayCmd->GetNewIntValue(newValue));
+
+  if(cmd == setArrayEnabledCmd)
+    theManager->SetArrayEnabled(selectArrayCmd->GetNewBoolValue(newValue));
+
+  if(cmd == enableArrayEnergyThresholdCmd)
+    theManager->EnableArrayEnergyThresholds();
+
+  if(cmd == setArrayLowerEnergyThreshold)
+    theManager->SetArrayLowerEnergyThreshold(setArrayLowerEnergyThreshold->GetNewDoubleValue(newValue));
+  
+  if(cmd == setArrayUpperEnergyThreshold)
+    theManager->SetArrayUpperEnergyThreshold(setArrayUpperEnergyThreshold->GetNewDoubleValue(newValue));
 }

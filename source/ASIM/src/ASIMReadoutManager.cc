@@ -51,7 +51,7 @@ ASIMReadoutManager *ASIMReadoutManager::GetInstance()
 
 ASIMReadoutManager::ASIMReadoutManager()
   : parallelProcessing(false), MPI_Rank(0), MPI_Size(1), 
-    NumReadouts(0), SelectedReadout(0),
+    NumReadouts(0), SelectedReadout(0), NumArrays(0), SelectedArray(0),
     ASIMFileOpen(false), ASIMFileName("ASIMDefault.asim.root"),
     ASIMStorageMgr(new ASIMStorageManager), ASIMRunSummary(new ASIMRun),
     ASIMReadoutIDOffset(0), ASIMArrayIDOffset(1000)
@@ -830,6 +830,48 @@ void ASIMReadoutManager::SetWaveformStorage(G4bool WS)
 
 G4bool ASIMReadoutManager::GetWaveformStorage(G4int R)
 { return WaveformStorage.at(R); }
+
+
+////////////////////////////////////////
+// Set/Get methods for array settings //
+////////////////////////////////////////
+
+void ASIMReadoutManager::SelectArray(G4int A)
+{
+  if(A<NumArrays)
+    SelectedArray = A;
+  else
+    G4cout << "\nASIMReadoutManager::SelectArray():\n"
+	   <<   "  The array selected does not exist!\n"
+	   << G4endl;
+}
+
+G4int ASIMReadoutManager::GetSelectedArray()
+{ return SelectedArray;}
+
+void ASIMReadoutManager::SetArrayEnabled(G4bool AE)
+{ ArrayEnabled.at(SelectedArray) = AE; }
+
+G4bool ASIMReadoutManager::GetArrayEnabled(G4int A)
+{ return ArrayEnabled.at(A); }
+
+void ASIMReadoutManager::EnableArrayEnergyThresholds()
+{;}
+
+G4bool ASIMReadoutManager::GetUseEnergyThresholds(G4int R)
+{ return UseEnergyThresholds.at(R); }
+
+void ASIMReadoutManager::SetArrayLowerEnergyThreshold(G4double LET)
+{ ArrayLowerEnergyThreshold.at(SelectedArray) = LET; }
+
+G4double ASIMReadoutManager::GetLowerEnergyThreshold(G4int A)
+{ return ArrayLowerEnergyThreshold.at(A); }
+
+void ASIMReadoutManager::SetUpperEnergyThreshold(G4double UET)
+{ ArrayUpperEnergyThreshold.at(SelectedArray) = UET; }
+
+G4double ASIMReadoutManager::GetUpperEnergyThreshold(G4int A)
+{ return ArrayUpperEnergyThreshold.at(A); }
 
 
 //////////////////////////////////////////

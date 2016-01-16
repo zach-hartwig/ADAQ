@@ -295,6 +295,11 @@ void ASIMReadoutManager::CreateArray(G4String ArrayName,
   AEDep.push_back(0.);
   APhotonsCreated.push_back(0);
   APhotonsDetected.push_back(0);
+
+  UseArrayEnergyThresholds.push_back(true);
+  ArrayLowerEnergyThreshold.push_back(0.);
+  ArrayUpperEnergyThreshold.push_back(1.*TeV);
+  UseArrayPhotonThresholds.push_back(false);
 }
 
 
@@ -333,6 +338,11 @@ void ASIMReadoutManager::ClearReadoutsAndArrays()
   AEDep.clear();
   APhotonsCreated.clear();
   APhotonsDetected.clear();
+
+  UseArrayEnergyThresholds.clear();
+  ArrayLowerEnergyThreshold.clear();
+  ArrayUpperEnergyThreshold.clear();
+  UseArrayPhotonThresholds.clear();
 
   EventEDep.clear();
   EventActivated.clear();
@@ -557,18 +567,34 @@ void ASIMReadoutManager::AnalyzeAndStoreEvent()
     ASIMArrayEvents[a]->SetEnergyDep(EDep/MeV);
     ASIMArrayEvents[a]->SetPhotonsCreated(PhotonsCreated);
     ASIMArrayEvents[a]->SetPhotonsDetected(PhotonsDetected);
-    
-    // Aggregate run-level data for the array
-    AHits[a]++;
-    AEDep[a] += EDep;
-    APhotonsCreated[a] += PhotonsCreated;
-    APhotonsDetected[a] += PhotonsDetected;
-    
-    if(ASIMFileOpen){
-      // Only accumulate if meaningful data aggregated in array
-      if(EDep>0. or PhotonsCreated>0){
+
+    // Boolean to determine if event meets threshold criterion
+    G4bool ArrayActivated = false;
+
+    if(UseArrayEnergyThresholds[a]){
+      if(EDep > ArrayLowerEnergyThreshold[a] and
+	 EDep < ArrayUpperEnergyThreshold[a])
+	ArrayActivated = true;
+    }
+    else if(UseArrayPhotonThresholds[a]){
+      if(PhotonsDetected > ArrayLowerPhotonThreshold[a] and
+	 PhotonsDetected < ArrayUpperPhotonThreshold[a])
+	ArrayActivated = true;
+    }
+
+    if(ArrayActivated){
+      
+      // Aggregate run-level data for the array
+
+      AHits[a]++;
+      AEDep[a] += EDep;
+      APhotonsCreated[a] += PhotonsCreated;
+      APhotonsDetected[a] += PhotonsDetected;
+
+      // Write the event data to the tree
+      
+      if(ASIMFileOpen)
 	ASIMStorageMgr->GetEventTree(ASIMArrayID[a])->Fill();
-      }
     }
   }
 }
@@ -759,74 +785,87 @@ void ASIMReadoutManager::SelectReadout(G4int R)
 G4int ASIMReadoutManager::GetSelectedReadout()
 { return SelectedReadout;}
 
+
 void ASIMReadoutManager::SetReadoutEnabled(G4bool RE)
 { ReadoutEnabled.at(SelectedReadout) = RE; }
+
 
 G4bool ASIMReadoutManager::GetReadoutEnabled(G4int R)
 { return ReadoutEnabled.at(R); }
 
+
 void ASIMReadoutManager::SetEnergyBroadening(G4bool B)
 { EnergyBroadening.at(SelectedReadout) = B; }
+
 
 G4bool ASIMReadoutManager::GetEnergyBroadening(G4int R)
 { return EnergyBroadening.at(R); }
 
+
 void ASIMReadoutManager::SetEnergyResolution(G4double E)
 { EnergyResolution.at(SelectedReadout) = E; }
+
 
 G4double ASIMReadoutManager::GetEnergyResolution(G4int R)
 { return EnergyResolution.at(R); }
 
+
 void ASIMReadoutManager::SetEnergyEvaluation(G4double E)
 { EnergyEvaluation.at(SelectedReadout) = E; }
+
 
 G4double ASIMReadoutManager::GetEnergyEvaluation(G4int R)
 { return EnergyEvaluation.at(R); }
 
-void ASIMReadoutManager::EnableEnergyThresholds()
+
+void ASIMReadoutManager::SetThresholdType(G4String TT)
 {
-  UseEnergyThresholds.at(SelectedReadout) = true;
-  UsePhotonThresholds.at(SelectedReadout) = false;
+  if(TT == "energy"){
+    UseEnergyThresholds.at(SelectedReadout) = true;
+    UsePhotonThresholds.at(SelectedReadout) = false;
+  }
+  else if (TT == "photon"){
+    UseEnergyThresholds.at(SelectedReadout) = false;
+    UsePhotonThresholds.at(SelectedReadout) = true;
+  }
 }
 
-G4bool ASIMReadoutManager::GetUseEnergyThresholds(G4int R)
-{ return UseEnergyThresholds.at(R); }
 
 void ASIMReadoutManager::SetLowerEnergyThreshold(G4double LET)
 { LowerEnergyThreshold.at(SelectedReadout) = LET; }
 
+
 G4double ASIMReadoutManager::GetLowerEnergyThreshold(G4int R)
 { return LowerEnergyThreshold.at(R); }
+
 
 void ASIMReadoutManager::SetUpperEnergyThreshold(G4double UET)
 { UpperEnergyThreshold.at(SelectedReadout) = UET; }
 
+
 G4double ASIMReadoutManager::GetUpperEnergyThreshold(G4int R)
 { return UpperEnergyThreshold.at(R); }
 
-void ASIMReadoutManager::EnablePhotonThresholds()
-{
-  UseEnergyThresholds.at(SelectedReadout) = false;
-  UsePhotonThresholds.at(SelectedReadout) = true;
-}
-
-G4bool ASIMReadoutManager::GetUsePhotonThresholds(G4int R)
-{ return UsePhotonThresholds.at(R); }
 
 void ASIMReadoutManager::SetLowerPhotonThreshold(G4int LPT)
 { LowerPhotonThreshold.at(SelectedReadout) = LPT; }
 
+
 G4int ASIMReadoutManager::GetLowerPhotonThreshold(G4int R)
 { return LowerPhotonThreshold.at(R); }
+
 
 void ASIMReadoutManager::SetUpperPhotonThreshold(G4int UPT)
 { UpperPhotonThreshold.at(SelectedReadout) = UPT; }
 
+
 G4int ASIMReadoutManager::GetUpperPhotonThreshold(G4int R)
 { return UpperPhotonThreshold.at(R); }
 
+
 void ASIMReadoutManager::SetWaveformStorage(G4bool WS)
 { WaveformStorage.at(SelectedReadout) = WS; }
+
 
 G4bool ASIMReadoutManager::GetWaveformStorage(G4int R)
 { return WaveformStorage.at(R); }
@@ -846,31 +885,44 @@ void ASIMReadoutManager::SelectArray(G4int A)
 	   << G4endl;
 }
 
+
 G4int ASIMReadoutManager::GetSelectedArray()
 { return SelectedArray;}
+
 
 void ASIMReadoutManager::SetArrayEnabled(G4bool AE)
 { ArrayEnabled.at(SelectedArray) = AE; }
 
+
 G4bool ASIMReadoutManager::GetArrayEnabled(G4int A)
 { return ArrayEnabled.at(A); }
 
-void ASIMReadoutManager::EnableArrayEnergyThresholds()
-{;}
 
-G4bool ASIMReadoutManager::GetUseEnergyThresholds(G4int R)
-{ return UseEnergyThresholds.at(R); }
+void ASIMReadoutManager::SetArrayThresholdType(G4String TT)
+{
+  if(TT == "energy"){
+    UseArrayEnergyThresholds.at(SelectedArray) = true;
+    UseArrayPhotonThresholds.at(SelectedArray) = false;
+  }
+  else if (TT == "photon"){
+    UseArrayEnergyThresholds.at(SelectedArray) = false;
+    UseArrayPhotonThresholds.at(SelectedArray) = true;
+  }
+}
 
 void ASIMReadoutManager::SetArrayLowerEnergyThreshold(G4double LET)
 { ArrayLowerEnergyThreshold.at(SelectedArray) = LET; }
 
-G4double ASIMReadoutManager::GetLowerEnergyThreshold(G4int A)
+
+G4double ASIMReadoutManager::GetArrayLowerEnergyThreshold(G4int A)
 { return ArrayLowerEnergyThreshold.at(A); }
 
-void ASIMReadoutManager::SetUpperEnergyThreshold(G4double UET)
+
+void ASIMReadoutManager::SetArrayUpperEnergyThreshold(G4double UET)
 { ArrayUpperEnergyThreshold.at(SelectedArray) = UET; }
 
-G4double ASIMReadoutManager::GetUpperEnergyThreshold(G4int A)
+
+G4double ASIMReadoutManager::GetArrayUpperEnergyThreshold(G4int A)
 { return ArrayUpperEnergyThreshold.at(A); }
 
 
@@ -880,6 +932,7 @@ G4double ASIMReadoutManager::GetUpperEnergyThreshold(G4int A)
 
 void ASIMReadoutManager::SetEventActivated(G4bool EA)
 { EventActivated.at(SelectedReadout) = EA; }
+
 
 G4bool ASIMReadoutManager::GetEventActivated(G4int R)
 { return EventActivated.at(R); }

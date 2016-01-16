@@ -63,105 +63,91 @@ ASIMReadoutMessenger::ASIMReadoutMessenger(ASIMReadoutManager *ARMgr)
   // Command to select the readout as the 'active' readout that will
   // have its values set by use of following commands
   
-  selectReadoutCmd = new G4UIcmdWithAnInteger("/ASIM/readout/selectReadout", this);
-  selectReadoutCmd->SetGuidance("Set the readout for which settings will be modified. Use the readout ID to specify.");
+  selectReadoutCmd = new G4UIcmdWithAnInteger("/ASIM/readout/select", this);
+  selectReadoutCmd->SetGuidance("Selectthe readout for which settings will be applied. Use the readout ID to specify.");
   selectReadoutCmd->SetParameterName("Choice", false);
   selectReadoutCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
 
   // Enable/disable the readout
   
   setReadoutEnabledCmd = new G4UIcmdWithABool("/ASIM/readout/setReadoutEnabled", this);
-  setReadoutEnabledCmd->SetGuidance("Enable/disable the presently active readout.");
+  setReadoutEnabledCmd->SetGuidance("Enable ('true') / disable ('false') the selected readout.");
   setReadoutEnabledCmd->SetParameterName("Choice", false);
   setReadoutEnabledCmd->SetDefaultValue(false);
 
   // Energy broadening
   
   setEnergyBroadeningCmd = new G4UIcmdWithABool("/ASIM/readout/setEnergyBroadening", this);
-  setEnergyBroadeningCmd->SetGuidance("Enable the ability to broadening the value of energy deposited by a Gaussian function");
-  setEnergyBroadeningCmd->SetGuidance("in order to more realistically mimick the detector's response function without the need");
-  setEnergyBroadeningCmd->SetGuidance("utilize scintillation photon generation/detection.");
+  setEnergyBroadeningCmd->SetGuidance("Enable gaussian broadening of energy deposition in the selected readout");
   setEnergyBroadeningCmd->SetParameterName("Choice", false);
   setEnergyBroadeningCmd->SetDefaultValue(false);
 
   setEnergyResolutionCmd = new G4UIcmdWithADouble("/ASIM/readout/setEnergyResolution", this);
-  setEnergyResolutionCmd->SetGuidance("Set the energy resolution as a percent [%] to be used with the energy");
-  setEnergyResolutionCmd->SetGuidance("gaussoam energy broading command, which must be first enabled via the");
-  setEnergyResolutionCmd->SetGuidance("/ASIM/readout/setEnergyBroadening' command");
+  setEnergyResolutionCmd->SetGuidance("Set the resolution as a percent [%] to use in energy broadening for the");
+  setEnergyResolutionCmd->SetGuidance("selected readout. Resolution is defined as FWHM / Mean for a gaussian.");
   setEnergyResolutionCmd->SetParameterName("Choice",false);
   
   setEnergyEvaluationCmd = new G4UIcmdWithADoubleAndUnit("/ASIM/readout/setEnergyEvaluation", this);
-  setEnergyEvaluationCmd->SetGuidance("Set the energy at which the desired energy resolution will be computed.");
-  setEnergyEvaluationCmd->SetGuidance("enabled via the '/ASIM/readout/setEnergyBroadening' command");
+  setEnergyEvaluationCmd->SetGuidance("Set the energy at which the energy resolution will be computed for the");
+  setEnergyEvaluationCmd->SetGuidance("selected readout.");
   setEnergyEvaluationCmd->SetParameterName("Choice",false);
   setEnergyEvaluationCmd->SetUnitCategory("Energy");
   setEnergyEvaluationCmd->SetDefaultUnit("MeV");
 
-  // Energy threshold
+  // Thresholds
+  
+  setThresholdTypeCmd = new G4UIcmdWithAString("/ASIM/readout/setThresholdType",this);
+  setThresholdTypeCmd->SetGuidance("Set the selected readout threshold type: 'energy' uses energy deposition in the readout volume;");
+  setThresholdTypeCmd->SetGuidance("'photon' uses total number of optical photons detected by the photodetector.");
+  setThresholdTypeCmd->SetParameterName("Choice",false);
+  setThresholdTypeCmd->SetCandidates("energy photon");
   
   setLowerEnergyThresholdCmd = new G4UIcmdWithADoubleAndUnit("/ASIM/readout/setLowerEnergyThreshold", this);
-  setLowerEnergyThresholdCmd->SetGuidance("Set the lower energy threshold for scoring hits on the detector. Note that energy");
-  setLowerEnergyThresholdCmd->SetGuidance("energy thresholding must be enabled via the '/ASIM/readout/enableEnergyThrehold' command");
+  setLowerEnergyThresholdCmd->SetGuidance("Set the lower threshold for the selected readout triggering when using energy thresholds");
   setLowerEnergyThresholdCmd->SetParameterName("Choice",false);
   setLowerEnergyThresholdCmd->SetUnitCategory("Energy");
   setLowerEnergyThresholdCmd->SetDefaultUnit("MeV");
 
   setUpperEnergyThresholdCmd = new G4UIcmdWithADoubleAndUnit("/ASIM/readout/setUpperEnergyThreshold", this);
-  setUpperEnergyThresholdCmd->SetGuidance("Set the upper energy threshold for scoring hits on the detector. Note that energy");
-  setUpperEnergyThresholdCmd->SetGuidance("energy tresholding must be enabled via the '/ASIM/readout/enableEnergyThrehold' command");
+  setUpperEnergyThresholdCmd->SetGuidance("Set the upper threshold for the selected readout triggering when using energy thresholds");
   setUpperEnergyThresholdCmd->SetParameterName("Choice",false);
   setUpperEnergyThresholdCmd->SetUnitCategory("Energy");
   setUpperEnergyThresholdCmd->SetDefaultUnit("MeV");
 
-  enableEnergyThresholdCmd = new G4UIcmdWithoutParameter("/ASIM/readout/enableEnergyThreshold", this);
-  enableEnergyThresholdCmd->SetGuidance("Enable the minimum energy threshold for scoring hits on the detector. The energy");
-  enableEnergyThresholdCmd->SetGuidance("may be set via '/ASIM/readout/set{Lower,Upper}EnergyThreshold' command. Note that energy");
-  enableEnergyThresholdCmd->SetGuidance("and photon thresholding are mutually exclusive. Setting this will undo the other!");
-
-  // Photon threshold
-
-  enablePhotonThresholdCmd = new G4UIcmdWithoutParameter("/ASIM/readout/enablePhotonThreshold", this);
-  enablePhotonThresholdCmd->SetGuidance("Enable the lower/upper photon thresholds for scoring hits on the detector. The photon");
-  enablePhotonThresholdCmd->SetGuidance("thresholds may be set via '/ASIM/readout/set{Lower,Upper}EnergyThreshold' command.");
-  enablePhotonThresholdCmd->SetGuidance("Note that energy and photon thresholding are mutually exclusive with energy thresholding.");
-  enablePhotonThresholdCmd->SetGuidance("Setting this will undor the other!");
-
   setLowerPhotonThresholdCmd = new G4UIcmdWithAnInteger("/ASIM/readout/setLowerPhotonThreshold", this);
-  setLowerPhotonThresholdCmd->SetGuidance("Set the lower photon threshold for scoring hits on the detector. Note that photon");
-  setLowerPhotonThresholdCmd->SetGuidance("thresholding must be enabled via the '/ASIM/readout/enablePhotonThrehold' command");
+  setLowerPhotonThresholdCmd->SetGuidance("Set the lower threshold for the selected readout triggering when using photon thresholds");
   setLowerPhotonThresholdCmd->SetParameterName("Choice",false);
-
+  
   setUpperPhotonThresholdCmd = new G4UIcmdWithAnInteger("/ASIM/readout/setUpperPhotonThreshold", this);
-  setUpperPhotonThresholdCmd->SetGuidance("Set the upper photon threshold for scoring hits on the detector. Note that photon");
-  setUpperPhotonThresholdCmd->SetGuidance("tresholding must be enabled via the '/ASIM/readout/enablePhotonThrehold' command");
+  setUpperPhotonThresholdCmd->SetGuidance("Set the upper threshold for the selected readout triggering when using photon thresholds");
   setUpperPhotonThresholdCmd->SetParameterName("Choice",false);
-
+  
   // Enable/disable readout of full waveforms
   
   setWaveformStorageCmd = new G4UIcmdWithABool("/ASIM/readout/setWaveformStorage", this);
-  setWaveformStorageCmd->SetGuidance("Enable/disable the storage of individual waveforms (e.g. a vector of optical photon");
-  setWaveformStorageCmd->SetGuidance("creation/detection times) on disk. Warning: when setd ASIM file sizes on disk can");
-  setWaveformStorageCmd->SetGuidance("quickly become very large");
+  setWaveformStorageCmd->SetGuidance("Enable/disable the storage of individual 'waveforms' (vector of optical photon creation/detection");
+  setWaveformStorageCmd->SetGuidance("times) for the selected readout. Warning: ASIM file sizes on disk can quickly become very large!");
   setWaveformStorageCmd->SetParameterName("Choice", false);
   setWaveformStorageCmd->SetDefaultValue(false);
 
     // Enable/disable the readout
 
   selectArrayCmd = new G4UIcmdWithAnInteger("/ASIM/array/select", this);
-  selectArrayCmd->SetGuidance("Set the array for which settings will be modified. Use the array ID to specify.");
+  selectArrayCmd->SetGuidance("Select teh array for which settings will be applied. Use the array ID to specify.");
   selectArrayCmd->SetParameterName("Choice", false);
   selectArrayCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
   
   setArrayEnabledCmd = new G4UIcmdWithABool("/ASIM/array/setEnabled", this);
-  setArrayEnabledCmd->SetGuidance("Enable/disable the presently active readout.");
+  setArrayEnabledCmd->SetGuidance("Enable ('true') / disable ('false') the presently selected array.");
   setArrayEnabledCmd->SetParameterName("Choice", false);
   setArrayEnabledCmd->SetDefaultValue(false);
 
-  enableArrayEnergyThresholdCmd = new G4UIcmdWithoutParameter("/ASIM/array/enableEnergyThreshold", this);
-  enableArrayEnergyThresholdCmd->SetGuidance("Enable the minimum energy threshold for scoring hits on the array. The energy");
-  enableArrayEnergyThresholdCmd->SetGuidance("may be set via '/ASIM/array/set{Lower,Upper}EnergyThreshold' command. Note that energy");
-  enableArrayEnergyThresholdCmd->SetGuidance("and photon thresholding are mutually exclusive. Setting this will undo the other!");
-  
+  setArrayThresholdTypeCmd = new G4UIcmdWithAString("/ASIM/array/setThresholdType",this);
+  setArrayThresholdTypeCmd->SetGuidance("Set the selected array threshold type: 'energy' uses energy deposition in the readout volume;");
+  setArrayThresholdTypeCmd->SetGuidance("'photon' uses total number of optical photons detected by the photodetector.");
+  setArrayThresholdTypeCmd->SetParameterName("Choice",false);
+  setArrayThresholdTypeCmd->SetCandidates("energy photon");
+
   setArrayLowerEnergyThresholdCmd = new G4UIcmdWithADoubleAndUnit("/ASIM/array/setLowerEnergyThreshold", this);
   setArrayLowerEnergyThresholdCmd->SetGuidance("Set the lower energy threshold for scoring hits on the array. Note that energy");
   setArrayLowerEnergyThresholdCmd->SetGuidance("energy thresholding must be enabled via the '/ASIM/array/enableEnergyThrehold' command");
@@ -182,16 +168,16 @@ ASIMReadoutMessenger::~ASIMReadoutMessenger()
 {
   delete setArrayUpperEnergyThresholdCmd;
   delete setArrayLowerEnergyThresholdCmd;
+  delete setArrayThresholdTypeCmd;
   delete setArrayEnabledCmd;
   delete selectArrayCmd;
   
   delete setWaveformStorageCmd;
-  delete enablePhotonThresholdCmd;
   delete setUpperPhotonThresholdCmd;
   delete setLowerPhotonThresholdCmd;
-  delete enableEnergyThresholdCmd;
   delete setUpperEnergyThresholdCmd;
   delete setLowerEnergyThresholdCmd;
+  delete setThresholdTypeCmd;
   delete setEnergyBroadeningCmd;
   delete setEnergyEvaluationCmd;
   delete setEnergyResolutionCmd;
@@ -250,28 +236,20 @@ void ASIMReadoutMessenger::SetNewValue(G4UIcommand *cmd, G4String newValue)
   if(cmd == setEnergyEvaluationCmd)
     theManager->SetEnergyEvaluation(setEnergyEvaluationCmd->GetNewDoubleValue(newValue));
 
-  // Energy thresholds
+  // Thresholds
+
+  if(cmd == setThresholdTypeCmd)
+    theManager->SetThresholdType(newValue);
 
   if(cmd == setLowerEnergyThresholdCmd)
     theManager->SetLowerEnergyThreshold(setLowerEnergyThresholdCmd->GetNewDoubleValue(newValue));
   
   if(cmd == setUpperEnergyThresholdCmd)
     theManager->SetUpperEnergyThreshold(setUpperEnergyThresholdCmd->GetNewDoubleValue(newValue));
-  
-  if(cmd == enableEnergyThresholdCmd)
-    theManager->EnableEnergyThresholds();
-
-  // Photon thresholds
-  
-  if(cmd == setLowerPhotonThresholdCmd)
-    theManager->SetLowerPhotonThreshold(setLowerPhotonThresholdCmd->GetNewIntValue(newValue));
 
   if(cmd == setUpperPhotonThresholdCmd)
     theManager->SetUpperPhotonThreshold(setUpperPhotonThresholdCmd->GetNewIntValue(newValue));
   
-  if(cmd == enablePhotonThresholdCmd)
-    theManager->EnablePhotonThresholds();
-
   // Waveform storage
   
   if(cmd == setWaveformStorageCmd)
@@ -284,16 +262,16 @@ void ASIMReadoutMessenger::SetNewValue(G4UIcommand *cmd, G4String newValue)
 
   if(cmd == selectArrayCmd)
     theManager->SelectArray(selectArrayCmd->GetNewIntValue(newValue));
-
-  if(cmd == setArrayEnabledCmd)
-    theManager->SetArrayEnabled(selectArrayCmd->GetNewBoolValue(newValue));
-
-  if(cmd == enableArrayEnergyThresholdCmd)
-    theManager->EnableArrayEnergyThresholds();
-
-  if(cmd == setArrayLowerEnergyThreshold)
-    theManager->SetArrayLowerEnergyThreshold(setArrayLowerEnergyThreshold->GetNewDoubleValue(newValue));
   
-  if(cmd == setArrayUpperEnergyThreshold)
-    theManager->SetArrayUpperEnergyThreshold(setArrayUpperEnergyThreshold->GetNewDoubleValue(newValue));
+  if(cmd == setArrayEnabledCmd)
+    theManager->SetArrayEnabled(setArrayEnabledCmd->GetNewBoolValue(newValue));
+  
+  if(cmd == setArrayThresholdTypeCmd)
+    theManager->SetArrayThresholdType(newValue);
+  
+  if(cmd == setArrayLowerEnergyThresholdCmd)
+    theManager->SetArrayLowerEnergyThreshold(setArrayLowerEnergyThresholdCmd->GetNewDoubleValue(newValue));
+  
+  if(cmd == setArrayUpperEnergyThresholdCmd)
+    theManager->SetArrayUpperEnergyThreshold(setArrayUpperEnergyThresholdCmd->GetNewDoubleValue(newValue));
 }

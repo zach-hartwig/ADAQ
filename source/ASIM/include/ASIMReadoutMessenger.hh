@@ -44,10 +44,9 @@ private:
   G4UIcmdWithABool *setEnergyBroadeningCmd;
   G4UIcmdWithADouble *setEnergyResolutionCmd;
   G4UIcmdWithADoubleAndUnit *setEnergyEvaluationCmd;
-  G4UIcmdWithoutParameter *enableEnergyThresholdCmd;  
+  G4UIcmdWithAString *setThresholdTypeCmd;
   G4UIcmdWithADoubleAndUnit *setLowerEnergyThresholdCmd;
   G4UIcmdWithADoubleAndUnit *setUpperEnergyThresholdCmd;
-  G4UIcmdWithoutParameter *enablePhotonThresholdCmd;
   G4UIcmdWithAnInteger *setLowerPhotonThresholdCmd;
   G4UIcmdWithAnInteger *setUpperPhotonThresholdCmd;
   G4UIcmdWithABool *setWaveformStorageCmd;
@@ -55,7 +54,7 @@ private:
   // Array commands
   G4UIcmdWithAnInteger *selectArrayCmd;
   G4UIcmdWithABool *setArrayEnabledCmd;
-  G4UIcmdWithoutParameter *enableArrayEnergyThresholdCmd;
+  G4UIcmdWithAString *setArrayThresholdTypeCmd;
   G4UIcmdWithADoubleAndUnit *setArrayLowerEnergyThresholdCmd;
   G4UIcmdWithADoubleAndUnit *setArrayUpperEnergyThresholdCmd;
 };

@@ -101,6 +101,9 @@ public:
   void SetEnergyEvaluation(G4double);
   G4double GetEnergyEvaluation(G4int);
 
+  void SetThresholdType(G4String);
+  G4String GetThresholdType(G4int);
+
   void EnableEnergyThresholds();
   G4bool GetUseEnergyThresholds(G4int);
 
@@ -130,6 +133,9 @@ public:
   void SetArrayEnabled(G4bool);
   G4bool GetArrayEnabled(G4int);
 
+  void SetArrayThresholdType(G4String);
+  G4String GetArrayThresholdType(G4int);
+
   void EnableArrayEnergyThresholds();
   G4bool GetEnableArrayEnergyThresholds(G4int);
 
@@ -137,7 +143,7 @@ public:
   G4double GetArrayLowerEnergyThreshold(G4int);
 
   void SetArrayUpperEnergyThreshold(G4double);
-  G4double GetArrayUpperrEnergyThreshold(G4int);
+  G4double GetArrayUpperEnergyThreshold(G4int);
 
   // Set/Get methods for event-level data
 
@@ -223,6 +229,11 @@ private:
   vector<G4bool> UsePhotonThresholds;
   vector<G4int> LowerPhotonThreshold, UpperPhotonThreshold;
   vector<G4bool> WaveformStorage;
+
+  vector<G4bool> UseArrayEnergyThresholds;
+  vector<G4double> ArrayLowerEnergyThreshold, ArrayUpperEnergyThreshold;
+  vector<G4bool> UseArrayPhotonThresholds;
+  vector<G4double> ArrayLowerPhotonThreshold, ArrayUpperPhotonThreshold;
 
   // ASIM file variables
 

@@ -106,7 +106,7 @@ $(BUILDDIR)/ADAQReadoutDict.o : $(BUILDDIR)/ADAQReadoutDict.cc
 
 $(BUILDDIR)/ADAQReadoutDict.cc : $(INCLS) $(INCLDIR)/RootLinkDef.h
 	@echo -e "\nGenerating ROOT dictionary '$@' ..."
-	rootcling -f $@ -c -I$(ADAQHOME)/source/extensions/ADAQReadout/$(INCLDIR) $^
+	rootcling -f $@ -c $^
 
 # PHONY rules
 
@@ -126,3 +126,6 @@ install:
 	@echo -e "\nInstalling the ADAQReadout headers in $(ADAQ)/include ..."
 	@cp -v include/*.hh $(DESTINCL)
 	@echo -e ""
+
+test:
+	@echo $(INCLDIR)

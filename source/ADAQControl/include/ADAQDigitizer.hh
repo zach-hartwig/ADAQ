@@ -362,8 +362,8 @@ public:
   int GetDPPEvents(char *buffer, uint32_t buffsize, CAEN_DGTZ_DPP_PSD_Event_t **events, uint32_t *numEventsArray)
   {return CAEN_DGTZ_GetDPPEvents(BoardHandle, buffer, buffsize, (void **)events, numEventsArray);}
   
-  int DecodeDPPWaveforms(void *event, void *waveforms)
-  {return CAEN_DGTZ_DecodeDPPWaveforms(BoardHandle, event, waveforms);}
+  int DecodeDPPWaveforms(void *event, CAEN_DGTZ_DPP_PSD_Waveforms_t *waveforms)
+  {return CAEN_DGTZ_DecodeDPPWaveforms(BoardHandle, event, (void *)waveforms);}
   
   int SetNumEventsPerAggregate(uint32_t numEvents)
   {return CAEN_DGTZ_SetNumEventsPerAggregate(BoardHandle, numEvents);}

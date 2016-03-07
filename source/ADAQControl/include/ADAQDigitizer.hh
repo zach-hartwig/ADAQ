@@ -373,10 +373,10 @@ public:
   
   int SetDPPEventAggregation(int threshold, int maxSize)
   {return CAEN_DGTZ_SetDPPEventAggregation(BoardHandle, threshold, maxSize);}
-
-  int SetDPPParameters(uint32_t channelMask, void *params)
-  {return CAEN_DGTZ_SetDPPParameters(BoardHandle, channelMask, params);};
-
+  
+  int SetDPPParameters(uint32_t channelMask, CAEN_DGTZ_DPP_PSD_Params_t *params)
+  {return CAEN_DGTZ_SetDPPParameters(BoardHandle, channelMask, (void *)params);};
+  
   // Virtual probes
 
   int SetDPPVirtualProbe(int trace, int probe)

@@ -1,9 +1,23 @@
 ## The ADAQ Libraries Source Code Change Log
 
 name: Changelog.md  
-date: 23 Dec 15 (last updated)  
+date: 03 Mar 16 (last updated)  
 auth: Zach Hartwig  
 mail: hartwig@psfc.mit.edu
+
+
+## Version 1.8 Series
+
+### 1.8.0
+
+ - Major upgrade to the ASIM library: new capabilities to readout
+   registered readouts as arrays and with optional coincidence mode,
+   lower/upper thresholds
+
+ - Updates to ASIM example simulations
+
+ - Cleanup of makefiles, depracated code
+
 
 ## Version 1.6 Series
 

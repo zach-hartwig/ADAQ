@@ -217,11 +217,10 @@ void ADAQHighVoltage::MapRegisters()
     
     FirmRel = V653X::FIRMREL;
     
-    VMax.push_back(V653X::VMAX);
-    IMax.push_back(V653X::IMAX);
-    Status.push_back(V653X::STATUS);
-    
     for(int ch=0; ch<NumChannels; ch++){
+      VMax.push_back(V653X::VMAX);
+      IMax.push_back(V653X::IMAX);
+      Status.push_back(V653X::STATUS);
       VSet.push_back(V653X::VSET[ch]);
       ISet.push_back(V653X::ISET[ch]);
       VMon.push_back(V653X::VMON[ch]);
@@ -616,6 +615,7 @@ int ADAQHighVoltage::GetMaxVoltage(int Channel, uint16_t *MaxVoltageGet)
   }
   else{
     CommandStatus = CAENComm_Read16(BoardHandle, VMax[Channel], MaxVoltageGet);
+    cout << VMax[Channel] << endl;
     (*MaxVoltageGet/=maxVolts2input);
   }
   return CommandStatus;

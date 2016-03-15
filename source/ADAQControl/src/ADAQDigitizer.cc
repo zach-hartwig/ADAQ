@@ -431,7 +431,7 @@ int ADAQDigitizer::SetAcquisitionControl(string AcqControl)
   if(AcqControl == "Software")
     CommandStatus = SetAcquisitionMode(CAEN_DGTZ_SW_CONTROLLED);
   else if(AcqControl == "Gated (NIM)" or AcqControl == "Gated (TTL)"){
-    //CommandStatus = SetAcquisitionMode(CAEN_DGTZ_S_IN_CONTROLLED);
+    CommandStatus = SetAcquisitionMode(CAEN_DGTZ_S_IN_CONTROLLED);
     
     uint32_t Data32 = 0;
     CommandStatus = GetRegisterValue(CAEN_DGTZ_FRONT_PANEL_IO_CTRL_ADD, &Data32);
@@ -786,7 +786,7 @@ int ADAQDigitizer::GetBufferStatus(int Channel, bool &BufferStatus)
 }
 
 
-int ADAQDigitizer::GetBufferLevel(double &BufferLevel)
+int ADAQDigitizer::GetSTDBufferLevel(double &BufferLevel)
 {
   // The following variable maps the return value from digitizer
   // register 0x800C to the number of blocks into which the FPGA
@@ -822,11 +822,34 @@ int ADAQDigitizer::GetBufferLevel(double &BufferLevel)
   Data32 = 0;
   
   CommandStatus = CAEN_DGTZ_ReadRegister(BoardHandle, Addr32, &Data32);
+
   BufferLevel = Data32 * 1. / MemoryBlocks;
   
   return CommandStatus;
 }
+
+
+int ADAQDigitizer::GetPSDBufferLevel(double &BufferLevel)
+{
+  uint32_t Addr32 = CAEN_DGTZ_ACQ_STATUS_ADD;
+  uint32_t Data32 = 0;
+
+  CommandStatus = CAEN_DGTZ_ReadRegister(BoardHandle, Addr32, &Data32);
+
+  bitset<32> Data32Bitset(Data32);
   
+  // Test bit 4 for the following results
+  //  0 == No channel has reached the
+  //  1 == Maximum number of events has been reached
+
+  if(Data32Bitset.test(4))
+    BufferLevel = 1.;
+  else
+    BufferLevel = 0.;
+  
+  return CommandStatus;
+}
+
 
 int ADAQDigitizer::GetNumFPGAEvents(uint32_t *Data32)
 { 

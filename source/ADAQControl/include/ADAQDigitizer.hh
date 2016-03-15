@@ -122,7 +122,11 @@ public:
   
   int GetChannelBufferStatus(bool *);
   int GetBufferStatus(int, bool &);
-  int GetBufferLevel(double &);
+
+  // Methods for getting the total buffer level for CAEN standard
+  // (STD) firmware and for CAEN DPP-PSD (PSD) firmware
+  int GetSTDBufferLevel(double &);
+  int GetPSDBufferLevel(double &);
 
   int GetNumFPGAEvents(uint32_t *);
   
@@ -320,6 +324,14 @@ public:
 
 
   ////////////////////////////////////////////
+  // ADC control methods (x725, x730, x751) //
+  ////////////////////////////////////////////
+
+  int Calibrate() {return CAEN_DGTZ_Calibrate(BoardHandle);}
+  int ReadTemperature(int32_t Channel, uint32_t *Temperature) {return CAEN_DGTZ_ReadTemperature(BoardHandle, Channel, Temperature);}
+  
+
+  ////////////////////////////////////////////
   // Digital pulse processing (DPP) methods //
   ////////////////////////////////////////////
 
@@ -399,7 +411,7 @@ public:
   
   int Reset() {return CAEN_DGTZ_Reset(BoardHandle);}
   
-  int Calibrate() {return CAEN_DGTZ_Calibrate(BoardHandle);}
+
   
   int SetAnalogMonOutput(CAEN_DGTZ_AnalogMonitorOutputMode_t mode) {return CAEN_DGTZ_SetAnalogMonOutput(BoardHandle, mode);}
   int GetAnalogMonOutput(CAEN_DGTZ_AnalogMonitorOutputMode_t *mode) {return CAEN_DGTZ_GetAnalogMonOutput(BoardHandle, mode);}

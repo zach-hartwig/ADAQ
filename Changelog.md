@@ -1,12 +1,24 @@
 ## The ADAQ Libraries Source Code Change Log
 
 name: Changelog.md  
-date: 03 Mar 16 (last updated)  
+date: 16 Mar 16 (last updated)  
 auth: Zach Hartwig  
 mail: hartwig@psfc.mit.edu
 
 
 ## Version 1.8 Series
+
+### 1.8.1
+
+ - Implementing basic FPGA buffer check for CAEN DPP-PSD firmware
+   (binary state of "full" or "Not full" is determined)
+
+ - Implementing CAENDigitzer temperature and calibration functions for
+   x725 and x730 family of digitizers in the ADAQControl library
+
+ - Correcting major bug for HV device settings to correctly enable
+   full settings and operation for all channels on HV device
+   
 
 ### 1.8.0
 

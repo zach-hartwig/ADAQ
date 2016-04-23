@@ -144,7 +144,9 @@ public:
   string GetBoardModelName() {return BoardModelName;}
   string GetBoardROCFirmwareRevision() {return BoardROCFirmwareRevision;}
   string GetBoardAMCFirmwareRevision() {return BoardAMCFirmwareRevision;}
-
+  int GetBoardFirmwareCode() {return BoardFirmwareCode;}
+  string GetBoardFirmwareType() {return BoardFirmwareType;}
+  
   // Methods/variables without "Board" preface are conceptual or
   // information about the device
   int GetNumChannels() {return NumChannels;}
@@ -157,6 +159,8 @@ private:
   int BoardSerialNumber;
   string BoardModelName;
   string BoardROCFirmwareRevision, BoardAMCFirmwareRevision;
+  int BoardFirmwareCode;
+  string BoardFirmwareType;
   
   int NumChannels;
   int NumADCBits, MinADCBit, MaxADCBit, SamplingRate;

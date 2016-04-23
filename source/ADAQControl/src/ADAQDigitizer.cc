@@ -118,6 +118,7 @@ ADAQDigitizer::ADAQDigitizer(ZBoardType Type,  // ADAQ-specific device type iden
   : ADAQVBoard(Type, ID, Address, LN, CN),
     BoardSerialNumber(0), BoardModelName(""),
     BoardROCFirmwareRevision(""), BoardAMCFirmwareRevision(""),
+    BoardFirmwareCode(0), BoardFirmwareType(""),
     NumChannels(0), NumADCBits(0), MinADCBit(0), MaxADCBit(0), SamplingRate(0),
     ZLEStartWord(0), ZLEWordCounter(0)
     //Buffer_Py(NULL), EventPointer_Py(NULL), EventWaveform_Py(Null)
@@ -176,6 +177,50 @@ int ADAQDigitizer::OpenLink()
       BoardModelName = BoardInformation.ModelName;
       BoardROCFirmwareRevision = BoardInformation.ROC_FirmwareRel;
       BoardAMCFirmwareRevision = BoardInformation.AMC_FirmwareRel;
+
+      // Parse the AMC firmware string to get the encoded firmware number
+      size_t Pos = BoardAMCFirmwareRevision.find(".");
+      if(Pos != string::npos)
+	BoardFirmwareCode = std::atoi(BoardAMCFirmwareRevision.substr(0,Pos).c_str());
+      else
+	std::cout << "ADAQDigitizer[" << BoardID << "] : Error finding board firmware code! Defaulting to std firmware code!\n"
+		  << std::endl;
+
+      // Set the CAEN DPP firmware type string based on hex code from
+      // the CAENDigitizerType.h header file. This format is a bit
+      // more useful for ADAQ-derived codes.
+      //
+      //  STD : CAEN standard firmware
+      //  PHA : Pulse height analysis
+      //  CI  : Charge integration
+      //  PSD : Pulse shape discrimination
+
+      switch(BoardFirmwareCode){
+
+      case STANDARD_FW_CODE:
+	BoardFirmwareType = "STD";
+	break;
+
+      case V1724_DPP_PHA_CODE:
+      case V1730_DPP_PHA_CODE:
+	BoardFirmwareType = "PHA";
+
+      case V1720_DPP_CI_CODE:
+      case V1743_DPP_CI_CODE:
+	BoardFirmwareType = "CI";
+
+      case V1720_DPP_PSD_CODE:
+      case V1751_DPP_PSD_CODE:
+      case V1730_DPP_PSD_CODE:
+	BoardFirmwareType = "PSD";
+	
+      case V1751_DPP_ZLE_CODE:
+	BoardFirmwareType = "ZLE";
+	
+      default:
+	BoardFirmwareType = "STD";
+	break;
+      }
       
       // Conceptual information about the digitization
       NumChannels = BoardInformation.Channels;
@@ -191,6 +236,7 @@ int ADAQDigitizer::OpenLink()
 		<< "--> Dgtz rate: " << SamplingRate << " MS/s\n"
 		<< "--> AMC FW   : " << BoardROCFirmwareRevision << "\n"
 		<< "--> ROC FW   : " << BoardAMCFirmwareRevision << "\n"
+		<< "--> FW Type  : " << BoardFirmwareType << "\n"
 		<< "--> Serial # : " << BoardSerialNumber << "\n"
 		<< "--> USB link : " << BoardLinkNumber << "\n"
 		<< "--> CONET ID : " << BoardCONETNode << "\n"

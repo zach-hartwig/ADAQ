@@ -204,23 +204,29 @@ int ADAQDigitizer::OpenLink()
       case V1724_DPP_PHA_CODE:
       case V1730_DPP_PHA_CODE:
 	BoardFirmwareType = "PHA";
+	break;
 
       case V1720_DPP_CI_CODE:
       case V1743_DPP_CI_CODE:
 	BoardFirmwareType = "CI";
+	break;
 
       case V1720_DPP_PSD_CODE:
       case V1751_DPP_PSD_CODE:
       case V1730_DPP_PSD_CODE:
 	BoardFirmwareType = "PSD";
+	break;
 	
       case V1751_DPP_ZLE_CODE:
 	BoardFirmwareType = "ZLE";
+	break;
 	
       default:
 	BoardFirmwareType = "STD";
 	break;
       }
+
+      
       
       // Conceptual information about the digitization
       NumChannels = BoardInformation.Channels;

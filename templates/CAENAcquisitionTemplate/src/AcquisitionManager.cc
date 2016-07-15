@@ -1,23 +1,25 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
 // name: AcquisitionManager.cc
-// date: 14 Aug 14
+// date: 16 Jul 15
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 //
 // desc: The purpose of the AcquisitionManager class is to handle all
 //       aspects of interfacing with the CAEN hardware and readout,
 //       from setting up the digitizer to processing readout data. In
-//       the template, access is provided to the EventWaveform object
-//       containing the sampled data for 8 channels of the V1720 with
-//       the acquisition loop. Basic digitizer settings are
-//       implemented. The class uses the ADAQDigitizer class to
-//       facilite interaction with the V1720 card via the V1718
-//       USB/VME module. Note that the ::StartAcquisition() and
-//       ::StopAcquisition() methods are run in two different threads
-//       (see CAENAcquisitionTemplate.cc) to support keyboard entry by
-//       the user to control start/stop of the acquisition and
-//       software triggering.
+//       the template, the following standard features are provided:
+//       setup of the ROOT objects necessary for readout, programming
+//       of the digitizer hardware, readout via a standard acquisition
+//       loop, shutdown of the acquisition. It is the task of the user
+//       to (a) modify the above as necessary and (b) to actually
+//       implement something useful to do with the data that is
+//       readout.
+//
+//       Control of the acquisition is provided via the separate
+//       ::StartAcquisition() and ::StopAcquisition() Boost threads
+//       (see CAENAcquisitionTemplate.cc). This enables keyboard entry
+//       by the user to initiate acquisition during acquisition.
 //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -35,41 +37,42 @@ using namespace boost::assign;
 
 
 AcquisitionManager::AcquisitionManager()
-  :  V1720Enable(true), V1720LinkOpen(false), V1720BoardAddress(0x00420000),
+  :  DGEnable(true), DGLinkOpen(false), DGBoardAddress(0x11110000),
      Verbose(true), Debug(false)
 {
-  ///////////////////////////////////////////////////////////////////
-  // Instantiate a manager to control all interactions with the V1720
+  //////////////////////////////////
+  // Instantiate a digitizer manager
+
   DGManager = new ADAQDigitizer(zV1720, // ADAQ-specified CAEN device ID
 				0, // User-specified ID
-				V1720BoardAddress, // Address in VME space
+				DGBoardAddress, // Address in VME space
 				0, // USB link number
 				0); // CONET node number
   DGManager->SetVerbose(true);
-
+  
   //////////////////////////////////////
   // Initialize the digitizer parameters 
 
-  // The "width" or "length" of the acquisition window in V1720
-  // samples (1 sample == 4ns)
+  // The "width" or "length" of the acquisition window [samples]
   RecordLength = 1024;
 
-  // The position of the acquisition window relative to the trigger sample
+  // Position of the trigger within the acquisition window [%]
   PostTriggerSize = 50;
-
-  // Max number of accumulated events that will trigger transfer
-  MaxBLTEvents = 10;
+  
+  // Events to accumulate on the digitizer before transfer to PC
+  EventsBeforeReadout = 10;
 
   // Digitizer channel enable
   DGChannelEnabled += true, false, false, false, false, false, false, false;
 
-  ChannelTriggerThreshold += 2000, 0, 0, 0, 0, 0, 0, 0; // [ADC]
+  // Trigger threshold // [ADC]
+  ChannelTriggerThreshold += 2000, 0, 0, 0, 0, 0, 0, 0;
 
+  // DC offset
   ChannelDCOffset += 0x8000, 0x8000, 0x8000, 0x8000, 0x8000, 0x8000, 0x8000, 0x8000;
 
-  ////////////////////////////////////////////////////////////////
-  // Initialize the connection to the VME crate for control of the
-  // V1720 digitizer and V6534 high voltage boards
+  ////////////////////////////
+  // Initialize the connection
 
   InitVMEConnection();
 }
@@ -77,7 +80,7 @@ AcquisitionManager::AcquisitionManager()
 
 AcquisitionManager::~AcquisitionManager()
 {
-  if(V1720Enable)
+  if(DGEnable)
     delete DGManager;
 }
 
@@ -87,29 +90,29 @@ void AcquisitionManager::InitVMEConnection()
   if(Debug)
     return;
 
-  //////////////////////////////
-  // VME link to the V1720 board
+  ////////////////////////////
+  // VME link to the digitizer
   
-  if(DGManager and V1720Enable){
+  if(DGManager and DGEnable){
     
     if(Verbose)
-      cout << "\nAcquisitionManager (main thread) : Opening a link to the V1720 digitizer board ...\n"
-	   <<   "                                   --> V1720Address = 0x" << hex << setw(8) << setfill('0') << V1720BoardAddress << "\n"
+      cout << "\nAcquisitionManager (main thread) : Opening a link to the digitizer ...\n"
+	   <<   "                                   --> DGAddress = 0x" << hex << setw(8) << setfill('0') << DGBoardAddress << "\n"
 	   << endl;
-
-    int Status = DGManager->OpenLink();
-    (Status==0) ? V1720LinkOpen = true : V1720LinkOpen = false;
     
-    if(V1720Enable and !V1720LinkOpen){
+    int Status = DGManager->OpenLink();
+    (Status==0) ? DGLinkOpen = true : DGLinkOpen = false;
+    
+    if(DGEnable and !DGLinkOpen){
       if(Verbose)
-	cout << "AcquisitionManager (main thread) : Error! A VME link to the V1720 board could not be established! Exiting...\n"
+	cout << "AcquisitionManager (main thread) : Error! A VME link to the digitizer could not be established! Exiting...\n"
 	     <<   "                                 --> CAEN_DGTZ_ErrorCode == " << dec << Status << "\n"
 	     << endl;
       exit(-42);
     }
     else
       if(Verbose)
-	cout << "AcquisitionManager (main thread) : A VME link to the V1720 board has been established!\n"
+	cout << "AcquisitionManager (main thread) : A VME link to the digitizer has been established!\n"
 	     << endl;
   }
 }
@@ -132,7 +135,7 @@ void AcquisitionManager::InitDigitizer()
   if(!DGManager)
     return;
 
-  // Initialize the V1720 digitizer board
+  // Initialize the digitizer board
   DGManager->Initialize();
 
   ///////////////////////////////////////////////
@@ -181,9 +184,9 @@ void AcquisitionManager::InitDigitizer()
     Waveforms[i].resize(RecordLength);
   
 
-  ///////////////////////////////////////////////////////
-  // Program V1720 digitizer with acquisition settings //
-  ///////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////
+  // Program the digitizer with acquisition settings //
+  /////////////////////////////////////////////////////
 
   // Reset the digitizer to default state
   DGManager->Reset();
@@ -195,7 +198,7 @@ void AcquisitionManager::InitDigitizer()
     DGManager->SetChannelDCOffset(ch, ChannelDCOffset[ch]);
   }
 
-  // Set the V1720 triggering configuration
+  // Set the triggering configuration
   DGManager->EnableSWTrigger();
   DGManager->DisableAutoTrigger(ChannelEnableMask);
   DGManager->DisableExternalTrigger();
@@ -207,8 +210,8 @@ void AcquisitionManager::InitDigitizer()
   DGManager->SetChannelEnableMask(ChannelEnableMask);
 
   // Set the maximum number of events that will be accumulated before
-  // the V1720 FPGA buffer is dumped to PC memory
-  DGManager->SetMaxNumEventsBLT(MaxBLTEvents);
+  // the FPGA buffer is dumped to PC memory
+  DGManager->SetMaxNumEventsBLT(EventsBeforeReadout);
 
   // Set the percentage of acquisition window that occurs after trigger
   DGManager->SetPostTriggerSize(PostTriggerSize);
@@ -240,9 +243,9 @@ void AcquisitionManager::StartAcquisition()
   // stdout for the user's benefit
   int TotalEvents = 0;
   
-  // The array (of length 'RecordLength' in units of V1720 samples)
-  // used to receive the digitized waveform from the V1720 board
-  double Voltage[RecordLength]; // [ADC]
+  // The array (of length 'RecordLength' in units of samples) used to
+  // receive the digitized waveform from the digitizer [ADC]
+  double Voltage[RecordLength];
   
   // Allocate memory for the readout buffer on the PC
   DGManager->MallocReadoutBuffer(&Buffer, &Size);
@@ -251,26 +254,9 @@ void AcquisitionManager::StartAcquisition()
   DGManager->SWStartAcquisition();
 
 
-  /////////////////////////////////
-  // V1720 digitizer acquisition //
-  /////////////////////////////////
-  // The following loops reads digitized data from the digitizers into
-  // local PC memory, principally as arrays of voltage versus time (or
-  // sample). To maximize data throughput, the following loop should
-  // be be as efficient as possible.
-
-  // The following terminology is important:
-  // V1720 buffer == the memory buffer onboard the FPGA of the V1720 board
-  // PC buffer == the memory buffer allocated locally on the PC
-  // Event == an acquisition window caused by a channel trigger threshold being exceeded
-  // NumEvents == the number of events that is allowed to accumulate on the V1720 buffer
-  //              before being automatically readout into the PC buffer
-  // Record Length == the length of the acquisition window in 4 ns units
-  // Sample ==  a single value between 0 and 4095 of digitized voltage
-
   while(true){
     
-    // Read data from the V1720 buffer into the PC buffer
+    // Read data from the buffer into the PC buffer
     DGManager->ReadData(Buffer, &BufferSize);    
     
     // Determine the number of events in the buffer
@@ -333,10 +319,9 @@ void AcquisitionManager::StopAcquisition(boost::thread *Acquisition_thread)
 
   // This member function is run in the Escape_thread and receives the
   // Acquisition_thread as a function argument. The purpose of this
-  // thread is primarily to provide an escape mechanism from the
-  // Acquisition_thread via Boost's thread interrupt method. At
-  // present, the user must physically stroke a "0" then "Enter" to
-  // terminate the acquisition.
+  // thread is primarily to provide with the ability to intervene with
+  // the program during the acquisition loop via Boost's thread
+  // interrupt method.
 
   cout << "AcquisitionManager (escape thread) : Enter a '0' to terminate acquisition!\n" 
        << "                                     Enter 1 '1' to trigger the V1720!\n" 
@@ -349,8 +334,7 @@ void AcquisitionManager::StopAcquisition(boost::thread *Acquisition_thread)
   while(RunLoop){
     cin >> Choice;
 
-    // Terminate the Acquisition_thread and proceed to "disarm" phase
-    // of the acquisition
+    // Terminate the Acquisition_thread and proceed to disarm phase
     if(Choice == 0){
       Acquisition_thread->interrupt();
       RunLoop = false;
@@ -370,14 +354,14 @@ void AcquisitionManager::Disarm()
   if(Debug)
     return;
 
-  // Stop the V1720 acquisition
+  // Stop the digitizer acquisition
   DGManager->SWStopAcquisition();
   
-  // Free the PC memory associated with V1720 digitizer readout
+  // Free the PC memory associated with digitizer readout
   DGManager->FreeReadoutBuffer(&Buffer);
 
-  // Close a VME link to the V1720 board
-  if(V1720Enable){
+  // Close a VME link to the digitizer
+  if(DGEnable){
     DGManager->CloseLink();
   }
 }

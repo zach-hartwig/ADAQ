@@ -1,19 +1,21 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
 // name: CAENAcquisitionTemplate.cc
-// date: 14 Aug 14
+// date: 15 Jul 16
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 //
 // desc: CAENAcquisitionTemplate is a code intended to provide the
-//       basic foundation for writing acquisition code that interfaces
-//       with the CAEN V1720 board via the V1718 USB/VME module. It
-//       provides a mature build system, modular code, and basic
-//       layout for rapidply developing acquisition code prototypes
-//       and testing suites. 
+//       basic foundation for writing acquisition code using CAEN
+//       digitizers. It provides a mature build system, modular code,
+//       and basic layout for rapidly developing acquisition code,
+//       prototypng, and testing suites. The idea is that the user
+//       should copy this directory wholesale into a new directory,
+//       completely rename everything as they fit, and start to
+//       modify/augment the code as they fit.
 //
 // dpnd: The code requires the following to be installed:
-//       -> ADAQ  libraries
+//       -> ADAQ libraries
 //       -> ROOT data analysis framework
 //       -> Boost C++ header and libraries
 //
@@ -26,13 +28,13 @@ using namespace std;
 // Boost
 #include <boost/thread.hpp>
 
-// ADAQ 
+// CAENAcquisitionTemplate
 #include "AcquisitionManager.hh"
 
 
 int main(int argc, char *argv[])
 {
-  if(argc!=1){
+  if(argc != 1){
     cout << "\nCAENAcquisitionTemplate : Error! No command line arguments are allowed!\n"
 	 << endl;
     return -42;
@@ -66,12 +68,13 @@ int main(int argc, char *argv[])
        << endl;
 
   // Create two Boost threads. The first thread ("Acquisition_thread")
-  // will handle waveform acquisition (V6534/V1720/ROOT setup,
-  // waveform digitization, persistent waveform storage in ROOT file,
-  // shutdown). The Acquisition_thread is configured to accept
-  // interrupt signals from the second thread ("Escape_thread"), which
-  // allows the user to terminate the waveform digitization phase and
-  // begin the storage/shutdown phase of the acquisition.
+  // will handle waveform acquisition (setup, waveform digitization,
+  // persistent storage, shutdown). The Acquisition_thread is
+  // configured to accept interrupt signals from the second thread
+  // ("Escape_thread"), which allows the user to interface with the
+  // code while the acquisiion loop is running in a separate thread
+  // (e.g. to manually trigger the digitizer or to terminate
+  // acquisition).
 
   boost::thread Acquisition_thread = boost::thread(&AcquisitionManager::StartAcquisition,AcquisitionMgr);
   boost::thread Escape_thread = boost::thread(&AcquisitionManager::StopAcquisition,AcquisitionMgr,&Acquisition_thread);

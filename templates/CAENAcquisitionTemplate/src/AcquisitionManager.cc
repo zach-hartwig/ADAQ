@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
 // name: AcquisitionManager.cc
-// date: 16 Jul 15
+// date: 15 Jul 16
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 //
@@ -37,13 +37,13 @@ using namespace boost::assign;
 
 
 AcquisitionManager::AcquisitionManager()
-  :  DGEnable(true), DGLinkOpen(false), DGBoardAddress(0x11110000),
+  :  DGEnable(true), DGLinkOpen(false), DGBoardAddress(0x00440000),
      Verbose(true), Debug(false)
 {
   //////////////////////////////////
   // Instantiate a digitizer manager
 
-  DGManager = new ADAQDigitizer(zV1720, // ADAQ-specified CAEN device ID
+  DGManager = new ADAQDigitizer(zV1724, // ADAQ-specified CAEN device ID
 				0, // User-specified ID
 				DGBoardAddress, // Address in VME space
 				0, // USB link number
@@ -97,7 +97,6 @@ void AcquisitionManager::InitVMEConnection()
     
     if(Verbose)
       cout << "\nAcquisitionManager (main thread) : Opening a link to the digitizer ...\n"
-	   <<   "                                   --> DGAddress = 0x" << hex << setw(8) << setfill('0') << DGBoardAddress << "\n"
 	   << endl;
     
     int Status = DGManager->OpenLink();
@@ -106,7 +105,6 @@ void AcquisitionManager::InitVMEConnection()
     if(DGEnable and !DGLinkOpen){
       if(Verbose)
 	cout << "AcquisitionManager (main thread) : Error! A VME link to the digitizer could not be established! Exiting...\n"
-	     <<   "                                 --> CAEN_DGTZ_ErrorCode == " << dec << Status << "\n"
 	     << endl;
       exit(-42);
     }
@@ -324,7 +322,7 @@ void AcquisitionManager::StopAcquisition(boost::thread *Acquisition_thread)
   // interrupt method.
 
   cout << "AcquisitionManager (escape thread) : Enter a '0' to terminate acquisition!\n" 
-       << "                                     Enter 1 '1' to trigger the V1720!\n" 
+       << "                                     Enter 1 '1' to trigger the digitizer!\n" 
        << endl;
 
   int Choice = -1;

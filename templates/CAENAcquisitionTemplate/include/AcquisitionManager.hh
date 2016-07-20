@@ -45,7 +45,7 @@ using namespace std;
 
 // ADAQ
 #include "ADAQRootClasses.hh"
-class ADAQDigitizer;
+#include "ADAQDigitizer.hh"
 
 
 class AcquisitionManager : public TObject
@@ -79,6 +79,7 @@ private:
   ADAQDigitizer *DGManager;
   
   // Initialization variables for the  digitizer
+  ZBoardType DGType;
   bool DGEnable, DGLinkOpen;
   int DGBoardAddress;
   bool DGStandardFW, DGPSDFW;
@@ -99,6 +100,9 @@ private:
   vector<bool> ChEnabled, ChPosPolarity, ChNegPolarity;
   vector<uint32_t> ChDCOffset, ChTriggerThreshold;
   int EventsBeforeReadout;
+  uint32_t ChannelEnableMask;
+  bool TriggerEdgeRising, TriggerEdgeFalling;
+  bool TriggerTypeAutomatic, TriggerTypeSoftware;
   
   // Variables for CAEN standard firmware (STD) settings
 
@@ -109,6 +113,7 @@ private:
 
   vector<uint32_t> ChRecordLength, ChBaselineSamples, ChChargeSensitivity;
   vector<uint32_t> ChShortGate, ChLongGate, ChPreTrigger, ChGateOffset;
+  uint32_t TriggerHoldoff;
 
   // Variables for digitizer readout with STD firmware
 

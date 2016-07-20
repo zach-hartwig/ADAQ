@@ -31,23 +31,21 @@ using namespace std;
 #include <boost/assign/std/vector.hpp>
 using namespace boost::assign;
 
-// ADAQ 
 #include "AcquisitionManager.hh"
-#include "ADAQDigitizer.hh"
 
 
 AcquisitionManager::AcquisitionManager()
-  :  DGEnable(true), DGLinkOpen(false), DGBoardAddress(0x00440000),
+  :  DGType(zV1724), DGEnable(true), DGLinkOpen(false), DGBoardAddress(0x00440000),
      Verbose(true), Debug(false)
 {
   //////////////////////////////////
   // Instantiate a digitizer manager
-
-  DGManager = new ADAQDigitizer(zV1724, // ADAQ-specified CAEN device ID
-				0, // User-specified ID
+  
+  DGManager = new ADAQDigitizer(DGType,         // ADAQ-specified CAEN device type
+				0,              // User-specified ID
 				DGBoardAddress, // Address in VME space
-				0, // USB link number
-				0); // CONET node number
+				0,              // USB link number
+				0);             // CONET node number
   DGManager->SetVerbose(true);
 }
 
@@ -95,7 +93,7 @@ void AcquisitionManager::InitConnection()
     }
     else
       if(Verbose)
-	cout << "AcquisitionManager (main thread) : A VME to the digitizer has been established!\n"
+	cout << "AcquisitionManager (main thread) : A link to the digitizer has been established!\n"
 	     << endl;
   }
 }
@@ -130,25 +128,58 @@ void AcquisitionManager::InitParameters()
     ChDCOffset.push_back(0x8000);
     ChTriggerThreshold.push_back(2000);
   }
+  ChEnabled[0] = true;
 
   // Events to accumulate on the digitizer before transfer to PC
   EventsBeforeReadout = 25;
   
+  // Trigger type
+  TriggerTypeAutomatic = false;
+  TriggerTypeSoftware = true;
+
+  // Trigger edge type
+  TriggerEdgeRising = true;
+  TriggerEdgeFalling = !TriggerEdgeRising;
+
+
+
+  // Calculate the channel enable mask, which is a 32-bit integer
+  // describing which of the digitizer channels are enabled.
+  
+  for(int ch=0; ch<DGManager->GetNumChannels(); ch++)
+    if(ChEnabled[ch]){
+      uint32_t Ch = 0x00000001<<ch;
+      ChannelEnableMask |= Ch;
+    }
+  
+  // Ensure that at least one channel is enabled 
+  if((0xff & ChannelEnableMask)==0){
+    cout << "\nAcquisitionManager (main thread) : Error! No digitizer channels were enabled, ie, ChannelEnableMask==0!\n"
+	 << endl;
+    exit(-42);
+  }
+  
   if(DGStandardFW){
+
+    // Initialize vector-of-vectors; outer vector is size of channels,
+    // inner vector is length of waveform in samples
+
+    Waveforms.resize(DGManager->GetNumChannels());
+    for(int ch=0; ch<DGManager->GetNumChannels(); ch++)
+      Waveforms[ch].resize(RecordLength);
     
     // The "width" or "length" of the acquisition window [samples]
     RecordLength = 512;
     
     // Position of the trigger within the acquisition window [%]
     PostTriggerSize = 50;
-
+    
     for(int ch=0; ch<NumChannels; ch++){
       ChBaselineCalcMin.push_back(0);
       ChBaselineCalcMax.push_back(50);
     }
   }
   else if(DGPSDFW){
-
     for(int ch=0; ch<NumChannels; ch++){
       ChRecordLength.push_back(512);
       ChBaselineSamples.push_back(0);
@@ -167,90 +198,111 @@ void AcquisitionManager::InitDigitizer()
   if(!DGLinkOpen)
     return;
   
-  // Initialize the digitizer board
+  // Initialize the digitizer board and reset
   DGManager->Initialize();
-
-  ///////////////////////////////////////////////
-  // Variables for digitizer settings and readout
-  
-  // Variable to hold the channel enable mask, ie, sets which
-  // digitizer channels are actively taking data
-  uint32_t ChannelEnableMask = 0;
-
-  // Variable for total number of enabled digitizer channels
-  uint32_t NumChannelsEnabled = 0;
-
-  // Calculate the channel enable mask, which is a 32-bit integer
-  // describing which of the 8 digitizer channels are enabled. A
-  // 32-bit integer has 8 bytes or 8 "hex" digits; a hex digit set
-  // to "1" in the n-th position in the hex representation indicates
-  // that the n-th channel is enabled. For example, if the
-  // ChannelEnableMask is equal to 0x00110100 then channels 2, 4 and
-  // 5 are enabled for digitization
-  for(int ch=0; ch<DGManager->GetNumChannels(); ch++)
-    if(ChEnabled[ch]){
-      uint32_t Ch = 0x00000001<<ch;
-      ChannelEnableMask |= Ch;
-      NumChannelsEnabled++;
-    }
-  
-  // Ensure that at least one channel is enabled in the channel
-  // enabled bit mask; if not, return without starting the acquisition
-  // loop, since...well...there ain't shit to acquisition.
-  if((0xff & ChannelEnableMask)==0){
-    cout << "\nAcquisitionManager (main thread) : Error! No digitizer channels were enabled, ie, ChannelEnableMask==0!\n"
-	 << endl;
-    exit(-42);
-  }
-  
-  // Define a vector of vectors that will hold the digitized waveforms
-  // in all channels (units of [ADC]). The outer vector (size 8)
-  // represents each digitizer channel; the inner vector (size
-  // RecordLength) represents the waveform. The start address of each
-  // outer vector will be used to create a unique branch in the
-  // waveform TTree object to store each of the 8 digitizer channels 
-  
-  // Resize the outer and inner vector to the appropriate, fixed size
-  Waveforms.resize(DGManager->GetNumChannels());
-  for(int i=0; i<DGManager->GetNumChannels(); i++)
-    Waveforms[i].resize(RecordLength);
-  
-
-  /////////////////////////////////////////////////////
-  // Program the digitizer with acquisition settings //
-  /////////////////////////////////////////////////////
 
   // Reset the digitizer to default state
   DGManager->Reset();
-  
-  // Set the trigger threshold individually for each of the 8
-  // digitizer channels [ADC] and the DC offsets for each channel
-  for(int ch=0; ch<DGManager->GetNumChannels(); ch++){
-    DGManager->SetChannelTriggerThreshold(ch, ChTriggerThreshold[ch]);
-    DGManager->SetChannelDCOffset(ch, ChDCOffset[ch]);
+
+  /////////////////////////////////////////
+  // Program the STD firmware digitizers //
+  /////////////////////////////////////////
+
+  if(DGStandardFW){
+
+    for(int ch=0; ch<DGManager->GetNumChannels(); ch++){
+      DGManager->SetChannelTriggerThreshold(ch, ChTriggerThreshold[ch]);
+      DGManager->SetChannelDCOffset(ch, ChDCOffset[ch]);
+
+      if(ChPosPolarity[ch])
+	DGManager->SetChannelPulsePolarity(ch, CAEN_DGTZ_PulsePolarityPositive);
+      else
+	DGManager->SetChannelPulsePolarity(ch, CAEN_DGTZ_PulsePolarityNegative);
+
+      if(TriggerEdgeRising)
+	DGManager->SetTriggerEdge(ch, "Rising");
+      else
+	DGManager->SetTriggerEdge(ch, "Falling");
+    }
+
+    DGManager->SetChannelEnableMask(ChannelEnableMask);
+    DGManager->SetRecordLength(RecordLength);
+    DGManager->SetPostTriggerSize(PostTriggerSize);
+    DGManager->SetAcquisitionControl("Software");
+    DGManager->SetZSMode("None");
+    DGManager->SetMaxNumEventsBLT(EventsBeforeReadout);
+
+    if(TriggerTypeAutomatic)
+      DGManager->EnableAutoTrigger(ChannelEnableMask);
+    else
+      DGManager->DisableAutoTrigger(ChannelEnableMask);
+
+    if(TriggerTypeSoftware)
+      DGManager->EnableSWTrigger();
+    else
+      DGManager->DisableSWTrigger();
+
+    DGManager->DisableExternalTrigger();
   }
-
-  // Set the triggering configuration
-  DGManager->EnableSWTrigger();
-  DGManager->DisableAutoTrigger(ChannelEnableMask);
-  DGManager->DisableExternalTrigger();
   
-  // Set the record length of the acquisition window
-  DGManager->SetRecordLength(RecordLength);
+  /////////////////////////////////////////
+  // Program the PSD firmware digitizers //
+  /////////////////////////////////////////
+  else if(DGPSDFW){
+    
+    CAEN_DGTZ_DPP_PSD_Params_t PSDParameters;
+    
+    for(int ch=0; ch<DGManager->GetNumChannels(); ch++){
+      
+      PSDParameters.nsbl[ch] = ChBaselineSamples[ch];
+      PSDParameters.csens[ch] = ChChargeSensitivity[ch];
+      
+      if(TriggerTypeAutomatic)
+	PSDParameters.selft[ch] = 1;
+      else if(TriggerTypeSoftware)
+	PSDParameters.selft[ch] = 0;
+      
+      PSDParameters.thr[ch] = ChTriggerThreshold[ch];
+      PSDParameters.tvaw[ch] = 0;
+      PSDParameters.trgc[ch] = CAEN_DGTZ_DPP_TriggerConfig_Threshold;
+      
+      PSDParameters.sgate[ch] = ChShortGate[ch];
+      PSDParameters.lgate[ch] = ChLongGate[ch]; 
+      PSDParameters.pgate[ch] = ChGateOffset[ch];
+    }
 
-  // Set the channel enable mask
-  DGManager->SetChannelEnableMask(ChannelEnableMask);
+    DGManager->SetDPPParameters(ChannelEnableMask, &PSDParameters);
 
-  // Set the maximum number of events that will be accumulated before
-  // the FPGA buffer is dumped to PC memory
-  DGManager->SetMaxNumEventsBLT(EventsBeforeReadout);
 
-  // Set the percentage of acquisition window that occurs after trigger
-  DGManager->SetPostTriggerSize(PostTriggerSize);
+    ///////////////////////////////////////////////////////
+    // Set channel-specific, non-PSD structure PSD settings
+    
+    for(Int_t ch=0; ch<DGManager->GetNumChannels(); ch++){
+      
+      DGManager->SetRecordLength(ChRecordLength[ch], ch);
+      DGManager->SetChannelDCOffset(ch, ChDCOffset[ch]);
+      DGManager->SetDPPPreTriggerSize(ch, ChPreTrigger[ch]);
+      
+      if(ChPosPolarity[ch])
+	DGManager->SetChannelPulsePolarity(ch, CAEN_DGTZ_PulsePolarityPositive);
+      else if(ChNegPolarity[ch])
+	DGManager->SetChannelPulsePolarity(ch, CAEN_DGTZ_PulsePolarityNegative);
+    }
+    
+    
+    ////////////////////////////////////////////
+    // Set global non-PSD structure PSD settings
+    
+    DGManager->SetDPPAcquisitionMode(CAEN_DGTZ_DPP_ACQ_MODE_List, CAEN_DGTZ_DPP_SAVE_PARAM_EnergyAndTime);
+    DGManager->SetDPPTriggerMode(CAEN_DGTZ_DPP_TriggerMode_Normal);
+    DGManager->SetIOLevel(CAEN_DGTZ_IOLevel_TTL);
+    DGManager->SetDPPEventAggregation(EventsBeforeReadout, 0);
+    DGManager->SetRunSynchronizationMode(CAEN_DGTZ_RUN_SYNC_Disabled);
+  }
 }
 
 
-void AcquisitionManager::StartAcquisition()
+void AcquisitionManager::StartAcquisition2()
 {
   cout << "AcquisitionManager (acquisition thread) : Beginning waveform acquisition...\n"
        << endl;
@@ -263,7 +315,7 @@ void AcquisitionManager::StartAcquisition()
 }
 
 
-void AcquisitionManager::StartAcquisition2()
+void AcquisitionManager::StartAcquisition()
 {
   cout << "AcquisitionManager (acquisition thread) : Beginning waveform acquisition...\n"
        << endl;

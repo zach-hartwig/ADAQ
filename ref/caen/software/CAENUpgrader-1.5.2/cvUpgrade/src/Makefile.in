@@ -252,9 +252,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu cvUpgrade/src/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign cvUpgrade/src/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu cvUpgrade/src/Makefile
+	  $(AUTOMAKE) --foreign cvUpgrade/src/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \

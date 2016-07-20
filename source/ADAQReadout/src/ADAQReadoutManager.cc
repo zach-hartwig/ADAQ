@@ -91,6 +91,7 @@ void ADAQReadoutManager::CreateWaveformTree()
   
   WaveformTree = new TTree("WaveformTree", 
 			   "TTree to hold digitized waveform data in ADAQ files");
+
 }  
 
 
@@ -127,8 +128,8 @@ void ADAQReadoutManager::CreateWaveformTreeBranches(Int_t Channel,
   WaveformTree->Branch(WaveformDataBranchName, 
 		       "ADAQWaveformData",
 		       WaveformData,
-		       32000, // Buffer size [bytes]
-		       99);   // Maximum TTree splitting
+		       128000, // Buffer size [bytes]
+		       0);     // Maximum TTree splitting
 }
 
 

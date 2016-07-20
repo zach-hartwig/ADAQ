@@ -49,32 +49,6 @@ AcquisitionManager::AcquisitionManager()
 				0, // USB link number
 				0); // CONET node number
   DGManager->SetVerbose(true);
-  
-  //////////////////////////////////////
-  // Initialize the digitizer parameters 
-
-  // The "width" or "length" of the acquisition window [samples]
-  RecordLength = 1024;
-
-  // Position of the trigger within the acquisition window [%]
-  PostTriggerSize = 50;
-  
-  // Events to accumulate on the digitizer before transfer to PC
-  EventsBeforeReadout = 10;
-
-  // Digitizer channel enable
-  DGChannelEnabled += true, false, false, false, false, false, false, false;
-
-  // Trigger threshold // [ADC]
-  ChannelTriggerThreshold += 2000, 0, 0, 0, 0, 0, 0, 0;
-
-  // DC offset
-  ChannelDCOffset += 0x8000, 0x8000, 0x8000, 0x8000, 0x8000, 0x8000, 0x8000, 0x8000;
-
-  ////////////////////////////
-  // Initialize the connection
-
-  InitVMEConnection();
 }
 
 
@@ -85,15 +59,26 @@ AcquisitionManager::~AcquisitionManager()
 }
 
 
-void AcquisitionManager::InitVMEConnection()
+void AcquisitionManager::Arm()
 {
   if(Debug)
     return;
+  
+  InitConnection();
+  InitParameters();
+  InitDigitizer();
+}
 
+
+void AcquisitionManager::InitConnection()
+{
+  if(Debug)
+    return;
+  
   ////////////////////////////
   // VME link to the digitizer
   
-  if(DGManager and DGEnable){
+  if(DGEnable){
     
     if(Verbose)
       cout << "\nAcquisitionManager (main thread) : Opening a link to the digitizer ...\n"
@@ -102,37 +87,86 @@ void AcquisitionManager::InitVMEConnection()
     int Status = DGManager->OpenLink();
     (Status==0) ? DGLinkOpen = true : DGLinkOpen = false;
     
-    if(DGEnable and !DGLinkOpen){
+    if(!DGLinkOpen){
       if(Verbose)
-	cout << "AcquisitionManager (main thread) : Error! A VME link to the digitizer could not be established! Exiting...\n"
+	cout << "AcquisitionManager (main thread) : Error! A link to the digitizer could not be established! Exiting...\n"
 	     << endl;
       exit(-42);
     }
     else
       if(Verbose)
-	cout << "AcquisitionManager (main thread) : A VME link to the digitizer has been established!\n"
+	cout << "AcquisitionManager (main thread) : A VME to the digitizer has been established!\n"
 	     << endl;
   }
 }
 
 
-void AcquisitionManager::Arm()
+void AcquisitionManager::InitParameters()
 {
-  if(Debug)
-    return;
+  // Determine the type of CAEN digitizer firmware
   
-  InitDigitizer();
-}
+  string FirmwareType = DGManager->GetBoardFirmwareType();
+  if(FirmwareType == "STD"){
+    DGStandardFW = true;
+    DGPSDFW = false;
+  }
+  else if(FirmwareType == "PSD"){
+    DGStandardFW = false;
+    DGPSDFW = true;
+  }
+
+  //////////////////////////////////////
+  // Initialize the digitizer parameters
+  
+  // Here, channels are initialized with standard defaults. It is left
+  // up to the user to implement their own settings
+  
+  int NumChannels = DGManager->GetNumChannels();
+
+  for(int ch=0; ch<NumChannels; ch++){
+    ChEnabled.push_back(false);
+    ChPosPolarity.push_back(false);
+    ChNegPolarity.push_back(true);
+    ChDCOffset.push_back(0x8000);
+    ChTriggerThreshold.push_back(2000);
+  }
+
+  // Events to accumulate on the digitizer before transfer to PC
+  EventsBeforeReadout = 25;
+  
+  if(DGStandardFW){
+    
+    // The "width" or "length" of the acquisition window [samples]
+    RecordLength = 512;
+    
+    // Position of the trigger within the acquisition window [%]
+    PostTriggerSize = 50;
+
+    for(int ch=0; ch<NumChannels; ch++){
+      ChBaselineCalcMin.push_back(0);
+      ChBaselineCalcMax.push_back(50);
+    }
+  }
+  else if(DGPSDFW){
+
+    for(int ch=0; ch<NumChannels; ch++){
+      ChRecordLength.push_back(512);
+      ChBaselineSamples.push_back(0);
+      ChChargeSensitivity.push_back(0);
+      ChShortGate.push_back(50);
+      ChLongGate.push_back(462);
+      ChPreTrigger.push_back(100);
+      ChGateOffset.push_back(50);
+    }
+  }
+}  
 
 
 void AcquisitionManager::InitDigitizer()
 {
-  // If the DGManager has not been instantiated, simply return to the
-  // AcquisitionManager::Arm() function to prevent triggering segfaults
-  // by calling member functions on a non-existent object
-  if(!DGManager)
+  if(!DGLinkOpen)
     return;
-
+  
   // Initialize the digitizer board
   DGManager->Initialize();
 
@@ -144,7 +178,7 @@ void AcquisitionManager::InitDigitizer()
   uint32_t ChannelEnableMask = 0;
 
   // Variable for total number of enabled digitizer channels
-  uint32_t NumDGChannelsEnabled = 0;
+  uint32_t NumChannelsEnabled = 0;
 
   // Calculate the channel enable mask, which is a 32-bit integer
   // describing which of the 8 digitizer channels are enabled. A
@@ -154,10 +188,10 @@ void AcquisitionManager::InitDigitizer()
   // ChannelEnableMask is equal to 0x00110100 then channels 2, 4 and
   // 5 are enabled for digitization
   for(int ch=0; ch<DGManager->GetNumChannels(); ch++)
-    if(DGChannelEnabled[ch]){
+    if(ChEnabled[ch]){
       uint32_t Ch = 0x00000001<<ch;
       ChannelEnableMask |= Ch;
-      NumDGChannelsEnabled++;
+      NumChannelsEnabled++;
     }
   
   // Ensure that at least one channel is enabled in the channel
@@ -192,8 +226,8 @@ void AcquisitionManager::InitDigitizer()
   // Set the trigger threshold individually for each of the 8
   // digitizer channels [ADC] and the DC offsets for each channel
   for(int ch=0; ch<DGManager->GetNumChannels(); ch++){
-    DGManager->SetChannelTriggerThreshold(ch, ChannelTriggerThreshold[ch]);
-    DGManager->SetChannelDCOffset(ch, ChannelDCOffset[ch]);
+    DGManager->SetChannelTriggerThreshold(ch, ChTriggerThreshold[ch]);
+    DGManager->SetChannelDCOffset(ch, ChDCOffset[ch]);
   }
 
   // Set the triggering configuration
@@ -226,6 +260,19 @@ void AcquisitionManager::StartAcquisition()
     cout << "AcquisitionManager (acquisition thread) : Acquisition loop is running in debug mode!" << endl;
     boost::this_thread::sleep(Time);
   }
+}
+
+
+void AcquisitionManager::StartAcquisition2()
+{
+  cout << "AcquisitionManager (acquisition thread) : Beginning waveform acquisition...\n"
+       << endl;
+  
+  while(Debug){
+    boost::posix_time::milliseconds Time(250);
+    cout << "AcquisitionManager (acquisition thread) : Acquisition loop is running in debug mode!" << endl;
+    boost::this_thread::sleep(Time);
+  }
   
   // Set the EventPointer and the EventWaveform pointer data members
   // to point to nothing; their destination addresses will be set in
@@ -246,7 +293,7 @@ void AcquisitionManager::StartAcquisition()
   double Voltage[RecordLength];
   
   // Allocate memory for the readout buffer on the PC
-  DGManager->MallocReadoutBuffer(&Buffer, &Size);
+  DGManager->MallocReadoutBuffer(&Buffer, &BufferSize);
 
   // Set the V1720 to begin acquiring data
   DGManager->SWStartAcquisition();
@@ -258,17 +305,17 @@ void AcquisitionManager::StartAcquisition()
     DGManager->ReadData(Buffer, &BufferSize);    
     
     // Determine the number of events in the buffer
-    DGManager->GetNumEvents(Buffer, BufferSize, &NumEvents);
+    DGManager->GetNumEvents(Buffer, BufferSize, &PCEvents);
 
     // If there are no events in the current buffer then continue in
     // the 'while' loop without executing the CPU intensive 'for'
     // loops on the next lines. This maximizes code efficiency and
     // only scans/processes events when there is need to do so.
-    if(NumEvents==0)
+    if(PCEvents==0)
       continue;
     
     // For each event in the PC memory buffer...
-    for(uint32_t evt=0; evt<NumEvents; evt++){
+    for(uint32_t evt=0; evt<PCEvents; evt++){
       
       // Get the event information
       DGManager->GetEventInfo(Buffer, BufferSize, evt, &EventInfo, &EventPointer);
@@ -285,7 +332,7 @@ void AcquisitionManager::StartAcquisition()
       for(int ch=0; ch<DGManager->GetNumChannels(); ch++){
 	
 	// Only proceed to waveform analysis if the channel is enabled
-	if(!DGChannelEnabled[ch])
+	if(!ChEnabled[ch])
 	  continue;
 
 	for(uint32_t sample=0; sample<RecordLength; sample++){

@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
   // (e.g. to manually trigger the digitizer or to terminate
   // acquisition).
 
-  boost::thread Acquisition_thread = boost::thread(&AcquisitionManager::StartAcquisition,AcquisitionMgr);
+  boost::thread Acquisition_thread = boost::thread(&AcquisitionManager::StartAcquisition2,AcquisitionMgr);
   boost::thread Escape_thread = boost::thread(&AcquisitionManager::StopAcquisition,AcquisitionMgr,&Acquisition_thread);
   
   cout << "CAENAcquisitionTemplate : Joining threads ...\n" 

@@ -54,19 +54,17 @@ public:
   AcquisitionManager();
   ~AcquisitionManager();
   
-  // Initialize the VME connection to the digitizer
-  void InitVMEConnection();  
-
   // Prepare for data acquisition
   void Arm();
-
-  // Initialize the digitizer
+  void InitConnection();
+  void InitParameters();
   void InitDigitizer();
-
-  // Begin acquiring waveforms
+  
+  // Begin data acquisition
   void StartAcquisition();
+  void StartAcquisition2();
 
-  // Stop acquiring waveforms; note that the Boost.Thread
+  // Stop data acquisition; note that the Boost.Thread
   // functionality must be protected from ROOT's CINT
 #ifndef __CINT__
   void StopAcquisition(boost::thread *);
@@ -77,12 +75,13 @@ public:
 
 
 private:
-  // Manager objects for the digitizer
+  // ADAQ manager object for the digitizer
   ADAQDigitizer *DGManager;
-
-  // Init variable for the digitizer
+  
+  // Initialization variables for the  digitizer
   bool DGEnable, DGLinkOpen;
   int DGBoardAddress;
+  bool DGStandardFW, DGPSDFW;
 
   // General program control variables
   bool Verbose, Debug;
@@ -95,25 +94,47 @@ private:
 
 #ifndef __CINT__
 
-  // Variables for the digitizer
-  vector<bool> DGChannelEnabled;
-  uint32_t RecordLength, PostTriggerSize, EventsBeforeReadout;
-  vector<uint32_t> ChannelTriggerThreshold;
-  vector<uint32_t> ChannelDCOffset;
+  // Variables for the digitizer common to all firmware types
+  
+  vector<bool> ChEnabled, ChPosPolarity, ChNegPolarity;
+  vector<uint32_t> ChDCOffset, ChTriggerThreshold;
+  int EventsBeforeReadout;
+  
+  // Variables for CAEN standard firmware (STD) settings
 
-  // Variables for readout of the digitized data
-  uint32_t BufferSize, Size, NumEvents;
+  uint32_t RecordLength, PostTriggerSize;
+  vector<uint32_t> ChBaselineCalcMin, ChBaselineCalcMax; 
+
+  // Variables for CAEN DPP-PSD firwmare (PSD) settings
+
+  vector<uint32_t> ChRecordLength, ChBaselineSamples, ChChargeSensitivity;
+  vector<uint32_t> ChShortGate, ChLongGate, ChPreTrigger, ChGateOffset;
+
+  // Variables for digitizer readout with STD firmware
+
+  char *EventPointer;
   CAEN_DGTZ_EventInfo_t EventInfo;
   CAEN_DGTZ_UINT16_EVENT_t *EventWaveform;
-#endif
 
-  // Variables for readout of the digitized waveforms
-  char *EventPointer;
+  // Variables for digitizer readout with DPP-PSD firmware
+
+  CAEN_DGTZ_DPP_PSD_Params_t *PSDParams[16];
+  CAEN_DGTZ_DPP_PSD_Event_t *PSDEvents[16];
+  CAEN_DGTZ_DPP_PSD_Waveforms_t *PSDWaveforms;
+  vector<uint32_t> NumPSDEvents;
+
+  // Variables for PC buffer readout
+
   char *Buffer;
+  uint32_t BufferSize, PSDEventSize, PSDWaveformSize, ReadSize;
+  uint32_t FPGAEvents, PCEvents;
+  vector<bool> BufferFull;
 
   // A double-vector for readout of digitizer channels
-  vector< vector<int> > Waveforms;
+  vector< vector<uint16_t> > Waveforms;
 
+#endif
+  
   // Define the AcquisitionManager class to ROOT
   ClassDef(AcquisitionManager,1);
 };

@@ -523,11 +523,17 @@ int ADAQDigitizer::SInArmAcquisition()
 {
   uint32_t Data32 = 0;
   CommandStatus = GetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, &Data32);
+
+  // At present, it appears necessary to directly set the bits
+  // appropriate to ensure a TTL/NIM signal fed into S-IN (VME) or GPI
+  // (DT) can be used to control the acquisition on/off.
   
   bitset<32> Data32Bitset(Data32);
+  Data32Bitset.set(0,1);
+  Data32Bitset.set(1,0);
   Data32Bitset.set(2,1);
   Data32 = (uint32_t)Data32Bitset.to_ulong();
-  
+
   CommandStatus = SetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, Data32);
 
   return CommandStatus;
@@ -540,10 +546,14 @@ int ADAQDigitizer::SInDisarmAcquisition()
   CommandStatus = GetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, &Data32);
   
   bitset<32> Data32Bitset(Data32);
+  Data32Bitset.set(0,0);
+  Data32Bitset.set(1,0);
   Data32Bitset.set(2,0);
   Data32 = (uint32_t)Data32Bitset.to_ulong();
   
   CommandStatus = SetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, Data32);
+
+  CommandStatus = SetAcquisitionMode(CAEN_DGTZ_SW_CONTROLLED);
   
   return CommandStatus;
 }

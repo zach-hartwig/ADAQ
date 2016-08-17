@@ -1,12 +1,19 @@
 ## The ADAQ Libraries Source Code Change Log
 
 name: Changelog.md  
-date: 16 Mar 16 (last updated)  
+date: 17 Aug 16 (last updated)  
 auth: Zach Hartwig  
 mail: hartwig@psfc.mit.edu
 
 
 ## Version 1.8 Series
+
+### 1.8.2
+
+ - Implementing ability to use gated TTL/NIM acquisition on/off via
+   S-IN / GPI connector. This fixes issues that seem to be caused when
+   trying to use CAEN methods to activate these acquisition modes.
+
 
 ### 1.8.1
 

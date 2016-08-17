@@ -35,7 +35,7 @@ using namespace boost::assign;
 
 
 AcquisitionManager::AcquisitionManager()
-  :  DGType(zV1724), DGEnable(true), DGLinkOpen(false), DGBoardAddress(0x00440000),
+  :  DGType(zDT5790M), DGEnable(true), DGLinkOpen(false), DGBoardAddress(0x00000000),
      Verbose(true), Debug(false)
 {
   //////////////////////////////////
@@ -101,7 +101,9 @@ void AcquisitionManager::InitConnection()
 
 void AcquisitionManager::InitParameters()
 {
-  // Determine the type of CAEN digitizer firmware
+  /////////////////////////////
+  // Determine firmware type //
+  /////////////////////////////
   
   string FirmwareType = DGManager->GetBoardFirmwareType();
   if(FirmwareType == "STD"){
@@ -113,15 +115,40 @@ void AcquisitionManager::InitParameters()
     DGPSDFW = true;
   }
 
-  //////////////////////////////////////
-  // Initialize the digitizer parameters
+  /////////////////////////////
+  // Init readout parameters //
+  /////////////////////////////
   
-  // Here, channels are initialized with standard defaults. It is left
-  // up to the user to implement their own settings
-  
-  int NumChannels = DGManager->GetNumChannels();
+  Int_t NumChannels = DGManager->GetNumChannels();
 
-  for(int ch=0; ch<NumChannels; ch++){
+  if(DGStandardFW){
+    EventPointer = NULL;
+    EventWaveform = NULL;
+    DGManager->AllocateEvent(&EventWaveform);
+  }
+  else if(DGPSDFW){
+    PSDWaveforms = NULL;
+  }
+
+  Buffer = NULL;
+
+  BufferSize = ReadSize = FPGAEvents = PCEvents = 0;
+  for(Int_t ch=0; ch<NumChannels; ch++)
+    NumPSDEvents.push_back(0);
+  
+  DGManager->MallocReadoutBuffer(&Buffer, &BufferSize);
+  
+  if(DGPSDFW){
+    DGManager->MallocDPPEvents(PSDEvents, &PSDEventSize);
+    DGManager->MallocDPPWaveforms(&PSDWaveforms, &PSDWaveformSize); 
+  }
+
+  
+  /////////////////////////////
+  // Init control parameters //
+  /////////////////////////////
+  
+  for(Int_t ch=0; ch<NumChannels; ch++){
     ChEnabled.push_back(false);
     ChPosPolarity.push_back(false);
     ChNegPolarity.push_back(true);
@@ -141,16 +168,15 @@ void AcquisitionManager::InitParameters()
   TriggerEdgeRising = true;
   TriggerEdgeFalling = !TriggerEdgeRising;
 
-
-
   // Calculate the channel enable mask, which is a 32-bit integer
   // describing which of the digitizer channels are enabled.
   
-  for(int ch=0; ch<DGManager->GetNumChannels(); ch++)
+  for(int ch=0; ch<DGManager->GetNumChannels(); ch++){
     if(ChEnabled[ch]){
       uint32_t Ch = 0x00000001<<ch;
       ChannelEnableMask |= Ch;
     }
+  }
   
   // Ensure that at least one channel is enabled 
   if((0xff & ChannelEnableMask)==0){
@@ -204,13 +230,16 @@ void AcquisitionManager::InitDigitizer()
   // Reset the digitizer to default state
   DGManager->Reset();
 
+  // Get the number of digitizer channels
+  Int_t NumChannels = DGManager->GetNumChannels();
+
   /////////////////////////////////////////
   // Program the STD firmware digitizers //
   /////////////////////////////////////////
 
   if(DGStandardFW){
-
-    for(int ch=0; ch<DGManager->GetNumChannels(); ch++){
+    
+    for(int ch=0; ch<NumChannels; ch++){
       DGManager->SetChannelTriggerThreshold(ch, ChTriggerThreshold[ch]);
       DGManager->SetChannelDCOffset(ch, ChDCOffset[ch]);
 
@@ -244,15 +273,17 @@ void AcquisitionManager::InitDigitizer()
 
     DGManager->DisableExternalTrigger();
   }
+
   
   /////////////////////////////////////////
   // Program the PSD firmware digitizers //
   /////////////////////////////////////////
+
   else if(DGPSDFW){
     
     CAEN_DGTZ_DPP_PSD_Params_t PSDParameters;
     
-    for(int ch=0; ch<DGManager->GetNumChannels(); ch++){
+    for(int ch=0; ch<NumChannels; ch++){
       
       PSDParameters.nsbl[ch] = ChBaselineSamples[ch];
       PSDParameters.csens[ch] = ChChargeSensitivity[ch];
@@ -277,7 +308,7 @@ void AcquisitionManager::InitDigitizer()
     ///////////////////////////////////////////////////////
     // Set channel-specific, non-PSD structure PSD settings
     
-    for(Int_t ch=0; ch<DGManager->GetNumChannels(); ch++){
+    for(Int_t ch=0; ch<NumChannels; ch++){
       
       DGManager->SetRecordLength(ChRecordLength[ch], ch);
       DGManager->SetChannelDCOffset(ch, ChDCOffset[ch]);
@@ -312,6 +343,13 @@ void AcquisitionManager::StartAcquisition2()
     cout << "AcquisitionManager (acquisition thread) : Acquisition loop is running in debug mode!" << endl;
     boost::this_thread::sleep(Time);
   }
+
+
+
+
+
+
+  
 }
 
 
@@ -326,16 +364,6 @@ void AcquisitionManager::StartAcquisition()
     boost::this_thread::sleep(Time);
   }
   
-  // Set the EventPointer and the EventWaveform pointer data members
-  // to point to nothing; their destination addresses will be set in
-  // the acquisition 'while' loop below as events are acquired
-  EventPointer = NULL;
-  EventWaveform = NULL;
-
-  // Set the Buffer membger data to point to nothing; destination
-  // address will be set in the acquisition 'while' loop below
-  Buffer = NULL;  
-
   // Total number of accumulated events, which is useful to output to
   // stdout for the user's benefit
   int TotalEvents = 0;
@@ -343,13 +371,9 @@ void AcquisitionManager::StartAcquisition()
   // The array (of length 'RecordLength' in units of samples) used to
   // receive the digitized waveform from the digitizer [ADC]
   double Voltage[RecordLength];
-  
-  // Allocate memory for the readout buffer on the PC
-  DGManager->MallocReadoutBuffer(&Buffer, &BufferSize);
 
   // Set the V1720 to begin acquiring data
   DGManager->SWStartAcquisition();
-
 
   while(true){
     
@@ -392,9 +416,7 @@ void AcquisitionManager::StartAcquisition()
 	  Voltage[sample] = EventWaveform->DataChannel[ch][sample]; // [ADC]
 	}
       }
-      // Free the memory allocated to the digitizer event
-      DGManager->FreeEvent(&EventWaveform);
-      
+
       TotalEvents++;
       
       if(TotalEvents % 1 == 0){
@@ -457,6 +479,14 @@ void AcquisitionManager::Disarm()
   // Free the PC memory associated with digitizer readout
   DGManager->FreeReadoutBuffer(&Buffer);
 
+  if(DGStandardFW){
+    DGManager->FreeEvent(&EventWaveform);
+  }
+  else if(DGPSDFW){
+    DGManager->FreeDPPEvents((void **)PSDEvents);
+    DGManager->FreeDPPWaveforms(PSDWaveforms);
+  }
+  
   // Close a VME link to the digitizer
   if(DGEnable){
     DGManager->CloseLink();

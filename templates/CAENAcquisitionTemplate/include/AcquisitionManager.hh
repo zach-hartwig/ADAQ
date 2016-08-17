@@ -59,6 +59,7 @@ public:
   void InitConnection();
   void InitParameters();
   void InitDigitizer();
+
   
   // Begin data acquisition
   void StartAcquisition();

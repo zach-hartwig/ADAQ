@@ -65,8 +65,14 @@ ifeq ($(ARCH),x86_64)
   CXXFLAGS += -fPIC
 endif
 
-# Add C++11 capabilitoes
-CXXFLAGS += -std=c++11
+# Add C++11 capabilitoes	
+CXXFLAGS += -std=c++11	
+
+# Adding required flag to ensure that code built with gcc5/gcc6 is
+# compatible with ROOT < v6.06.08, which presently is not properly
+# handling gcc (specifically gfortran). This flag may be unnecessary
+# in the near future (ROOT v6.08.00 hopefully).
+CXXFLAGS += -D_GLIBCXX_USE_CXX11_ABI=0
 
 # Specify the directories
 BUILDDIR = build

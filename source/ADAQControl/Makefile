@@ -66,7 +66,7 @@ ifeq ($(ARCH),x86_64)
 endif
 
 # Add C++11 capabilitoes	
-CXXFLAGS += -std=c++11	
+CXXFLAGS += -std=c++11
 
 # Adding required flag to ensure that code built with gcc5/gcc6 is
 # compatible with ROOT < v6.06.08, which presently is not properly

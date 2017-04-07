@@ -154,6 +154,8 @@ public:
   int GetMinADCBit() {return MinADCBit;}
   int GetMaxADCBit() {return MaxADCBit;}
   int GetSamplingRate() {return SamplingRate;}
+  unsigned int GetTimeStampSize() {return TimeStampSize;}
+  unsigned int GetTimeStampUnit() {return TimeStampUnit;}
   
 private:
   int BoardSerialNumber;
@@ -164,7 +166,10 @@ private:
   
   int NumChannels;
   int NumADCBits, MinADCBit, MaxADCBit, SamplingRate;
+  unsigned int TimeStampSize, TimeStampUnit;
   map<ZBoardType, int> SamplingRateMap;
+  map<ZBoardType, unsigned int> TimeStampSizeMap;
+  map<ZBoardType, unsigned int> TimeStampUnitMap;
 
   int ZLEStartWord, ZLEWordCounter;
   

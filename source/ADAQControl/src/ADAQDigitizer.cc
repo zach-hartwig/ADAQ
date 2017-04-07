@@ -120,6 +120,7 @@ ADAQDigitizer::ADAQDigitizer(ZBoardType Type,  // ADAQ-specific device type iden
     BoardROCFirmwareRevision(""), BoardAMCFirmwareRevision(""),
     BoardFirmwareCode(0), BoardFirmwareType(""),
     NumChannels(0), NumADCBits(0), MinADCBit(0), MaxADCBit(0), SamplingRate(0),
+    TimeStampSize(31), TimeStampUnit(8),
     ZLEStartWord(0), ZLEWordCounter(0)
     //Buffer_Py(NULL), EventPointer_Py(NULL), EventWaveform_Py(Null)
 {

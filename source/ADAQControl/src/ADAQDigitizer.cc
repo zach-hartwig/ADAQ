@@ -120,11 +120,12 @@ ADAQDigitizer::ADAQDigitizer(ZBoardType Type,  // ADAQ-specific device type iden
     BoardROCFirmwareRevision(""), BoardAMCFirmwareRevision(""),
     BoardFirmwareCode(0), BoardFirmwareType(""),
     NumChannels(0), NumADCBits(0), MinADCBit(0), MaxADCBit(0), SamplingRate(0),
+    TimeStampSize(31), TimeStampUnit(8),
     ZLEStartWord(0), ZLEWordCounter(0)
     //Buffer_Py(NULL), EventPointer_Py(NULL), EventWaveform_Py(Null)
 {
 
-  // Create a std::map that specifies the digitizatino rate for each
+  // Create a std::map that specifies the digitization rate for each
   // ADAQ-supported digitizer since this information is not encoded in
   // the CAEN board information structure. Units of digitization are
   // [Megasamples / second]
@@ -137,6 +138,31 @@ ADAQDigitizer::ADAQDigitizer(ZBoardType Type,  // ADAQ-specific device type iden
     (zDT5790M, 250)
     (zDT5790N, 250)
     (zDT5790P, 250);
+
+  // Similarly, maps for the size and unit of the timestamp for each digitizer
+  // model (which can additionally vary by firmware, which is corrected when the
+  // link is opened and the firmware type determined)
+
+  insert(TimeStampSizeMap) // Size of timestamp in bits
+    (zV1720, 31)
+    (zV1724, 31)
+    (zV1725, 31)
+    (zDT5720, 31)
+    (zDT5730, 31)
+    (zDT5790M, 32)
+    (zDT5790N, 32)
+    (zDT5790P, 32);
+
+  insert(TimeStampUnitMap) // Timestamp unit in ns.  NOTE: CAEN's spec sheets
+    (zV1720, 8)               // often quote a time stamp resolution followed by
+    (zV1724, 10)              // a total time range for the stamp that is half
+    (zV1725, 8)               // that would be expected given the timestamp
+    (zDT5720, 8)              // resolution and storage size.  This is due to
+    (zDT5730, 8)              // fact that many CAEN units only read out on even
+    (zDT5790M, 4)             // even numbered timestamps (LSB=0), reducing the
+    (zDT5790N, 4)             // resolution relative to the quote range.  These
+    (zDT5790P, 4);            // numbers are the single timestamp units, which 
+                              // DO NOT NECESSARILY MATCH THE "RESOLUTION"
 }
 
 
@@ -234,22 +260,37 @@ int ADAQDigitizer::OpenLink()
       MinADCBit = 0;
       MaxADCBit = pow(2, NumADCBits);
       SamplingRate = SamplingRateMap[BoardType];
-      
+      TimeStampSize = TimeStampSizeMap[BoardType];
+      TimeStampUnit = TimeStampUnitMap[BoardType];
+
+      // Special handling for boards on which the firmware alters the time stamp
+      // structure/resolution
+      if (BoardType==zV1725 && (BoardFirmwareType==string("PSD") || BoardFirmwareType==string("PHA")))
+        TimeStampUnit = 4; // ns
+      else if (BoardType==zDT5730 && (BoardFirmwareType==string("PSD")))
+        TimeStampUnit = 2; // ns
+      else if (BoardType==zDT5730 && (BoardFirmwareType==string("PHA"))){
+        TimeStampUnit = 2; // ns
+        TimeStampSize = 30; // bits
+      }
+
       std::cout << "ADAQDigitizer[" << BoardID << "] : Link successfully established!\n"
-		<< "--> Type     : " << BoardModelName << "\n"
-		<< "--> Channels : " << NumChannels << "\n"
-		<< "--> ADC bits : " << NumADCBits << "\n"
-		<< "--> Dgtz rate: " << SamplingRate << " MS/s\n"
-		<< "--> AMC FW   : " << BoardAMCFirmwareRevision << "\n"
-		<< "--> ROC FW   : " << BoardROCFirmwareRevision << "\n"
-		<< "--> FW Type  : " << BoardFirmwareType << "\n"
-		<< "--> Serial # : " << BoardSerialNumber << "\n"
-		<< "--> USB link : " << BoardLinkNumber << "\n"
-		<< "--> CONET ID : " << BoardCONETNode << "\n"
-		<< "--> Address  : 0x" << std::setw(8) << std::setfill('0') << std::hex << BoardAddress << "\n"
-		<< "--> User ID  : " << std::dec << BoardID << "\n"
-		<< "--> Handle   : " << BoardHandle << "\n"
-		<< std::endl;
+        << "--> Type           : " << BoardModelName << "\n"
+        << "--> Channels       : " << NumChannels << "\n"
+        << "--> ADC bits       : " << NumADCBits << "\n"
+        << "--> Dgtz rate      : " << SamplingRate << " MS/s\n"
+        << "--> Time stamp size: " << TimeStampSize << " bits\n"
+        << "--> Time stamp unit: " << TimeStampUnit << " ns\n"
+        << "--> AMC FW         : " << BoardAMCFirmwareRevision << "\n"
+        << "--> ROC FW         : " << BoardROCFirmwareRevision << "\n"
+        << "--> FW Type        : " << BoardFirmwareType << "\n"
+        << "--> Serial #       : " << BoardSerialNumber << "\n"
+        << "--> USB link       : " << BoardLinkNumber << "\n"
+        << "--> CONET ID       : " << BoardCONETNode << "\n"
+        << "--> Address        : 0x" << std::setw(8) << std::setfill('0') << std::hex << BoardAddress << "\n"
+        << "--> User ID        : " << std::dec << BoardID << "\n"
+        << "--> Handle         : " << BoardHandle << "\n"
+        << std::endl;
     }
   }
   else

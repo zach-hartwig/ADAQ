@@ -1,0 +1,30 @@
+# Note on building CAEN USB drivers with linux kernels >4.11.0
+
+Date: 27 Jan 18  
+Name: Zach Hartwig  
+Mail: hartwig@psfc.mit.edu
+
+Modern linux kernls have two features that are not yet dealt with
+properly by CAENUSB driver v1.5.1:
+
+  1. Modification of header file location for "signal.h" requires
+     inserting the following snippet of code into the includes for
+     "CAENUSBdrvB.c":
+
+     ````
+     #include <linux/version.h>
+     #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
+     #include <linux/sched/signal.h>
+     #endif
+     ```
+
+     This update has been made in the "CAENUSBdrvB.c" file contained
+     in this repository for future use. The following link was
+     helpful:
+     
+     https://forum.manjaro.org/t/error-with-rtl8812au/24066/5
+
+
+  2. UEFI secure boot must be disabled in the bios in order to
+     properly load 3rd party modules or one could possibly attempt to
+     sign it manually by creating a key

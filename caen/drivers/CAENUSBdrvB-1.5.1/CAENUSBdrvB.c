@@ -35,6 +35,11 @@
 #include <linux/devfs_fs_kernel.h>
 #endif
 
+#include <linux/version.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
+#include <linux/sched/signal.h>
+#endif
+
 /*
  * Version Information
  */

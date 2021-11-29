@@ -1,0 +1,450 @@
+-----------------------------------------------------------------------------
+
+                   --- CAEN SpA - Computing Systems Division --- 
+
+  -----------------------------------------------------------------------------
+
+  CAENDigitizer Library Release Notes
+
+  -----------------------------------------------------------------------------
+
+  Rel. 2.17.0  - June 2021
+ 
+  -----------------------------------------------------------------------------
+ 
+
+  Description
+  -----------
+
+  This document is updated for every official release of the CAENDigitizer Library 
+  and it contains various information specific to this software which can not
+  be found in the User's Manual, available together with the software or on 
+  the CAEN web site: www.caen.it.
+
+
+ System Requirements
+ -------------------
+ 
+  - glibc version 2.11.1 or higher
+  - CAENComm library version 1.0.2 or higher.
+
+  What's New in Rel. 2.17.0
+  --------------------------
+	- add support for V4718
+  
+  What's New in Rel. 2.16.3
+  --------------------------
+	- add support for N6725 and N6730 boards
+
+  What's New in Rel. 2.16.2
+  --------------------------
+	- Fix in COMMON_GetInfo for HV family read based on HV Fw release
+
+  What's New in Rel. 2.16.1
+  --------------------------
+	- Fixed Readout buffer memory allocation for X751 modules with DPP-PSD, AMC firmware revision >= 132.32
+  
+  What's New in Rel. 2.16.0
+  --------------------------
+	- Added function CAEN_DGTZ_SetTriggerInAsGate
+
+  What's New in Rel. 2.15.0
+  --------------------------
+	- Support to X730S models
+
+  What's New in Rel. 2.14.0
+  --------------------------
+	- Support to X782 family
+	- Bugfixes in ZLE for standard firmware
+
+  What's New in Rel. 2.13.1
+  --------------------------
+	- Added timestamp position info on EventInfo::Pattern bits [16:31]
+	- Bugfix in DPP_QDC group event size for x740 boards
+	- Bugfix in x724 decimation
+  
+  What's New in Rel. 2.13.0
+  --------------------------
+	- Support to V1781
+  
+  What's New in Rel. 2.12.0
+  --------------------------
+    - Support to DPP-QDC for x740D boards
+	- Minor bugfixes
+  
+  What's New in Rel. 2.11.1
+  --------------------------
+    - Added new error code for unsupported base address
+	- Bugfixes on X743 family
+
+  What's New in Rel. 2.11.0
+  --------------------------
+    - Added DECIMATION for x724 standard firmware
+    - Demo applications specific for the different board models
+    - Minor bugfixes
+  
+  What's New in Rel. 2.10.0
+  --------------------------
+    - BETA support to DPP-DAW for X730/25 boards
+  
+  What's New in Rel. 2.9.1
+  --------------------------
+    - Minor bugfixes
+    - Fixes undefined references issue
+  
+  What's New in Rel. 2.9.0
+  --------------------------
+    - Added support to X725/X730 DPP-ZLE firmware
+  
+  What's New in Rel. 2.8.0
+  --------------------------
+    - Bugfixes regarding supported VirtualProbes for X724/30/25 boards with DPP-PHA
+    - Disabled automatic temperature correction for X730/25 boards
+    - Bugfix in decode for X751
+    - Fixed temporary loss of HV at connect in DT5780/90 boards
+  
+  What's New in Rel. 2.7.9
+  --------------------------
+    - Fixed Readout buffer memory allocation for X730/X725 modules
+    - Fixed Waveform buffer allocation for X730/X725 with DPP-PHA if only odd channels are enabled
+    - Increased Recordlength limit of X730/X725 with DPP firmwares to 16383 samples
+  
+  What's New in Rel. 2.7.8
+  --------------------------
+    - Bugfix for DT5780/90 boards with HV firmware release > 2.0
+    - Correct codification of DT5780C and DT5780SC modules
+  
+  What's New in Rel. 2.7.7
+  --------------------------
+    - Removed Calibration Done bit check at Reset for X730/X725 boards
+  
+  What's New in Rel. 2.7.6
+  --------------------------
+    - Added CFD management for X751 boards with DPP-PSD
+    - Bugfixes in energy decoding for X730/X725 boards with DPP-PHA
+    - Bugfixes in threshold set for X751 boards
+    - Bugfixes for DT5761 with AT45DB32 flash memory
+  
+  What's New in Rel. 2.7.5
+  --------------------------
+    - Bugfix in CAEN_DGTZ_GetEventInfo(...) for 'ChannelMask' field for digitizer with more than 8 channels
+    - Bugfix for X761 boards with AT45DB32 flash memory
+  
+  What's New in Rel. 2.7.4
+  --------------------------
+    - Bugfix in CAEN_DGTZ_Reset(...) for board models variants with lesser channel than default
+  
+  What's New in Rel. 2.7.3
+  --------------------------
+    - Bugfix in CAEN_DGTZ_SetRecordLength(...) for X743 boards
+  
+  What's New in Rel. 2.7.2
+  --------------------------
+    - Fixed a bug in SetRecordLength for X731 boards when not in DES mode.
+  
+  What's New in Rel. 2.7.1
+  --------------------------
+    - Fixed a bug in DPP-PHA which caused energy value to be halved
+    - Fixed bug in CAEN_DGTZ_GetChannelTriggerThreshold(...) for X761 boards
+    - For boards which require calibration, calibration procedure is not performed anymore by CAEN_DGTZ_Reset(...)
+  
+  What's New in Rel. 2.7.0
+  --------------------------
+    - Added support to DT5724B/C/F/G
+    - Added support to N6724B/C/F/G
+    - Bugfixes for V1742 when all channels trigger at the same time (SWTRG/EXTTRG)
+  
+  What's New in Rel. 2.6.11
+  --------------------------
+    - Bugfix for X742 group bitmask validation.
+  
+  What's New in Rel. 2.6.10
+  --------------------------
+    - Added Reset of the SAMLONG Dlls in the CAEN_DGTZ_OpenDigitizer function and the CAEN_DGTZ_Reset functions. 
+    - Fixed the bug in the CAEN_DGTZ_Reset function: Now it makes the same initialization sequence as in the OpenDigitizer function.
+    - Added the function CAEN_DGTZ_SetSAMTriggerCountVetoParam: This function enables/Disables the trigger Counter Veto, and programs the Time window for the veto.
+    - Fixed bug in CAEN_DGTZ_SetGroupEnableMask for X743 boards
+    - Added support for X740D 
+  
+  What's New in Rel. 2.6.9
+  --------------------------
+    - Fixed License Read for boards with flash AT45DB32
+    - Added HV control to V1720-DPP-PSD ReadoutTest.
+    - Bugfixes in CAEN_DGTZ_Reset(...).
+  
+  What's New in Rel. 2.6.8
+  --------------------------
+    - Added HV sample code for XX790 boards to XX720 DPP-PSD code sample
+    - Bugfix of SetPostTrigger() function for XX725 boards with standard firmware
+  
+  What's New in Rel. 2.6.7
+  --------------------------
+    - Added support to new DPP-PHA firmware for DT5780 (>= 128.64)
+    - Preliminary support to X725 boards
+    - Preliminary bugfix to X731 ZLE for std. FW. To be still deeply tested.
+    - Added Temperature Monitoring function (X751, X730 and X725 only)
+    - Bugfix in XX740 family DecodeEvent function
+    - Remove function CAEN_DGTZ_IACKCycle since it is no longer needed.
+    - Bugfix in XX743 family EEPROM read
+    
+  What's New in Rel. 2.6.6
+  --------------------------
+    - Added N6780[M|N|P] codifications
+    - Changed StopAcquisition function to not override other bits of the register.
+    - Changed mallocReadoutBuffer to correctly manage acquisiton mode bits (fix huge mem allocation in some cases)
+    - Bugfix for X780/90 boards with HV FW Revision < 2.0
+  
+  What's New in Rel. 2.6.5
+  --------------------------
+    - Bugfix on 'CAEN_DGTZ_SetChannelEnableMask' for x761 boards
+    - Bugfix on 'CAEN_DGTZ_SWStartAcquisition' in ARM ONLY mode
+  
+  What's New in Rel. 2.6.4
+  --------------------------
+    - Bugfix on 'CAEN_DGTZ_SetChannelSelfTrigger' for x730 boards on channels >= 8
+  
+  What's New in Rel. 2.6.3
+  --------------------------
+    - Bugfix regarding memory allocation for X730 boards with DPP
+  
+  What's New in Rel. 2.6.2
+  --------------------------
+    - Added support to models V(X)1730D
+    - Bug fix on threshold set for V1743 boards
+    - Other minor bugfixes
+  
+  What's New in Rel. 2.6.1
+  --------------------------
+    - Added function CAEN_DGTZ_Calibrate(handle) to perform ADC calibration
+    - Bugfix on function CAEN_DGTZ_SetChannelSelfTrigger for X730 boards
+    - Bugfix on DES mode enable/disable for X731 boards
+  
+  What's New in Rel. 2.6.0
+  --------------------------
+    - Added codes for V(X)1730C
+    - Added support to V1730 DPP-PHA
+    - Fixed pretrigger management for various boards
+    - Improved CAEN_DGTZ_Reset() reliability
+    - Added support to DT5780SD boards
+    - Various bugfixes
+  
+  What's New in Rel. 2.5.2
+  --------------------------
+    - Added codes for DT5790P/M boards
+    - Added codes for V(X)1740(A/C)
+    - Added Trigger digital probe for x730 with DPP-PSD
+    - Bugfixes on x761 boards
+    
+  What's New in Rel. 2.5.1
+  --------------------------
+    - Added support to x781 models with STD. and DPP-PHA firmwares.
+    - Bugfix on bslthr parameter for DPP-PSD x730
+  
+  What's New in Rel. 2.5.0
+  --------------------------
+    - New functions 'CAEN_DGTZ_[Set|Get]DecimationFactor' for x740 decimation feature.
+    - Bugfixes for x743 boards
+      - Deprecated functions 'CAEN_DGTZ_[Set|Get]DPP_[PHA|PSD|CI]_VirtualProbe'
+      - New functions 'CAEN_DGTZ_[Set|Get]DPP_VirtualProbe' for probe selection
+      - New function 'CAEN_DGTZ_GetDPP_SupportedVirtualProbes' to get the list
+        of board supported probes for a specific trace
+      - New function 'CAEN_DGTZ_GetDPP_VirtualProbeName' to get the name of a
+        specified probe
+  
+  What's New in Rel. 2.4.6
+  --------------------------
+    - Changed DPP-PHA digital probes names inside enum (to match the firmware's ones)
+    - Added "Extras" field on DPP-PSD_Event_t structure
+    - Bugfixes for x743 boards
+    - Added x730B board models for Desktop and NIM form factors
+    - Bugfixes for x724 DPP-PHA
+    - Bugfixes for x730 DPP-PSD
+    - Bugfix regarding OpticalLynk Connection type (see enum CAEN_DGTZ_ConnectionType)
+
+  What's New in Rel. 2.4.5
+  --------------------------
+    - Add support to x743 boards
+    - Bugfix on V1730 boards with only an A747 board
+	
+  What's New in Rel. 2.4.4
+  --------------------------
+    - Preliminary support to x743 boards
+    - Handle of CAENComm library is now available in BoardInfo structure
+    - Board's license is now available in BoardInfo structure
+    - The PileUp bit (15) of the "Energy" value for DPP-PHA is not cut anymore
+    
+  What's New in Rel. 2.4.3
+  --------------------------
+    - Bugfixes for X740 boards
+    - Bugfixes for X721 boards
+  
+  What's New in Rel. 2.4.2
+  --------------------------
+    - Bugfix for Waveform's Decode on boards running DPP-PHA firmware
+  
+  What's New in Rel. 2.4.1
+  --------------------------
+    - Bugfixes for X742 Boards
+    - Fixed bug of Digitizer's reopen after an open failure
+  
+  What's New in Rel. 2.4.0
+  --------------------------
+    - Added Preliminary support to x730 boards, FW standard and DPP-PSD.
+    - Defined in CAENDigitizerType.h header the DPP codes.
+    - Structure 'CAEN_DGTZ_Correction_t' moved in 'CAENDigitizerType.h'
+        to be used for offline corrections.
+    - Added function 'CAEN_DGTZ_GetCorrectionTables' to get X742 Correction
+        Tables from Digitizer Flash.
+    - Various stabilizations for X742 boards
+    - Bugfixes for X761 boards
+    - Bugfixes on ReadoutTest_DPP_CI_x720
+    - Bugfix on x721 Get/Set PostTriggerSize
+    - Bugfix on x751 Get/Set PostTriggerSize
+    - Other minor Bugfixes
+  
+  What's New in Rel. 2.3.3
+  --------------------------
+    - Bugfix for x724 boards using ZLE feature
+  
+  What's New in Rel. 2.3.2
+  --------------------------
+    - Bugfix for DPP-PSD probes for x751 boards with AMC FW >= 132.6
+    - Bugfix for DPP-PHA Baseline HoldOff
+    - Bugfix for GetPostTriggerSize for x742 boards
+    - Mangement of DPP Parameter Ranges for DPP-PSD for x751 boards
+  
+  What's New in Rel. 2.3.1
+  --------------------------
+    - BugFix for X731 and x751 boards in DES mode
+    - Added new Virtual Probes definitions for DPP-PSD and DPP-CI firmwares for 
+      x720 and x751 boards.
+    - BugFix on DCOffset for x751 boards
+    - Added new models definitions
+    - Stability improvements
+  
+  What's New in Rel. 2.3.0
+  --------------------------
+    - Added ZLE API
+    - Bugfix on CAEN_DGTZ_GetPostTriggerSize for x751 boards
+    - Added support to missing x720 EP1C20 models
+    - Bugfixes for low-rate acquisitions with DPP-PHA firmwares
+    - Bugfixes for Virtual Probes data representation for DPP-PHA firmwares
+    - Bugfixes for DT5780 board
+  
+  What's New in Rel. 2.2.1
+  --------------------------
+    - New Features:
+	    - Added individual channel management of Recordlength parameter for x751 boards
+  
+  What's New in Rel. 2.2.0
+  --------------------------
+    - New Features:
+      - Added support to x751 boards with DPP-PSD AMC firmware revision >= 132.02
+      - Removed support to x751 boards with DPP-PSD AMC firmware revision < 132.02
+    - Bugfixes:
+      - Fixed recordlength management for x742 board models
+      - Fixed timestamp resolution issue for x751 boards with DPP firmware
+      - Fixed event aggregation issue for x751 boards with DPP firmware
+  
+  What's New in Rel. 2.1.1
+  -------------------------- 
+    - Bugfixes:
+      - Fixed ADC_NBits field in CAEN_DGTZ_GetInfo function
+    - New Features:
+      - Added a folder (samples/x742_DataCorrection) containing
+        the algorithms for x742 offline data corrections.
+  
+  What's New in Rel. 2.1.0
+  -------------------------- 
+    - New Features:
+      - Added support to DPP-PSD for x751 boards
+      - Added support to x761 boards digitizers
+      - Added support to DT5780 board digitizer
+      - Added charge sesitivity management for x720 boards with DPP-CI firmware
+      - Removed PileUp Rejection for x720 boards with DPP-CI firmware
+    - Bugfixes:
+      - All Boards:
+        - Fixed wrong ModelName for some board in function CAEN_DGTZ_GetInfo
+      - x720 Boards:
+        - All Firmwares:
+          - Fixed CAEN_DGTZ_MallocReadoutBuffer
+        - DPP-CI Firmware:
+          - Fixed over/underflow management
+          - Fixed GetDppEventAggregation
+        - DPP-PSD Firmware:
+          - Fixed GetDppEventAggregation
+          - Fixed CAEN_DGTZ_MallocDPPEvents
+          - Fixed CAEN_DGTZ_SetDPPTriggerMode 
+      - x724 Boards:
+        - DPP-PHA Firmware:
+          - Fixed GetDppEventAggregation
+      - x721 Boards:
+        - Fixed CAEN_DGTZ_SetPostTriggerSize
+      - x731 Boards:
+        - Fixed CAEN_DGTZ_SetRecordLength
+        - Fixed CAEN_DGTZ_GetRecordLength
+        - Fixed CAEN_DGTZ_SetPostTriggerSize
+        - Fixed CAEN_DGTZ_GetPostTriggerSize
+      - x751 Boards
+        - Fixed CAEN_DGTZ_SetRecordLength
+        - Fixed CAEN_DGTZ_GetRecordLength
+        - Fixed CAEN_DGTZ_SetPostTriggerSize
+  
+  What's New in Rel. 2.0.0
+  -------------------------- 
+    - Add support to new DPP Firmares:
+      - DPP-PHA for x724 boards
+      - DPP-CI (version 2) for x720 boards
+      - DPP-PSD for x720 boards
+    - Remove support to old DPP Firmwares:
+      - DPP-TF
+      - DPP-CI (version 1)
+  
+  What's New in Rel. 1.3.1
+  -------------------------- 
+    - Fix bug on CAEN_DGTZ_Decode function for x742 boards with DPP firmware
+  
+  What's New in Rel. 1.3
+  -------------------------- 
+    - Add support for X742 Boards
+    - Fix bug on CAEN_DGTZ_Decode function for x724 boards with DPP firmware
+  
+  What's New in Rel. 1.2.2
+  -------------------------- 
+    - Add support for all NIM Digitizer models
+    - Add NBit field at CAEN_DGTZ_BoardInfo_t struct
+    - BugFix on CAEN_DGTZ_Reset Function
+    - BugFix CAEN_DGTZ_Decode function with DPP_TF firmware
+        
+  What's New in Rel. 1.2.1
+  --------------------------
+    - Bugfix on CAEN_DGTZ_CloseDigitizer function
+    - Bugfix on CAEN_DGTZ_GetGroupSelfTrigger function
+    - Bugfix on CAEN_DGTZ_AllocateEvent function for xx740 Model
+		
+  What's New in Rel. 1.2
+  --------------------------
+    - Various Bugfix
+    - Add Set/Get TriggerPolarity functions
+    - Add CAEN_DGTZ_RearmInterrupt function
+		
+  What's New in Rel. 1.1
+  --------------------------
+    - Various Bugfix
+    - Modified behaviour of CAEN_DGTZ_Decode function
+    - Add CAEN_DGTZ_AllocateEvent function
+    - Add Set/Get IOLevel functions
+    - Add 64bit version
+		
+  What's New in Rel. 1.0
+  --------------------------
+    - First release              
+
+  
+  How to get Support
+  -----------------------------------------------------------------------------
+  Our Software Support Group is available for questions, support and any other
+  software related issue concerning CAEN products; for software support
+  visit the page https://www.caen.it/support-services/support-form or send an 
+  email to support.computing@caen.it
+

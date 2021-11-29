@@ -5,13 +5,6 @@
 * +390594388398 - www.caen.it
 *
 ***************************************************************************//**
-* \note TERMS OF USE:
-* This program is free software; you can redistribute it and/or modify it under
-* the terms of the GNU General Public License as published by the Free Software
-* Foundation. This program is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of 
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. The user relies on the 
-* software, documentation and results solely at his own risk.
 *
 * \file     CAENDigitizer.h
 * \brief    CAEN - Digitizer Library
@@ -54,7 +47,7 @@ extern "C" {
 #define MAX_PROBENAMES_LEN (50)
 
 /**************************************************************************//**
-* \fn      CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_ConnectionType LinkType, int LinkNum, int ConetNode, uint32_t VMEBaseAddress, int *handle);
+* \fn      CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_ConnectionType LinkType, int LinkNum, int ConetNode, uint32_t VMEBaseAddress, int *handle);
 * \brief   Opens the Digitizer
 *
 * \param   [IN]  LinkType      : The link used by the device
@@ -68,21 +61,22 @@ extern "C" {
 * \param   [OUT] handle        : device handler
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_ConnectionType LinkType, int LinkNum, int ConetNode, uint32_t VMEBaseAddress, int *handle);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_ConnectionType LinkType, int LinkNum, int ConetNode, uint32_t VMEBaseAddress, int *handle);
 
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_OpenDigitizer2(CAEN_DGTZ_ConnectionType LinkType, void* arg, int ConetNode, uint32_t VMEBaseAddress, int* handle);
 
 /**************************************************************************//**
-* \fn          CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_CloseDigitizer(int handle);
+* \fn          CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_CloseDigitizer(int handle);
 * \brief     Closes the Digitizer
 *
 * \param     [IN] handle: digitizer handle to be closed
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_CloseDigitizer(int handle);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_CloseDigitizer(int handle);
 
 
 /**************************************************************************//**
-* \fn          CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_WriteRegister(int handle, uint32_t Address, uint32_t Data);
+* \fn          CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_WriteRegister(int handle, uint32_t Address, uint32_t Data);
 * \brief     Writes a 32-bit word in a specific address offset of the digitizer
 *
 * \param     [IN] handle  : the digitizer handle
@@ -90,11 +84,11 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_CloseDigitizer(int handle);
 * \param    [IN] Data    : the 32-bit data to write
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_WriteRegister(int handle, uint32_t Address, uint32_t Data);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_WriteRegister(int handle, uint32_t Address, uint32_t Data);
 
 
 /**************************************************************************//**
-* \fn          CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_ReadRegister(int handle, uint32_t Address, uint32_t *Data);
+* \fn          CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_ReadRegister(int handle, uint32_t Address, uint32_t *Data);
 * \brief     Reads a 32-bit word from a specific address offset of the digitizer
 *
 * \param     [IN] handle  : the digitizer handle
@@ -102,73 +96,73 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_WriteRegister(int handle, uint32_t Ad
 * \param    [IN] Data    : the 32-bit data read from the digitizer
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_ReadRegister(int handle, uint32_t Address, uint32_t *Data);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_ReadRegister(int handle, uint32_t Address, uint32_t *Data);
 
 
 /**************************************************************************//**
-* \fn          CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetInfo(int handle, CAEN_DGTZ_BoardInfo_t *BoardInfo)
+* \fn          CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetInfo(int handle, CAEN_DGTZ_BoardInfo_t *BoardInfo)
 * \brief     Retrieves the board information of the digitizer
 *
 * \param     [IN] handle     : the digitizer handle
 * \param    [OUT] BoardInfo : the CAEN_DGTZ_BoardInfo_t with the board information retrieved from the device
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetInfo(int handle, CAEN_DGTZ_BoardInfo_t *BoardInfo); 
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetInfo(int handle, CAEN_DGTZ_BoardInfo_t *BoardInfo);
 
 
 /**************************************************************************//**
-* \fn          CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_Reset(int handle);
+* \fn          CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_Reset(int handle);
 * \brief     Resets the Digitizer. All internal registers and states are restored
 *           to defaults.
 *
 * \param     [IN] handle: digitizer handle to be reset
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_Reset(int handle);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_Reset(int handle);
 
 
 /**************************************************************************//**
-* \fn          CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_ClearData(int handle);
+* \fn          CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_ClearData(int handle);
 * \brief     Clears the data stored in the buffers of the Digitizer
 *
 * \param     [IN] handle: digitizer handle.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_ClearData(int handle);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_ClearData(int handle);
 
 
 /**************************************************************************//**
-* \fn          CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SendSWtrigger(int handle);
+* \fn          CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SendSWtrigger(int handle);
 * \brief     Sends a Software trigger to the Digitizer
 *
 * \param     [IN] handle: digitizer handle.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SendSWtrigger(int handle);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SendSWtrigger(int handle);
 
 
 /**************************************************************************//**
-* \fn          CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SWStartAcquisition(int handle);
+* \fn          CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SWStartAcquisition(int handle);
 * \brief     Starts Digitizers acquisition.
 *
 * \param     [IN] handle: digitizer handle.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SWStartAcquisition(int handle);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SWStartAcquisition(int handle);
 
 
 /**************************************************************************//**
-* \fn          CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SWStopAcquisition(int handle);
+* \fn          CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SWStopAcquisition(int handle);
 * \brief     Stops Digitizer acquisition 
 *
 * \param     [IN] handle: digitizer handle.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SWStopAcquisition(int handle);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SWStopAcquisition(int handle);
 
 
 /**************************************************************************//**
-* \fn          CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetInterruptConfig(int handle, CAEN_DGTZ_EnaDis_t state, uint8_t level, uint32_t status_id, uint16_t event_number, CAEN_DGTZ_IRQMode_t mode)
+* \fn          CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetInterruptConfig(int handle, CAEN_DGTZ_EnaDis_t state, uint8_t level, uint32_t status_id, uint16_t event_number, CAEN_DGTZ_IRQMode_t mode)
 * \brief     Enable/disable Interrupts and set the Interrupt level used by the Digitizer
 *
 * \param     [IN] handle       : digitizer handle.
@@ -179,11 +173,11 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SWStopAcquisition(int handle);
 * \param     [IN] mode         : interrupt mode [CAEN_DGTZ_IRQ_MODE_RORA|CAEN_DGTZ_IRQ_MODE_ROAK]
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetInterruptConfig(int handle, CAEN_DGTZ_EnaDis_t state, uint8_t level, uint32_t status_id, uint16_t event_number, CAEN_DGTZ_IRQMode_t mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetInterruptConfig(int handle, CAEN_DGTZ_EnaDis_t state, uint8_t level, uint32_t status_id, uint16_t event_number, CAEN_DGTZ_IRQMode_t mode);
 
 
 /**************************************************************************//**
-* \fn          CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetInterruptConfig(int handle, CAEN_DGTZ_EnaDis_t *state, uint8_t *level, uint32_t *status_id, uint16_t *event_number, CAEN_DGTZ_IRQMode_t *mode)
+* \fn          CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetInterruptConfig(int handle, CAEN_DGTZ_EnaDis_t *state, uint8_t *level, uint32_t *status_id, uint16_t *event_number, CAEN_DGTZ_IRQMode_t *mode)
 * \brief     Gets current Interrupt settings of the Digitizer
 *
 * \param     [IN] handle       : digitizer handle.
@@ -194,18 +188,18 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetInterruptConfig(int handle, CAEN_D
 * \param     [OUT] mode        : interrupt mode [CAEN_DGTZ_IRQ_MODE_RORA|CAEN_DGTZ_IRQ_MODE_ROAK]
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetInterruptConfig(int handle, CAEN_DGTZ_EnaDis_t *state, uint8_t *level, uint32_t *status_id, uint16_t *event_number, CAEN_DGTZ_IRQMode_t *mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetInterruptConfig(int handle, CAEN_DGTZ_EnaDis_t *state, uint8_t *level, uint32_t *status_id, uint16_t *event_number, CAEN_DGTZ_IRQMode_t *mode);
 
 
 /**************************************************************************//**
-* \fn          CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_IRQWait(int handle, uint32_t timeout)
+* \fn          CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_IRQWait(int handle, uint32_t timeout)
 * \brief     Waits for an interrupt by the Digitizer
 *
 * \param     [IN] handle  : digitizer handle
 * \param     [IN] timeout : timeout (in milliseconds)
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_IRQWait(int handle, uint32_t timeout);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_IRQWait(int handle, uint32_t timeout);
 
 
 /**************************************************************************//**
@@ -223,7 +217,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_IRQWait(int handle, uint32_t timeout)
 * \param   [OUT] VMEHandle : device handler of the CAEN VME Bridge that received interrupt request
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_VMEIRQWait(CAEN_DGTZ_ConnectionType LinkType, int LinkNum, int ConetNode, uint8_t IRQMask, uint32_t timeout, int *VMEHandle);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_VMEIRQWait(CAEN_DGTZ_ConnectionType LinkType, int LinkNum, int ConetNode, uint8_t IRQMask, uint32_t timeout, int *VMEHandle);
 
 
 /**************************************************************************//**
@@ -233,7 +227,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_VMEIRQWait(CAEN_DGTZ_ConnectionType L
 * \param   [OUT] Mask     : bitmask representing the active VME interrupt requests. 
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_VMEIRQCheck(int VMEHandle, uint8_t *Mask);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_VMEIRQCheck(int VMEHandle, uint8_t *Mask);
 
 
 /**************************************************************************//**
@@ -244,7 +238,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_VMEIRQCheck(int VMEHandle, uint8_t *M
 * \param   [OUT] board_id  : VME Digitizer board id of the interrupter
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_VMEIACKCycle(int VMEHandle, uint8_t level, int32_t *board_id);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_VMEIACKCycle(int VMEHandle, uint8_t level, int32_t *board_id);
 
 
 /**************************************************************************//**
@@ -254,7 +248,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_VMEIACKCycle(int VMEHandle, uint8_t l
 * \param     [IN] enable : Enable/Disable Dual Edge Sampling mode
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDESMode(int handle, CAEN_DGTZ_EnaDis_t enable);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDESMode(int handle, CAEN_DGTZ_EnaDis_t enable);
 
 
 /**************************************************************************//**
@@ -264,7 +258,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDESMode(int handle, CAEN_DGTZ_EnaD
 * \param     [OUT] enable : shows current DES mode status (enabled/disabled)
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDESMode(int handle, CAEN_DGTZ_EnaDis_t *enable);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDESMode(int handle, CAEN_DGTZ_EnaDis_t *enable);
 
 
 /**************************************************************************//**
@@ -277,7 +271,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDESMode(int handle, CAEN_DGTZ_EnaD
 *                           DPP-PHA ignores it
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetRecordLength(int handle, uint32_t size, ...);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetRecordLength(int handle, uint32_t size, ...);
 
 
 /**************************************************************************//**
@@ -290,7 +284,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetRecordLength(int handle, uint32_t 
 *                           DPP-PHA ignores it
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetRecordLength(int handle, uint32_t *size, ...);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetRecordLength(int handle, uint32_t *size, ...);
 
 
 /**************************************************************************//**
@@ -300,7 +294,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetRecordLength(int handle, uint32_t 
 * \param     [IN] mask   : enabled channels mask.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelEnableMask(int handle, uint32_t mask);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelEnableMask(int handle, uint32_t mask);
 
 
 /**************************************************************************//**
@@ -311,7 +305,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelEnableMask(int handle, uint
 * \param     [OUT] mask  : enabled channels mask.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelEnableMask(int handle, uint32_t *mask);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelEnableMask(int handle, uint32_t *mask);
 
 
 /**************************************************************************//**
@@ -323,7 +317,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelEnableMask(int handle, uint
 * \param     [IN] mask   : channels group mask.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetGroupEnableMask(int handle, uint32_t mask);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetGroupEnableMask(int handle, uint32_t mask);
 
 
 /**************************************************************************//**
@@ -334,7 +328,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetGroupEnableMask(int handle, uint32
 * \param     [OUT] mask  : current channels group mask.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetGroupEnableMask(int handle, uint32_t *mask);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetGroupEnableMask(int handle, uint32_t *mask);
 
 
 /**************************************************************************//**
@@ -344,7 +338,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetGroupEnableMask(int handle, uint32
 * \param     [IN] mode   : trigger mode
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetSWTriggerMode(int handle, CAEN_DGTZ_TriggerMode_t mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetSWTriggerMode(int handle, CAEN_DGTZ_TriggerMode_t mode);
 
 
 /**************************************************************************//**
@@ -354,7 +348,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetSWTriggerMode(int handle, CAEN_DGT
 * \param     [IN] mode   : external trigger input mode.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetExtTriggerInputMode(int handle, CAEN_DGTZ_TriggerMode_t mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetExtTriggerInputMode(int handle, CAEN_DGTZ_TriggerMode_t mode);
 
 
 /**************************************************************************//**
@@ -364,7 +358,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetExtTriggerInputMode(int handle, CA
 * \param     [OUT] mode  : extrnal input trigger mode.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetExtTriggerInputMode(int handle, CAEN_DGTZ_TriggerMode_t *mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetExtTriggerInputMode(int handle, CAEN_DGTZ_TriggerMode_t *mode);
 
 
 /**************************************************************************//**
@@ -374,7 +368,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetExtTriggerInputMode(int handle, CA
 * \param     [OUT] mode  : trigger mode
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetSWTriggerMode(int handle, CAEN_DGTZ_TriggerMode_t *mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetSWTriggerMode(int handle, CAEN_DGTZ_TriggerMode_t *mode);
 
 
 /**************************************************************************//**
@@ -391,7 +385,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetSWTriggerMode(int handle, CAEN_DGT
 *  user should instead call at maximum once for every pair with the relevant
 *  bits of the channelmask already set to the correct value.
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelSelfTrigger(int handle, CAEN_DGTZ_TriggerMode_t mode, uint32_t channelmask);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelSelfTrigger(int handle, CAEN_DGTZ_TriggerMode_t mode, uint32_t channelmask);
 
 
 /**************************************************************************//**
@@ -402,7 +396,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelSelfTrigger(int handle, CAE
 * \param     [OUT] mode   : current trigger mode for selected channel
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelSelfTrigger(int handle, uint32_t channel, CAEN_DGTZ_TriggerMode_t *mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelSelfTrigger(int handle, uint32_t channel, CAEN_DGTZ_TriggerMode_t *mode);
 
 
 /**************************************************************************//**
@@ -414,7 +408,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelSelfTrigger(int handle, uin
 * \param    [IN] groupmask : channel group selection mask
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetGroupSelfTrigger(int handle, CAEN_DGTZ_TriggerMode_t mode, uint32_t groupmask);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetGroupSelfTrigger(int handle, CAEN_DGTZ_TriggerMode_t mode, uint32_t groupmask);
 
 
 /**************************************************************************//**
@@ -426,7 +420,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetGroupSelfTrigger(int handle, CAEN_
 * \param     [OUT] mode  : the mode of the trigger
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetGroupSelfTrigger(int handle, uint32_t group, CAEN_DGTZ_TriggerMode_t *mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetGroupSelfTrigger(int handle, uint32_t group, CAEN_DGTZ_TriggerMode_t *mode);
 
 
 /**************************************************************************//**
@@ -438,7 +432,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetGroupSelfTrigger(int handle, uint3
 * \param     [IN] channelmask : mask of channels to enable in event readout
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelGroupMask(int handle, uint32_t group, uint32_t channelmask);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelGroupMask(int handle, uint32_t group, uint32_t channelmask);
 
 
 /**************************************************************************//**
@@ -450,7 +444,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelGroupMask(int handle, uint3
 * \param     [OUT] channelmask : mask of channels to enable in event readout
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelGroupMask(int handle, uint32_t group, uint32_t *channelmask);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelGroupMask(int handle, uint32_t group, uint32_t *channelmask);
 
 
 /**************************************************************************//**
@@ -460,7 +454,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelGroupMask(int handle, uint3
 * \param     [IN] percent : the percent of current record length
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetPostTriggerSize(int handle, uint32_t percent);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetPostTriggerSize(int handle, uint32_t percent);
 
 
 /**************************************************************************//**
@@ -470,7 +464,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetPostTriggerSize(int handle, uint32
 * \param     [IN] percent : the percent of the record
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetPostTriggerSize(int handle, uint32_t *percent);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetPostTriggerSize(int handle, uint32_t *percent);
 
 
 /**************************************************************************//**
@@ -483,7 +477,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetPostTriggerSize(int handle, uint32
 * \param     [IN] sample  : the pre-trigger size, in samples
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPPPreTriggerSize(int handle, int ch, uint32_t samples);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPPPreTriggerSize(int handle, int ch, uint32_t samples);
 
 
 /**************************************************************************//**
@@ -494,7 +488,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPPPreTriggerSize(int handle, int 
 * \param     [OUT] sample : the pre-trigger size, in samples
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPPPreTriggerSize(int handle, int ch, uint32_t *samples);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPPPreTriggerSize(int handle, int ch, uint32_t *samples);
 
 
 /**************************************************************************//**
@@ -506,7 +500,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPPPreTriggerSize(int handle, int 
 *                          Please refer to digitizer documentation for possible value range.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelDCOffset(int handle, uint32_t channel, uint32_t Tvalue);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelDCOffset(int handle, uint32_t channel, uint32_t Tvalue);
 
 
 /**************************************************************************//**
@@ -519,7 +513,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelDCOffset(int handle, uint32
 *                           Please refer to digitizer documentation for possible value range.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelDCOffset(int handle, uint32_t channel, uint32_t *Tvalue);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelDCOffset(int handle, uint32_t channel, uint32_t *Tvalue);
 
 
 /**************************************************************************//**
@@ -532,7 +526,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelDCOffset(int handle, uint32
 *                         Please refer to digitizer documentation for possible value range.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetGroupDCOffset(int handle, uint32_t group, uint32_t Tvalue);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetGroupDCOffset(int handle, uint32_t group, uint32_t Tvalue);
 
 
 /**************************************************************************//**
@@ -545,7 +539,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetGroupDCOffset(int handle, uint32_t
 *                          Please refer to digitizer documentation for possible value range.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetGroupDCOffset(int handle, uint32_t group, uint32_t *Tvalue);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetGroupDCOffset(int handle, uint32_t group, uint32_t *Tvalue);
 
 
 /**************************************************************************//**
@@ -556,7 +550,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetGroupDCOffset(int handle, uint32_t
 * \param    [IN] Tvalue  : threshold value to set
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelTriggerThreshold(int handle, uint32_t channel, uint32_t Tvalue);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelTriggerThreshold(int handle, uint32_t channel, uint32_t Tvalue);
 
 
 /**************************************************************************//**
@@ -567,7 +561,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelTriggerThreshold(int handle
 * \param    [OUT] Tvalue  : the threshold value set
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelTriggerThreshold(int handle, uint32_t channel, uint32_t *Tvalue);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelTriggerThreshold(int handle, uint32_t channel, uint32_t *Tvalue);
 
 
 /**************************************************************************//**
@@ -578,7 +572,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelTriggerThreshold(int handle
 * \param    [IN] pol     : the value of the pulse polarity
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelPulsePolarity(int handle, uint32_t channel, CAEN_DGTZ_PulsePolarity_t pol);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelPulsePolarity(int handle, uint32_t channel, CAEN_DGTZ_PulsePolarity_t pol);
 
 
 /**************************************************************************//**
@@ -589,7 +583,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelPulsePolarity(int handle, u
 * \param    [OUT] pol    : the value of the pulse polarity
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelPulsePolarity(int handle, uint32_t channel, CAEN_DGTZ_PulsePolarity_t* pol);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelPulsePolarity(int handle, uint32_t channel, CAEN_DGTZ_PulsePolarity_t* pol);
 
 
 /**************************************************************************//**
@@ -600,7 +594,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelPulsePolarity(int handle, u
 * \param    [IN] Tvalue : the threshold value to set.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetGroupTriggerThreshold(int handle, uint32_t group, uint32_t Tvalue);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetGroupTriggerThreshold(int handle, uint32_t group, uint32_t Tvalue);
 
 
 /**************************************************************************//**
@@ -611,7 +605,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetGroupTriggerThreshold(int handle, 
 * \param    [OUT] Tvalue : the threshold value to set.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetGroupTriggerThreshold(int handle, uint32_t group, uint32_t *Tvalue);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetGroupTriggerThreshold(int handle, uint32_t group, uint32_t *Tvalue);
 
 
 /**************************************************************************//**
@@ -621,7 +615,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetGroupTriggerThreshold(int handle, 
 * \param     [IN] mode   : Zero Suppression mode.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetZeroSuppressionMode(int handle, CAEN_DGTZ_ZS_Mode_t mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetZeroSuppressionMode(int handle, CAEN_DGTZ_ZS_Mode_t mode);
 
 
 /**************************************************************************//**
@@ -631,7 +625,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetZeroSuppressionMode(int handle, CA
 * \param     [OUT] mode  : Zero Suppression mode
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetZeroSuppressionMode(int handle, CAEN_DGTZ_ZS_Mode_t *mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetZeroSuppressionMode(int handle, CAEN_DGTZ_ZS_Mode_t *mode);
 
 
 /**************************************************************************//**
@@ -644,7 +638,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetZeroSuppressionMode(int handle, CA
 * \param     [IN] nsamp     : Number of samples to store before/after threshold crossing
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelZSParams(int handle, uint32_t channel, CAEN_DGTZ_ThresholdWeight_t weight, int32_t  threshold, int32_t nsamp);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelZSParams(int handle, uint32_t channel, CAEN_DGTZ_ThresholdWeight_t weight, int32_t  threshold, int32_t nsamp);
 
 
 /**************************************************************************//**
@@ -657,7 +651,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelZSParams(int handle, uint32
 * \param     [OUT] nsamp     : Number of samples to store before/after threshold crossing
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelZSParams(int handle, uint32_t channel, CAEN_DGTZ_ThresholdWeight_t *weight, int32_t  *threshold, int32_t *nsamp);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelZSParams(int handle, uint32_t channel, CAEN_DGTZ_ThresholdWeight_t *weight, int32_t  *threshold, int32_t *nsamp);
 
 
 /**************************************************************************//**
@@ -667,7 +661,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelZSParams(int handle, uint32
 * \param     [IN] mode   : acquisition mode
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetAcquisitionMode(int handle, CAEN_DGTZ_AcqMode_t mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetAcquisitionMode(int handle, CAEN_DGTZ_AcqMode_t mode);
 
 
 /**************************************************************************//**
@@ -677,7 +671,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetAcquisitionMode(int handle, CAEN_D
 * \param     [OUT] mode   : the acquisition mode set
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetAcquisitionMode(int handle, CAEN_DGTZ_AcqMode_t *mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetAcquisitionMode(int handle, CAEN_DGTZ_AcqMode_t *mode);
 
 
 /**************************************************************************//**
@@ -687,7 +681,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetAcquisitionMode(int handle, CAEN_D
 * \param     [IN] mode   : the run synchronization mode to set
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetRunSynchronizationMode(int handle, CAEN_DGTZ_RunSyncMode_t mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetRunSynchronizationMode(int handle, CAEN_DGTZ_RunSyncMode_t mode);
 
 
 /**************************************************************************//**
@@ -697,7 +691,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetRunSynchronizationMode(int handle,
 * \param     [OUT] mode   : the current run synchronization mode
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetRunSynchronizationMode(int handle, CAEN_DGTZ_RunSyncMode_t* mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetRunSynchronizationMode(int handle, CAEN_DGTZ_RunSyncMode_t* mode);
 
 
 /**************************************************************************//**
@@ -707,7 +701,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetRunSynchronizationMode(int handle,
 * \param     [IN] mode   : Analog Monitor mode.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetAnalogMonOutput(int handle, CAEN_DGTZ_AnalogMonitorOutputMode_t mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetAnalogMonOutput(int handle, CAEN_DGTZ_AnalogMonitorOutputMode_t mode);
 
 
 /**************************************************************************//**
@@ -717,7 +711,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetAnalogMonOutput(int handle, CAEN_D
 * \param     [OUT] mode   : Analog Monitor output mode
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetAnalogMonOutput(int handle, CAEN_DGTZ_AnalogMonitorOutputMode_t *mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetAnalogMonOutput(int handle, CAEN_DGTZ_AnalogMonitorOutputMode_t *mode);
 
 
 /**************************************************************************//**
@@ -730,7 +724,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetAnalogMonOutput(int handle, CAEN_D
 * \param     [IN] ami         : Analog Inspection Invert
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetAnalogInspectionMonParams(int handle, uint32_t channelmask, uint32_t offset, CAEN_DGTZ_AnalogMonitorMagnify_t mf, CAEN_DGTZ_AnalogMonitorInspectorInverter_t ami);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetAnalogInspectionMonParams(int handle, uint32_t channelmask, uint32_t offset, CAEN_DGTZ_AnalogMonitorMagnify_t mf, CAEN_DGTZ_AnalogMonitorInspectorInverter_t ami);
 
 
 /**************************************************************************//**
@@ -742,7 +736,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetAnalogInspectionMonParams(int hand
 * \param     [OUT] ami         : Analog Inspection Invert
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetAnalogInspectionMonParams(int handle, uint32_t *channelmask, uint32_t *offset, CAEN_DGTZ_AnalogMonitorMagnify_t *mf, CAEN_DGTZ_AnalogMonitorInspectorInverter_t *ami);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetAnalogInspectionMonParams(int handle, uint32_t *channelmask, uint32_t *offset, CAEN_DGTZ_AnalogMonitorMagnify_t *mf, CAEN_DGTZ_AnalogMonitorInspectorInverter_t *ami);
 
 
 /**************************************************************************//**
@@ -751,7 +745,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetAnalogInspectionMonParams(int hand
 * \param     [IN] handle : digitizer handle
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_DisableEventAlignedReadout(int handle);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_DisableEventAlignedReadout(int handle);
 
 
 /**************************************************************************//**
@@ -761,7 +755,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_DisableEventAlignedReadout(int handle
 * \param     [IN] mode: Enable/Disable the Pack 2,5 mode 
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetEventPackaging(int handle,CAEN_DGTZ_EnaDis_t mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetEventPackaging(int handle,CAEN_DGTZ_EnaDis_t mode);
 
 
 /**************************************************************************//**
@@ -771,7 +765,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetEventPackaging(int handle,CAEN_DGT
 * \param     [OUT] mode: Enable/Disable the Pack 2,5 mode 
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetEventPackaging(int handle,CAEN_DGTZ_EnaDis_t *mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetEventPackaging(int handle,CAEN_DGTZ_EnaDis_t *mode);
 
 
 /**************************************************************************//**
@@ -782,7 +776,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetEventPackaging(int handle,CAEN_DGT
 * \param     [IN] numAggr : Maximum Event Number for transfer
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetMaxNumAggregatesBLT(int handle, uint32_t numAggr);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetMaxNumAggregatesBLT(int handle, uint32_t numAggr);
 
 
 /**************************************************************************//**
@@ -793,7 +787,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetMaxNumAggregatesBLT(int handle, ui
 * \param     [IN] numEvents : Maximum Event Number for transfer
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetMaxNumEventsBLT(int handle, uint32_t numEvents);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetMaxNumEventsBLT(int handle, uint32_t numEvents);
 
 
 /**************************************************************************//**
@@ -803,7 +797,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetMaxNumEventsBLT(int handle, uint32
 * \param     [OUT] numEvents : the number of aggregates set.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetMaxNumAggregatesBLT(int handle, uint32_t *numAggr);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetMaxNumAggregatesBLT(int handle, uint32_t *numAggr);
 
 
 /**************************************************************************//**
@@ -814,7 +808,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetMaxNumAggregatesBLT(int handle, ui
 * \param     [OUT] numEvents : the number of events set.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetMaxNumEventsBLT(int handle, uint32_t *numEvents);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetMaxNumEventsBLT(int handle, uint32_t *numEvents);
 
 
 /**************************************************************************//**
@@ -826,7 +820,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetMaxNumEventsBLT(int handle, uint32
 * \param     [OUT] size   : the size in byte of the buffer allocated
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_MallocReadoutBuffer(int handle, char **buffer, uint32_t *size);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_MallocReadoutBuffer(int handle, char **buffer, uint32_t *size);
 
 
 /**************************************************************************//**
@@ -838,7 +832,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_MallocReadoutBuffer(int handle, char 
 * \param     [OUT] bufferSize : the size of the data stored in the buffer
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_ReadData(int handle, CAEN_DGTZ_ReadMode_t mode, char *buffer, uint32_t *bufferSize);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_ReadData(int handle, CAEN_DGTZ_ReadMode_t mode, char *buffer, uint32_t *bufferSize);
 
 
 /**************************************************************************//**
@@ -849,7 +843,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_ReadData(int handle, CAEN_DGTZ_ReadMo
 * \param     [IN] buffer : address to the acquisition buffer returned by CAEN_DGTZ_MallocReadoutBuffer
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_FreeReadoutBuffer(char **buffer);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_FreeReadoutBuffer(char **buffer);
 
 
 /**************************************************************************//**
@@ -862,7 +856,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_FreeReadoutBuffer(char **buffer);
 * \param     [OUT] numEvents : Number of events stored in the acquisition buffer
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetNumEvents(int handle, char *buffer, uint32_t buffsize, uint32_t *numEvents);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetNumEvents(int handle, char *buffer, uint32_t buffsize, uint32_t *numEvents);
 
 
 /**************************************************************************//**
@@ -877,7 +871,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetNumEvents(int handle, char *buffer
 * \param     [OUT] EventPtr  : Pointer to the requested event in the acquisition buffer
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetEventInfo(int handle, char *buffer, uint32_t buffsize, int32_t numEvent, CAEN_DGTZ_EventInfo_t *eventInfo, char **EventPtr);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetEventInfo(int handle, char *buffer, uint32_t buffsize, int32_t numEvent, CAEN_DGTZ_EventInfo_t *eventInfo, char **EventPtr);
 
 
 /**************************************************************************//**
@@ -889,7 +883,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetEventInfo(int handle, char *buffer
 * \param     [OUT] Evt      : event structure with the requested event data
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_DecodeEvent(int handle, char *evtPtr, void **Evt);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_DecodeEvent(int handle, char *evtPtr, void **Evt);
 
 
 /**************************************************************************//**
@@ -900,7 +894,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_DecodeEvent(int handle, char *evtPtr,
 * \param     [IN] Evt    : event structure that store the decoded event.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_FreeEvent(int handle, void **Evt);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_FreeEvent(int handle, void **Evt);
 
 
 /**************************************************************************//**
@@ -914,7 +908,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_FreeEvent(int handle, void **Evt);
 * \param    [OUT] numEventsArray  : pointer to an array of int which will contain the number of events found per channel
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPPEvents(int handle, char *buffer, uint32_t buffsize, void **events, uint32_t *numEventsArray);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPPEvents(int handle, char *buffer, uint32_t buffsize, void **events, uint32_t *numEventsArray);
 
 
 /**************************************************************************//**
@@ -930,7 +924,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPPEvents(int handle, char *buffer
 * \param    [OUT] allocatedSize  : size in bytes of the event list
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_MallocDPPEvents(int handle, void **events, uint32_t *allocatedSize);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_MallocDPPEvents(int handle, void **events, uint32_t *allocatedSize);
 
 
 /**************************************************************************//**
@@ -941,7 +935,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_MallocDPPEvents(int handle, void **ev
 * \param     [IN] events   : pointer to the event buffer
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_FreeDPPEvents(int handle, void **events);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_FreeDPPEvents(int handle, void **events);
 
 
 /**************************************************************************//**
@@ -956,7 +950,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_FreeDPPEvents(int handle, void **even
 * \param    [OUT] allocatedSize  : size in bytes of the waveform buffer
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_MallocDPPWaveforms(int handle, void **waveforms, uint32_t *allocatedSize);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_MallocDPPWaveforms(int handle, void **waveforms, uint32_t *allocatedSize);
 
 
 /**************************************************************************//**
@@ -967,7 +961,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_MallocDPPWaveforms(int handle, void *
 * \param [IN] waveforms  : pointer to the waveform buffer
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_FreeDPPWaveforms(int handle, void *Waveforms);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_FreeDPPWaveforms(int handle, void *Waveforms);
 
 
 /**************************************************************************//**
@@ -979,7 +973,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_FreeDPPWaveforms(int handle, void *Wa
 * \param [OUT] waveforms : pointer to the (preallocated) waveform list
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_DecodeDPPWaveforms(int handle, void *event, void *waveforms);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_DecodeDPPWaveforms(int handle, void *event, void *waveforms);
 
 
 /**************************************************************************//**
@@ -991,7 +985,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_DecodeDPPWaveforms(int handle, void *
                                (required for DPP-PSD and DPP-CI, ignored by DPP-PHA)
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetNumEventsPerAggregate(int handle, uint32_t numEvents, ...);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetNumEventsPerAggregate(int handle, uint32_t numEvents, ...);
 
 
 /**************************************************************************//**
@@ -1004,7 +998,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetNumEventsPerAggregate(int handle, 
                                (required for DPP-PSD and DPP-CI, ignored by DPP-PHA)
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetNumEventsPerAggregate(int handle, uint32_t *numEvents, ...);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetNumEventsPerAggregate(int handle, uint32_t *numEvents, ...);
 
 
 /**************************************************************************//**
@@ -1020,7 +1014,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetNumEventsPerAggregate(int handle, 
 *                              Normally, though, it is safe to supply 0 as this parameter, so that the library will choose an appropriate value automatically.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPPEventAggregation(int handle, int threshold, int maxsize);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPPEventAggregation(int handle, int threshold, int maxsize);
 
 
 /**************************************************************************//**
@@ -1035,7 +1029,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPPEventAggregation(int handle, in
 *                               - CAEN_DGTZ_DPP_CI_Params_t, in case of DPP-CI
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPPParameters(int handle, uint32_t channelMask, void* params);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPPParameters(int handle, uint32_t channelMask, void* params);
 
 
 /**************************************************************************//**
@@ -1046,7 +1040,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPPParameters(int handle, uint32_t
 * \param     [IN] param: The acquisition data to retrieve in acquisition
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPPAcquisitionMode(int handle,CAEN_DGTZ_DPP_AcqMode_t mode, CAEN_DGTZ_DPP_SaveParam_t param);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPPAcquisitionMode(int handle,CAEN_DGTZ_DPP_AcqMode_t mode, CAEN_DGTZ_DPP_SaveParam_t param);
 
 
 /**************************************************************************//**
@@ -1057,7 +1051,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPPAcquisitionMode(int handle,CAEN
 * \param     [OUT] param: The acquisition data to retrieve in acquisition
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPPAcquisitionMode(int handle,CAEN_DGTZ_DPP_AcqMode_t *mode, CAEN_DGTZ_DPP_SaveParam_t *param);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPPAcquisitionMode(int handle,CAEN_DGTZ_DPP_AcqMode_t *mode, CAEN_DGTZ_DPP_SaveParam_t *param);
 
 
 /**************************************************************************//**
@@ -1069,7 +1063,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPPAcquisitionMode(int handle,CAEN
 *                          - CAEN_DGTZ_DPP_TriggerMode_Coincidence
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPPTriggerMode(int handle, CAEN_DGTZ_DPP_TriggerMode_t mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPPTriggerMode(int handle, CAEN_DGTZ_DPP_TriggerMode_t mode);
 
 
 /**************************************************************************//**
@@ -1079,7 +1073,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPPTriggerMode(int handle, CAEN_DG
 * \param     [OUT] mode:   the current trigger mode
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPPTriggerMode(int handle, CAEN_DGTZ_DPP_TriggerMode_t *mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPPTriggerMode(int handle, CAEN_DGTZ_DPP_TriggerMode_t *mode);
 
 
 /**************************************************************************//**
@@ -1092,7 +1086,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPPTriggerMode(int handle, CAEN_DG
 * \param     [IN] dp: The Digital Probe mode
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-DPP_DEPRECATED(CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPP_PHA_VirtualProbe(int handle,CAEN_DGTZ_DPP_VirtualProbe_t mode, CAEN_DGTZ_DPP_PHA_VirtualProbe1_t vp1, CAEN_DGTZ_DPP_PHA_VirtualProbe2_t vp2, CAEN_DGTZ_DPP_PHA_DigitalProbe_t dp));
+DPP_DEPRECATED(CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPP_PHA_VirtualProbe(int handle,CAEN_DGTZ_DPP_VirtualProbe_t mode, CAEN_DGTZ_DPP_PHA_VirtualProbe1_t vp1, CAEN_DGTZ_DPP_PHA_VirtualProbe2_t vp2, CAEN_DGTZ_DPP_PHA_DigitalProbe_t dp));
 
 
 /**************************************************************************//**
@@ -1105,7 +1099,7 @@ DPP_DEPRECATED(CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPP_PHA_VirtualProb
 * \param     [OUT] dp: The Digital Probe mode
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-DPP_DEPRECATED(CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPP_PHA_VirtualProbe(int handle,CAEN_DGTZ_DPP_VirtualProbe_t *mode, CAEN_DGTZ_DPP_PHA_VirtualProbe1_t *vp1, CAEN_DGTZ_DPP_PHA_VirtualProbe2_t *vp2, CAEN_DGTZ_DPP_PHA_DigitalProbe_t *dp));
+DPP_DEPRECATED(CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPP_PHA_VirtualProbe(int handle,CAEN_DGTZ_DPP_VirtualProbe_t *mode, CAEN_DGTZ_DPP_PHA_VirtualProbe1_t *vp1, CAEN_DGTZ_DPP_PHA_VirtualProbe2_t *vp2, CAEN_DGTZ_DPP_PHA_DigitalProbe_t *dp));
 
 
 /**************************************************************************//**
@@ -1118,7 +1112,7 @@ DPP_DEPRECATED(CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPP_PHA_VirtualProb
 * \param     [IN] dp2: The Digital Probe2 mode
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-DPP_DEPRECATED(CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPP_PSD_VirtualProbe(int handle, CAEN_DGTZ_DPP_VirtualProbe_t mode, CAEN_DGTZ_DPP_PSD_VirtualProbe_t vp, CAEN_DGTZ_DPP_PSD_DigitalProbe1_t dp1, CAEN_DGTZ_DPP_PSD_DigitalProbe2_t dp2));
+DPP_DEPRECATED(CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPP_PSD_VirtualProbe(int handle, CAEN_DGTZ_DPP_VirtualProbe_t mode, CAEN_DGTZ_DPP_PSD_VirtualProbe_t vp, CAEN_DGTZ_DPP_PSD_DigitalProbe1_t dp1, CAEN_DGTZ_DPP_PSD_DigitalProbe2_t dp2));
 
 
 /**************************************************************************//**
@@ -1131,7 +1125,7 @@ DPP_DEPRECATED(CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPP_PSD_VirtualProb
 * \param     [OUT] dp2: The Digital Probe2 mode
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-DPP_DEPRECATED(CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPP_PSD_VirtualProbe(int handle, CAEN_DGTZ_DPP_VirtualProbe_t *mode, CAEN_DGTZ_DPP_PSD_VirtualProbe_t *vp, CAEN_DGTZ_DPP_PSD_DigitalProbe1_t *dp1, CAEN_DGTZ_DPP_PSD_DigitalProbe2_t *dp2));
+DPP_DEPRECATED(CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPP_PSD_VirtualProbe(int handle, CAEN_DGTZ_DPP_VirtualProbe_t *mode, CAEN_DGTZ_DPP_PSD_VirtualProbe_t *vp, CAEN_DGTZ_DPP_PSD_DigitalProbe1_t *dp1, CAEN_DGTZ_DPP_PSD_DigitalProbe2_t *dp2));
 
 
 /**************************************************************************//**
@@ -1144,7 +1138,7 @@ DPP_DEPRECATED(CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPP_PSD_VirtualProb
 * \param     [IN] dp2: The Digital Probe2 mode
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-DPP_DEPRECATED(CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPP_CI_VirtualProbe(int handle, CAEN_DGTZ_DPP_VirtualProbe_t mode, CAEN_DGTZ_DPP_CI_VirtualProbe_t vp, CAEN_DGTZ_DPP_CI_DigitalProbe1_t dp1, CAEN_DGTZ_DPP_CI_DigitalProbe2_t dp2));
+DPP_DEPRECATED(CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPP_CI_VirtualProbe(int handle, CAEN_DGTZ_DPP_VirtualProbe_t mode, CAEN_DGTZ_DPP_CI_VirtualProbe_t vp, CAEN_DGTZ_DPP_CI_DigitalProbe1_t dp1, CAEN_DGTZ_DPP_CI_DigitalProbe2_t dp2));
 
 
 /**************************************************************************//**
@@ -1157,7 +1151,7 @@ DPP_DEPRECATED(CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPP_CI_VirtualProbe
 * \param     [OUT] dp2: The Digital Probe2 mode
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-DPP_DEPRECATED(CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPP_CI_VirtualProbe(int handle, CAEN_DGTZ_DPP_VirtualProbe_t *mode, CAEN_DGTZ_DPP_CI_VirtualProbe_t *vp, CAEN_DGTZ_DPP_CI_DigitalProbe1_t *dp1, CAEN_DGTZ_DPP_CI_DigitalProbe2_t *dp2));
+DPP_DEPRECATED(CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPP_CI_VirtualProbe(int handle, CAEN_DGTZ_DPP_VirtualProbe_t *mode, CAEN_DGTZ_DPP_CI_VirtualProbe_t *vp, CAEN_DGTZ_DPP_CI_DigitalProbe1_t *dp1, CAEN_DGTZ_DPP_CI_DigitalProbe2_t *dp2));
 
 
 /*****************************************************************************
@@ -1168,7 +1162,7 @@ DPP_DEPRECATED(CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPP_CI_VirtualProbe
 * \param     [IN] probe:  The Virtual Probe to be set on the given trace
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPP_VirtualProbe(int handle, int trace, int probe);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPP_VirtualProbe(int handle, int trace, int probe);
 
 
 /*****************************************************************************
@@ -1179,7 +1173,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDPP_VirtualProbe(int handle, int t
 * \param     [OUT] probe: The Virtual Probe displayed on the given trace
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPP_VirtualProbe(int handle, int trace, int *probe);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPP_VirtualProbe(int handle, int trace, int *probe);
 
 /*****************************************************************************
 * \brief     Get the list of virtual probes supported on board's given trace
@@ -1191,7 +1185,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPP_VirtualProbe(int handle, int t
 * \param     [OUT] numProbes: The number of Probes supported by the trace.
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPP_SupportedVirtualProbes(int handle, int trace, int probes[], int *numProbes);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPP_SupportedVirtualProbes(int handle, int trace, int probes[], int *numProbes);
 
 
 /*****************************************************************************
@@ -1201,7 +1195,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPP_SupportedVirtualProbes(int han
 * \param     [OUT] name: The name of the given probe
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPP_VirtualProbeName(int probe, char name[]);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPP_VirtualProbeName(int probe, char name[]);
 
 
 /**************************************************************************//**
@@ -1211,7 +1205,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPP_VirtualProbeName(int probe, ch
 * \param     [IN] Evt: the reference to the Event pointer 
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_AllocateEvent(int handle, void **Evt);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_AllocateEvent(int handle, void **Evt);
 
 
 /**************************************************************************//**
@@ -1221,7 +1215,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_AllocateEvent(int handle, void **Evt)
 * \param     [IN] level   : The level to set
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetIOLevel(int handle, CAEN_DGTZ_IOLevel_t level);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetIOLevel(int handle, CAEN_DGTZ_IOLevel_t level);
 
 
 /**************************************************************************//**
@@ -1231,7 +1225,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetIOLevel(int handle, CAEN_DGTZ_IOLe
 * \param     [OUT] level  : The IO level of the digitizer
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetIOLevel(int handle, CAEN_DGTZ_IOLevel_t *level);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetIOLevel(int handle, CAEN_DGTZ_IOLevel_t *level);
 
 
 /**************************************************************************//**
@@ -1242,7 +1236,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetIOLevel(int handle, CAEN_DGTZ_IOLe
 * \param     [IN] Polarity   : The polarity to set
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetTriggerPolarity(int handle, uint32_t channel, CAEN_DGTZ_TriggerPolarity_t Polarity);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetTriggerPolarity(int handle, uint32_t channel, CAEN_DGTZ_TriggerPolarity_t Polarity);
 
 
 /**************************************************************************//**
@@ -1253,7 +1247,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetTriggerPolarity(int handle, uint32
 * \param     [OUT] Polarity   : The polarity of the specified channel
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetTriggerPolarity(int handle, uint32_t channel, CAEN_DGTZ_TriggerPolarity_t *Polarity);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetTriggerPolarity(int handle, uint32_t channel, CAEN_DGTZ_TriggerPolarity_t *Polarity);
 
 
 /**************************************************************************//**
@@ -1262,7 +1256,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetTriggerPolarity(int handle, uint32
 * \param     [IN] handle : digitizer handle
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_RearmInterrupt(int handle);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_RearmInterrupt(int handle);
 
 
 /**************************************************************************//**
@@ -1271,52 +1265,53 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_RearmInterrupt(int handle);
 * \param     [IN] handle : digitizer handle
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDRS4SamplingFrequency(int handle, CAEN_DGTZ_DRS4Frequency_t frequency) ;
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDRS4SamplingFrequency(int handle, CAEN_DGTZ_DRS4Frequency_t *frequency) ;
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetOutputSignalMode(int handle, CAEN_DGTZ_OutputSignalMode_t mode);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetOutputSignalMode(int handle, CAEN_DGTZ_OutputSignalMode_t *mode);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetGroupFastTriggerThreshold(int handle, uint32_t group, uint32_t Tvalue);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetGroupFastTriggerThreshold(int handle, uint32_t group, uint32_t *Tvalue);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetGroupFastTriggerDCOffset(int handle, uint32_t group, uint32_t DCvalue);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetGroupFastTriggerDCOffset(int handle, uint32_t group, uint32_t *DCvalue);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetFastTriggerDigitizing(int handle, CAEN_DGTZ_EnaDis_t enable);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetFastTriggerDigitizing(int handle, CAEN_DGTZ_EnaDis_t *enable);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetFastTriggerMode(int handle, CAEN_DGTZ_TriggerMode_t mode);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetFastTriggerMode(int handle, CAEN_DGTZ_TriggerMode_t *mode);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_LoadDRS4CorrectionData(int handle, CAEN_DGTZ_DRS4Frequency_t frequency);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetCorrectionTables(int handle, int frequency, void *CTable);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_EnableDRS4Correction(int handle);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_DisableDRS4Correction(int handle);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_DecodeZLEWaveforms(int handle, void *event, void *waveforms);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_FreeZLEWaveforms(int handle, void *waveforms);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_MallocZLEWaveforms(int handle, void **waveforms, uint32_t *allocatedSize);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_FreeZLEEvents(int handle, void **events);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_MallocZLEEvents(int handle, void **events, uint32_t *allocatedSize);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetZLEEvents(int handle, char *buffer, uint32_t buffsize, void **events, uint32_t* numEventsArray);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetZLEParameters(int handle, uint32_t channelMask, void* params);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetSAMCorrectionLevel(int handle, CAEN_DGTZ_SAM_CORRECTION_LEVEL_t *level);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetSAMCorrectionLevel(int handle, CAEN_DGTZ_SAM_CORRECTION_LEVEL_t level);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_EnableSAMPulseGen(int handle, int channel, unsigned short  pulsePattern, CAEN_DGTZ_SAMPulseSourceType_t pulseSource);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_DisableSAMPulseGen(int handle, int channel);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetSAMPostTriggerSize(int handle, int SamIndex, uint8_t value);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetSAMPostTriggerSize(int handle, int SamIndex, uint32_t *value);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetSAMSamplingFrequency(int handle, CAEN_DGTZ_SAMFrequency_t frequency);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetSAMSamplingFrequency(int handle, CAEN_DGTZ_SAMFrequency_t *frequency);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API _CAEN_DGTZ_Read_EEPROM(int handle, int EEPROMIndex, unsigned short add, int nbOfBytes, unsigned char* buf);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API _CAEN_DGTZ_Write_EEPROM(int handle, int EEPROMIndex, unsigned short add, int nbOfBytes, void* buf);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_LoadSAMCorrectionData(int handle);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API _CAEN_DGTZ_TriggerThreshold(int handle, CAEN_DGTZ_EnaDis_t endis);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SendSAMPulse(int handle);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetSAMAcquisitionMode(int handle, CAEN_DGTZ_AcquisitionMode_t mode);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetSAMAcquisitionMode(int handle, CAEN_DGTZ_AcquisitionMode_t *mode);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetTriggerLogic(int handle, CAEN_DGTZ_TrigerLogic_t logic,  uint32_t majorityLevel);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetTriggerLogic(int handle, CAEN_DGTZ_TrigerLogic_t *logic, uint32_t *majorityLevel);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelPairTriggerLogic(int handle,  uint32_t channelA, uint32_t channelB, CAEN_DGTZ_TrigerLogic_t *logic, uint16_t *coincidenceWindow);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelPairTriggerLogic(int handle,  uint32_t channelA, uint32_t channelB, CAEN_DGTZ_TrigerLogic_t logic, uint16_t coincidenceWindow);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDecimationFactor(int handle, uint16_t factor);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDecimationFactor(int handle, uint16_t *factor);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetSAMTriggerCountVetoParam(int handle, int channel, CAEN_DGTZ_EnaDis_t enable, uint32_t vetoWindow);
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetSAMTriggerCountVetoParam(int handle, int channel, CAEN_DGTZ_EnaDis_t *enable, uint32_t *vetoWindow);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDRS4SamplingFrequency(int handle, CAEN_DGTZ_DRS4Frequency_t frequency) ;
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDRS4SamplingFrequency(int handle, CAEN_DGTZ_DRS4Frequency_t *frequency) ;
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetOutputSignalMode(int handle, CAEN_DGTZ_OutputSignalMode_t mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetOutputSignalMode(int handle, CAEN_DGTZ_OutputSignalMode_t *mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetGroupFastTriggerThreshold(int handle, uint32_t group, uint32_t Tvalue);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetGroupFastTriggerThreshold(int handle, uint32_t group, uint32_t *Tvalue);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetGroupFastTriggerDCOffset(int handle, uint32_t group, uint32_t DCvalue);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetGroupFastTriggerDCOffset(int handle, uint32_t group, uint32_t *DCvalue);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetFastTriggerDigitizing(int handle, CAEN_DGTZ_EnaDis_t enable);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetFastTriggerDigitizing(int handle, CAEN_DGTZ_EnaDis_t *enable);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetFastTriggerMode(int handle, CAEN_DGTZ_TriggerMode_t mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetFastTriggerMode(int handle, CAEN_DGTZ_TriggerMode_t *mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_LoadDRS4CorrectionData(int handle, CAEN_DGTZ_DRS4Frequency_t frequency);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetCorrectionTables(int handle, int frequency, void *CTable);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_EnableDRS4Correction(int handle);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_DisableDRS4Correction(int handle);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_DecodeZLEWaveforms(int handle, void *event, void *waveforms);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_FreeZLEWaveforms(int handle, void *waveforms);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_MallocZLEWaveforms(int handle, void **waveforms, uint32_t *allocatedSize);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_FreeZLEEvents(int handle, void **events);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_MallocZLEEvents(int handle, void **events, uint32_t *allocatedSize);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetZLEEvents(int handle, char *buffer, uint32_t buffsize, void **events, uint32_t* numEventsArray);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetZLEParameters(int handle, uint32_t channelMask, void* params);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetSAMCorrectionLevel(int handle, CAEN_DGTZ_SAM_CORRECTION_LEVEL_t *level);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetSAMCorrectionLevel(int handle, CAEN_DGTZ_SAM_CORRECTION_LEVEL_t level);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_EnableSAMPulseGen(int handle, int channel, unsigned short  pulsePattern, CAEN_DGTZ_SAMPulseSourceType_t pulseSource);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_DisableSAMPulseGen(int handle, int channel);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetSAMPostTriggerSize(int handle, int SamIndex, uint8_t value);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetSAMPostTriggerSize(int handle, int SamIndex, uint32_t *value);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetSAMSamplingFrequency(int handle, CAEN_DGTZ_SAMFrequency_t frequency);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetSAMSamplingFrequency(int handle, CAEN_DGTZ_SAMFrequency_t *frequency);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API _CAEN_DGTZ_Read_EEPROM(int handle, int EEPROMIndex, unsigned short add, int nbOfBytes, unsigned char* buf);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API _CAEN_DGTZ_Write_EEPROM(int handle, int EEPROMIndex, unsigned short add, int nbOfBytes, void* buf);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_LoadSAMCorrectionData(int handle);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API _CAEN_DGTZ_TriggerThreshold(int handle, CAEN_DGTZ_EnaDis_t endis);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SendSAMPulse(int handle);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetSAMAcquisitionMode(int handle, CAEN_DGTZ_AcquisitionMode_t mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetSAMAcquisitionMode(int handle, CAEN_DGTZ_AcquisitionMode_t *mode);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetTriggerLogic(int handle, CAEN_DGTZ_TrigerLogic_t logic,  uint32_t majorityLevel);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetTriggerLogic(int handle, CAEN_DGTZ_TrigerLogic_t *logic, uint32_t *majorityLevel);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetChannelPairTriggerLogic(int handle,  uint32_t channelA, uint32_t channelB, CAEN_DGTZ_TrigerLogic_t *logic, uint16_t *coincidenceWindow);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetChannelPairTriggerLogic(int handle,  uint32_t channelA, uint32_t channelB, CAEN_DGTZ_TrigerLogic_t logic, uint16_t coincidenceWindow);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetDecimationFactor(int handle, uint16_t factor);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDecimationFactor(int handle, uint16_t *factor);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetSAMTriggerCountVetoParam(int handle, int channel, CAEN_DGTZ_EnaDis_t enable, uint32_t vetoWindow);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetSAMTriggerCountVetoParam(int handle, int channel, CAEN_DGTZ_EnaDis_t *enable, uint32_t *vetoWindow);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_SetTriggerInAsGate(int handle, CAEN_DGTZ_EnaDis_t en);
 
 
 /**************************************************************************//**
@@ -1325,7 +1320,7 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetSAMTriggerCountVetoParam(int handl
 * \param     [IN] handle : digitizer handle
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_Calibrate(int handle);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_Calibrate(int handle);
 
 /**************************************************************************//**
 * \brief     Read the temperature in celsius for the given channel
@@ -1335,7 +1330,18 @@ CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_Calibrate(int handle);
 * \param     [OUT] temp  : the read temperature
 * \return  0 = Success; negative numbers are error codes
 ******************************************************************************/
-CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_ReadTemperature(int handle, int32_t ch, uint32_t *temp);
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_ReadTemperature(int handle, int32_t ch, uint32_t *temp);
+
+
+/**************************************************************************//**
+* \brief     Get the DPP firmware type
+*
+* \param     [IN] handle     : digitizer handle
+* \param     [OUT] firmware  : Firmware type
+* \return  0 = Success; negative numbers are error codes
+******************************************************************************/
+CAENDGTZ_DLLAPI CAEN_DGTZ_ErrorCode CAENDGTZ_API CAEN_DGTZ_GetDPPFirmwareType(int handle, CAEN_DGTZ_DPPFirmware_t* firmware);
+
 
 #ifdef __cplusplus
 }

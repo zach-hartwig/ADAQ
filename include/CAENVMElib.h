@@ -16,17 +16,11 @@
 #ifndef __CAENVMELIB_H
 #define __CAENVMELIB_H
 
-#include <stdio.h>
 // Rev. 2.5
-#ifdef LINUX
-	#include <stdint.h>
-#endif
-#include <stdlib.h>
-#include <malloc.h>
 #include "CAENVMEoslib.h"
 #include "CAENVMEtypes.h"
 
-#ifdef WIN32
+#if defined _WIN32 && _MSC_VER < 1600
 	typedef INT8   int8_t;
 	typedef UINT8  uint8_t;
 	typedef INT16  int16_t;
@@ -35,6 +29,8 @@
 	typedef UINT32 uint32_t;
 	typedef INT64  int64_t;
 	typedef UINT64 uint64_t;
+#else // VS2010 supports C99 (including stdint.h)
+	#include <stdint.h>
 #endif
 
 #ifdef __cplusplus
@@ -52,10 +48,11 @@ extern "C" {
         Description:
                 Decode the error.
 */
-const char *
-#ifdef WIN32
-__stdcall
+    const char*
+#ifdef _WIN32
+        __stdcall
 #endif
+
 CAENVME_DecodeError(CVErrorCodes Code);
 
 /*
@@ -70,6 +67,7 @@ CAENVME_DecodeError(CVErrorCodes Code);
         Description:
                 Permits to read the software release of the library.
 */
+
 CAENVME_API
 CAENVME_SWRelease(char *SwRel);
 
@@ -126,10 +124,10 @@ CAENVME_DeviceReset(int32_t dev);
         CAENVME_Init
         -----------------------------------------------------------------------------
         Parameters:
-                [in]  BdType    : The model of the bridge (V1718/V2718).
-                [in]  Link      : The link number (don't care for V1718).
-                [in]  BdNum     : The board number in the link.
-                [out] Handle    : The handle that identifies the device.
+                [in]  BdType            : The model of the bridge (V1718/V2718).
+                [in]  ConetNode         : The conet number in the daisy-chain loop (don't care for V1718).
+                [in]  LinkNum_or_PID    : The link number or the PID for those boards that support it (A4818/V3718).
+                [out] Handle            : The handle that identifies the device.
         -----------------------------------------------------------------------------
         Returns:
                 An error code about the execution of the function.
@@ -142,7 +140,7 @@ CAENVME_DeviceReset(int32_t dev);
                 you can have some A2818 optical link inside the PC.
 */
 CAENVME_API
-CAENVME_Init(CVBoardTypes BdType, short Link, short BdNum, int32_t *Handle);
+CAENVME_Init(CVBoardTypes BdType, short ConetNode, short LinkNum_or_PID, int32_t* Handle);
 
 /*
         CAENVME_End
@@ -157,6 +155,10 @@ CAENVME_Init(CVBoardTypes BdType, short Link, short BdNum, int32_t *Handle);
                 Notifies the library the end of work and free the allocated
                 resources.
 */
+
+CAENVME_API
+CAENVME_Init2(CVBoardTypes BdType, void* arg, short ConetNode, int32_t* Handle);
+
 CAENVME_API
 CAENVME_End(int32_t Handle);
 
@@ -1257,7 +1259,68 @@ CAENVME_ReadFlashPage(int32_t Handle, unsigned char *Data, int PageNum);
 CAENVME_API
 CAENVME_EraseFlashPage(int32_t Handle, int Pagenum);
 
-#ifdef LINUX
+
+CAENVME_API
+CAENVME_SetScaler_InputSource(int32_t dev, CVScalerSource Source);
+
+CAENVME_API
+CAENVME_GetScaler_InputSource(int32_t dev, CVScalerSource* Source);
+
+CAENVME_API
+CAENVME_SetScaler_GateSource(int32_t dev, CVScalerSource Source);
+
+CAENVME_API
+CAENVME_GetScaler_GateSource(int32_t dev, CVScalerSource* Source);
+
+CAENVME_API
+CAENVME_SetScaler_Mode(int32_t dev, CVScalerMode Mode);
+
+CAENVME_API
+CAENVME_GetScaler_Mode(int32_t dev, CVScalerMode* Mode);
+
+CAENVME_API
+CAENVME_SetScaler_ClearSource(int32_t dev, CVScalerSource Source);
+
+CAENVME_API
+CAENVME_SetScaler_StartSource(int32_t dev, CVScalerSource Source);
+
+CAENVME_API
+CAENVME_GetScaler_StartSource(int32_t dev, CVScalerSource* Source);
+
+CAENVME_API
+CAENVME_SetScaler_ContinuousRun(int32_t dev, CVContinuosRun OnOff);
+
+CAENVME_API
+CAENVME_GetScaler_ContinuousRun(int32_t dev, CVContinuosRun* OnOff);
+
+CAENVME_API
+CAENVME_SetScaler_MaxHits(int32_t dev, uint16_t value);
+
+CAENVME_API
+CAENVME_GetScaler_MaxHits(int32_t dev, uint16_t* value);
+
+CAENVME_API
+CAENVME_SetScaler_DWellTime(int32_t dev, uint16_t value);
+
+CAENVME_API
+CAENVME_GetScaler_DWellTime(int32_t dev, uint16_t* value);
+
+CAENVME_API
+CAENVME_SetScaler_SWStart(int32_t dev);
+
+CAENVME_API
+CAENVME_SetScaler_SWStop(int32_t dev);
+
+CAENVME_API
+CAENVME_SetScaler_SWReset(int32_t dev);
+
+CAENVME_API
+CAENVME_SetScaler_SWOpenGate(int32_t dev);
+
+CAENVME_API
+CAENVME_SetScaler_SWCloseGate(int32_t dev);
+
+#ifndef _WIN32
 /*
         CAENVME_BLTReadAsync
         -----------------------------------------------------------------------------
@@ -1302,6 +1365,9 @@ CAENVME_BLTReadAsync(int32_t Handle, uint32_t Address, void *Buffer,
 */
 CAENVME_API
 CAENVME_BLTReadWait(int32_t Handle, int *Count);
+
+CAENVME_API
+_CAENVME_OpticalLinkSlaveReset(int32_t dev);
 
 #endif
 

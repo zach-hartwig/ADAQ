@@ -18,23 +18,52 @@
 #ifndef __CAENVMETYPES_H
 #define __CAENVMETYPES_H
 
-#ifdef LINUX
-#define CAEN_BYTE       unsigned char
-#define CAEN_BOOL       int
+#ifdef _WIN32
+typedef byte			CAEN_BYTE;
+typedef VARIANT_BOOL	CAEN_BOOL;
 #else
-#define CAEN_BYTE       byte
-#define CAEN_BOOL       VARIANT_BOOL
+typedef unsigned char	CAEN_BYTE;
+typedef int				CAEN_BOOL;
 #endif
 
 /*
         CAEN VME bridges.
 */
 typedef enum CVBoardTypes {
-        cvV1718 = 0,                    /* CAEN V1718 USB-VME bridge                    */
-        cvV2718 = 1,                    /* V2718 PCI-VME bridge with optical link       */
-        cvA2818 = 2,                    /* PCI board with optical link                  */
-        cvA2719 = 3,                    /* Optical link piggy-back                      */
-		cvA3818 = 4						/* PCIe board with up to 4 optical links		*/
+        cvV1718                     = 0,     /* CAEN V1718 USB-VME bridge                   */
+        cvV2718                     = 1,     /* V2718 PCI-VME bridge with optical link      */
+        cvA2818                     = 2,     /* PCI board with optical link                 */
+        cvA2719                     = 3,     /* Optical link piggy-back                     */
+		cvA3818                     = 4,	 /* PCIe board with up to 4 optical links		*/
+        cvUSB_A4818_V2718_LOCAL     = 5,
+        cvUSB_A4818_V2718           = 6,
+        cvUSB_A4818_LOCAL           = 7,
+        cvUSB_A4818_V3718_LOCAL     = 8,
+        cvUSB_A4818_V3718           = 9,
+        cvUSB_A4818_V4718_LOCAL     = 10,
+        cvUSB_A4818_V4718           = 11,
+        cvUSB_A4818                 = 12,
+        cvUSB_A4818_A2719_LOCAL     = 13,
+
+        cvUSB_V3718_LOCAL           = 14,
+        cvPCI_A2818_V3718_LOCAL     = 15,
+        cvPCIE_A3818_V3718_LOCAL    = 16,
+
+        cvUSB_V3718                 = 17,
+        cvPCI_A2818_V3718           = 18,
+        cvPCIE_A3818_V3718          = 19,
+
+        cvUSB_V4718_LOCAL           = 20,
+        cvPCI_A2818_V4718_LOCAL     = 21,
+        cvPCIE_A3818_V4718_LOCAL    = 22,
+        cvETH_V4718_LOCAL           = 23,
+
+        cvUSB_V4718                 = 24,
+        cvPCI_A2818_V4718           = 25,
+        cvPCIE_A3818_V4718          = 26,
+        cvETH_V4718                 = 27,
+
+		cvInvalid = -1
 } CVBoardTypes;
 
 /*
@@ -108,6 +137,9 @@ typedef enum CVErrorCodes {
         cvGenericError  = -3,           /* Unspecified error                            */
         cvInvalidParam  = -4,           /* Invalid parameter                            */
         cvTimeoutError  = -5,           /* Timeout error                                */
+		cvAlreadyOpenError = -6,        /* Device is already open error                 */
+		cvMaxBoardCountError = -7,      /* Maximum device number has been reached       */
+        cvNotSupported      = -8,       /* Function not supported by that board model   */
 } CVErrorCodes;
 
 /*
@@ -141,12 +173,15 @@ typedef enum CVInputSelect {
         Signal sources.
 */
 typedef enum CVIOSources {
-        cvManualSW    = 0,              /* Manual (button) or software controlled       */
-        cvInputSrc0   = 1,              /* Input line 0                                 */
-        cvInputSrc1   = 2,              /* Input line 1                                 */
-        cvCoincidence = 3,              /* Inputs coincidence                           */
-        cvVMESignals  = 4,              /* Signals from VME bus                         */
-        cvMiscSignals = 6               /* Various internal signals                     */
+        cvManualSW      = 0,              /* Manual (button) or software controlled       */
+        cvInputSrc0     = 1,              /* Input line 0                                 */
+        cvInputSrc1     = 2,              /* Input line 1                                 */
+        cvCoincidence   = 3,              /* Inputs coincidence                           */
+        cvVMESignals    = 4,              /* Signals from VME bus                         */
+        cvMiscSignals   = 6,              /* Various internal signals                     */
+        cvPulserV3718A  = 7,              /* Pulser A output only for V3718               */ 
+        cvPulserV3718B  = 8,              /* Pulser B output only for V3718               */
+        cvScalerEnd     = 9               /* Scaler End output only for V3718             */
 } CVIOSources;
 
 /*
@@ -156,7 +191,8 @@ typedef enum CVTimeUnits {
         cvUnit25ns   = 0,               /* Time unit is 25 nanoseconds                  */
         cvUnit1600ns = 1,               /* Time unit is 1.6 microseconds                */
         cvUnit410us  = 2,               /* Time unit is 410 microseconds                */
-        cvUnit104ms  = 3                /* Time unit is 104 milliseconds                */
+        cvUnit104ms  = 3,               /* Time unit is 104 milliseconds                */
+        cvUnit25us   = 4,               /* Time uint is 25 microseconds                 */   
 } CVTimeUnits;
 
 /*
@@ -332,5 +368,29 @@ typedef struct CVDisplay {
         CAEN_BOOL cvBR;       /* Bus Request signal                           */
         CAEN_BOOL cvBG;       /* Bus Grant signal                             */
 } CVDisplay;
+
+typedef enum CVScalerSource {
+    cvSourceIN0         = 0x0002,           
+    cvSourceIN1         = 0x0003,           
+    cvSourceDTACK       = 0x0006,            
+    cvSourceBERR        = 0x0007,           
+    cvSourceDS          = 0x0004,           
+    cvSourceAS          = 0x0005, 
+    cvSourceSW          = 0x0008,
+    cvSourceFP_Button   = 0x0009,
+	cvSourceCoinc       = 0x000A,
+	cvSourceINOR        = 0x000B,
+} CVScalerSource;
+
+typedef enum CVScalerMode {
+    cvGateMode       = 0x0,
+    cvDWellTimeMode  = 0x1,
+    cvMaxHitsMode    = 0x2,
+} CVScalerMode;
+
+typedef enum CVContinuosRun {
+    cvOff = 1,          
+    cvOn  = 0,           
+} CVContinuosRun;
 
 #endif // __CAENVMETYPES_H

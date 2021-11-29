@@ -421,7 +421,7 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
 	if(ScintillatorHC->entries() > 0)
 	  RIncidents[r]++;
 	
-	for(G4int i=0; i<ScintillatorHC->entries(); i++){
+	for(size_t i=0; i<ScintillatorHC->entries(); i++){
 	  if( (*ScintillatorHC)[i]->GetIsOpticalPhoton() ){
 	    ASIMEvents[r]->IncrementPhotonsCreated();
 	    if(WaveformStorage[r])
@@ -460,7 +460,7 @@ void ASIMReadoutManager::ReadoutEvent(const G4Event *currentEvent)
 	ASIMPhotodetectorSDHitCollection const *PhotodetectorHC =
 	  dynamic_cast<ASIMPhotodetectorSDHitCollection *>(HCE->GetHC(TheCollectionID));
 	
-	for(G4int i=0; i<PhotodetectorHC->entries(); i++){
+	for(size_t i=0; i<PhotodetectorHC->entries(); i++){
 	  ASIMEvents[r]->IncrementPhotonsDetected();
 	  if(WaveformStorage[r])
 	    ASIMEvents[r]->AddPhotonDetectionTime( (*PhotodetectorHC)[i]->GetDetectionTime()/ns );

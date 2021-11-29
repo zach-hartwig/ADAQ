@@ -64,15 +64,12 @@
 
 # Include the Makefile for ROOT-based projects
 RC:=root-config
-ROOTSYS:=$(shell $(RC) --prefix)
-ROOTMAKE:=$(ROOTSYS)/etc/Makefile.arch
+ROOTSYS:=$(shell $(RC) --etcdir)
+ROOTMAKE:=$(ROOTSYS)/Makefile.arch
 include $(ROOTMAKE)
 
 # Note that at this point in the makefile CXXFLAGS now includes
 # ROOT-based flags so we must ensure to use "+=" to add more flags
-
-# Add C++11 capabilities
-CXXFLAGS += -std=c++11
 
 # Obtain CPU architecture: 32-bit ("i686") or 64-bit ("x86_64") (Must
 # be set after the ROOT makefile is included)

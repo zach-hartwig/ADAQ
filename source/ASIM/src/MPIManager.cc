@@ -1,34 +1,34 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
 // name: MPIManager.cc
-// date: 20 Oct 15
+// date: 28 Nov 21
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 //
 // desc: The MPIManager is a meyer's singleton class that provides the
-//       ability to rapidly parallelize a Geant4 simulation for use on
-//       multicore of high-performance computing systems. While it
-//       provided as part of the ASIM library, it is completely
-//       generic and can be utilized in any Geant4 simulation to
-//       provide rapid parallelization by simply compiling and linking
-//       against the ASIM headers and libary in the standard way (An
-//       example G4 simulation and GNU makefile is provided within the
-//       example' directory). The MPIManager class is achieved using
-//       and has been tested using the Open MPI
-//       (http://www.open-mpi.org/) implementation of the MPI
-//       standard.
+//       ability to rapidly parallelize a user's Geant4 simulation for
+//       use on multicore or high-performance computing systems. It is
+//       generic and can be integrated into any Geant4 simulation for
+//       straightforward paralellization using Open MPI. The
+//       MPIMessenger class is a complementary class to enable
+//       particle source (e.g. /run/beamOn) in parallel processing.
 //
-//       It is important to ensure that a user's simulation that
-//       incorporates the MPIManager can be built in sequential
-//       architectures on systems that do not have Open MPI
-//       installed. The 'MPI_ENABLED' macro enables the user's
-//       makefile to include/exclude the Open MPI relevant code.
+//       Integration of MPI into Geant4 simulation is simple:
 //
-//       MPIManager is accompanied by the complementary MPIMessenger
-//       class. The messenger provides the "beam on" command for
-//       launching particles, and the user has the option to
-//       distribute N particles as evenly as possible across all
-//       available nodes or to distribute N particle on each node.
+//       1. In the Geant4 simulation Makefile, include the ASIM header
+//          directory and link the binary against the ASIM library in
+//          the Geant4 Makefile. Add the MPI_ENABLED C++ compiler
+//          macro to enable excluding Open MPI code, which enables the
+//          simulation to be optionally built on systems without Open
+//          MPI installed
+//
+//       2. Declare a concrete instance of the MPIManager (it is a
+//          singleton) and utilize within the simulation
+//
+//       This version has MPIManager has been compiled and tested with
+//       OpenMPI version 4.1.2. Note that as of OpenMPI 2.X.X, all C++
+//       bindings were depracated; MPIManager (as of 28 Nov 21) has
+//       been updated to use the standard C bindings for compliance.
 //
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -56,18 +56,16 @@ MPIManager *MPIManager::GetInstance()
 { return theMPImanager; }
 
 
-MPIManager::MPIManager(int argcMPI, char *argvMPI[])
+MPIManager::MPIManager(int argcMPI, char **argvMPI)
 {
-  // Initialize the MPI execution environment.  The MPI::Init_thread
-  // method is more specific than MPI::Init, allowing control of
-  // thread level support.  Here, we use MPI::THREAD_SERIALIZED to
-  // ensure that if multiple threads are present that only 1 thread
-  // will make calls the MPI libraries at one time.
-  MPI::Init_thread(argcMPI, argvMPI, MPI::THREAD_SERIALIZED);
-  
+  // Initialize the MPI environment with thread-level support,
+  // ensuring only 1 thread can call the MPI libraries at a time
+  threadSupport = 0;
+  MPI_Init_thread(&argcMPI, &argvMPI, MPI_THREAD_SERIALIZED, &threadSupport);
+    
   // Get the size (number of) and the rank the present process
-  size = MPI::COMM_WORLD.Get_size();
-  rank = MPI::COMM_WORLD.Get_rank();
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   
   // Set G4bools for master/slave identification
   isMaster = (rank == RANK_MASTER);
@@ -120,7 +118,7 @@ MPIManager::~MPIManager()
   if(isSlave and slaveOut.is_open())
     slaveOut.close();
   
-  MPI::Finalize(); 
+  MPI_Finalize(); 
 }
 
 
@@ -252,34 +250,35 @@ void MPIManager::DistributeSeeds()
 }
 
 
-// MPI::COMM_WORLD.Barrier forces all nodes to reach a common point
-// before proceeding. Useful to ensure that nodes are communicating as
-// well as synchronized.
+// MPI_Barrier forces all nodes to reach a common point before
+// proceeding. Useful to ensure that nodes are synchronized before
+// beginning key operations
 void MPIManager::ForceBarrier(G4String location)
 { 
-  MPI::COMM_WORLD.Barrier();
-
+  MPI_Barrier(MPI_COMM_WORLD);
+  
   G4cout << "\n\nMPIManager : All nodes have reached the MPI barrier at " << location << "!\n"
          <<     "             Nodes now proceeding onward ..."
 	 << G4endl;
 }
 
 
-// MPI::COMM_WORLD.Reduce reduces values on all nodes to a single
-// value on the specified node by using an MPI predefined operation
-// or a user specified operation. 
+// MPI_Reduce operates on all nodes to produce a single value on the
+// specified node by using an predefined MPI operation.
+
+// Sum all doubles into a single value on the master
 G4double MPIManager::SumDoublesToMaster(G4double slaveValue)
 {
   G4double masterSum = 0.;
-  MPI::COMM_WORLD.Reduce(&slaveValue, &masterSum, 1, MPI::DOUBLE, MPI::SUM, 0);
+  MPI_Reduce(&slaveValue, &masterSum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
   return masterSum;
 }
 
-
+// Sum all integers into a single value on the master
 G4int MPIManager::SumIntsToMaster(G4int slaveValue)
 {
   G4int masterSum = 0;
-  MPI::COMM_WORLD.Reduce(&slaveValue, &masterSum, 1, MPI::INT, MPI::SUM, 0);
+  MPI_Reduce(&slaveValue, &masterSum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
   return masterSum;
 }
 

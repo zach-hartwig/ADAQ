@@ -16,8 +16,8 @@
 
 if [ $# -ne 1 ]; then
     echo -e "\nError! Script only accepts a single cmd line argument!"
-    echo -e   "       <arg0> : seq == sequential ASIM library"
-    echo -e   "              : par == parallel ASIM library\n"
+    echo -e   "       <arg0> : seq == build ASIM library for sequential processing only"
+    echo -e   "              : par == build ASIM library for sequential and parallel processing\n"
     exit
 fi
 

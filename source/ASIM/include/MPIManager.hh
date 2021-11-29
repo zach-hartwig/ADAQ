@@ -1,34 +1,34 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
 // name: MPIManager.cc
-// date: 20 Oct 15
+// date: 28 Nov 21
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 //
 // desc: The MPIManager is a meyer's singleton class that provides the
-//       ability to rapidly parallelize a Geant4 simulation for use on
-//       multicore of high-performance computing systems. While it
-//       provided as part of the ASIM library, it is completely
-//       generic and can be utilized in any Geant4 simulation to
-//       provide rapid parallelization by simply compiling and linking
-//       against the ASIM headers and libary in the standard way (An
-//       example G4 simulation and GNU makefile is provided within the
-//       example' directory). The MPIManager class is achieved using
-//       and has been tested using the Open MPI
-//       (http://www.open-mpi.org/) implementation of the MPI
-//       standard.
+//       ability to rapidly parallelize a user's Geant4 simulation for
+//       use on multicore or high-performance computing systems. It is
+//       generic and can be integrated into any Geant4 simulation for
+//       straightforward paralellization using Open MPI. The
+//       MPIMessenger class is a complementary class to enable
+//       particle source (e.g. /run/beamOn) in parallel processing.
 //
-//       It is important to ensure that a user's simulation that
-//       incorporates the MPIManager can be built in sequential
-//       architectures on systems that do not have Open MPI
-//       installed. The 'MPI_ENABLED' macro enables the user's
-//       makefile to include/exclude the Open MPI relevant code.
+//       Integration of MPI into Geant4 simulation is simple:
 //
-//       MPIManager is accompanied by the complementary MPIMessenger
-//       class. The messenger provides the "beam on" command for
-//       launching particles, and the user has the option to
-//       distribute N particles as evenly as possible across all
-//       available nodes or to distribute N particle on each node.
+//       1. In the Geant4 simulation Makefile, include the ASIM header
+//          directory and link the binary against the ASIM library in
+//          the Geant4 Makefile. Add the MPI_ENABLED C++ compiler
+//          macro to enable excluding Open MPI code, which enables the
+//          simulation to be optionally built on systems without Open
+//          MPI installed
+//
+//       2. Declare a concrete instance of the MPIManager (it is a
+//          singleton) and utilize within the simulation
+//
+//       This version has MPIManager has been compiled and tested with
+//       OpenMPI version 4.1.2. Note that as of OpenMPI 2.X.X, all C++
+//       bindings were depracated; MPIManager (as of 28 Nov 21) has
+//       been updated to use the standard C bindings for compliance.
 //
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -90,19 +90,23 @@ private:
   // The singleton object
   static MPIManager *theMPImanager;
 
-  // The messenger interface for run time commands
+  // Messenger class for runtime commands
   MPIMessenger *theMPImessenger;
 
-  // size == number of procs; rank == process id
-  G4int size, rank;
+  // Variables for MPI implementation
+  G4int threadSupport;
+  G4int size; // Number of active MPI processes
+  G4int rank; // MPI process identification number
   G4bool isMaster, isSlave;
   enum {RANK_MASTER, RANK_SLAVE};
   std::ofstream slaveOut;
-  
+
+  // Variables to handle Geant4 event creation
   G4double totalEvents;
   G4int masterEvents, slaveEvents;
   G4bool distributeEvents;
 
+  // Variable to hold unique seeds for each node
   std::vector<G4long> seedPacket;
 #endif
 };

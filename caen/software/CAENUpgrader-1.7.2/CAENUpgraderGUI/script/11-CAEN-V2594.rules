@@ -1,1 +1,0 @@
-SUBSYSTEM=="usb", DRIVER=="usb", ATTR{idVendor}=="21e1", MODE:="0666"

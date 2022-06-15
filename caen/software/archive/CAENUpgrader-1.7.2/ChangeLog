@@ -1,0 +1,140 @@
+
+  -----------------------------------------------------------------------------
+
+                   --- CAEN SpA - Computing R&D Division --- 
+
+  -----------------------------------------------------------------------------
+
+  CAENUpgrader Tool Release Notes
+
+  -----------------------------------------------------------------------------
+  
+  Version 1.7.2 - August 2021
+
+  -----------------------------------------------------------------------------
+ 
+
+  Description
+  -----------
+
+  This file describes the revision history of CAENUpgrade firmware upgrade utility.
+
+  System Requirements
+  -------------------
+ 
+  - Windows 32/64-bit
+  - Java JRE 8 or later
+
+  What's New in version 1.7.2
+  ---------------------------
+  - Fixed bug on 2495/5495 upgrade with java 8
+
+  What's New in version 1.7.1
+  ---------------------------
+  - Added support for new A4818 USB3 CONET Adapter
+  
+  What's New in version 1.7.0
+  ---------------------------
+  - Added support for new V3718 USB/CONET2 - VME Bridge
+  - Added pll files for x730S and x725 family board
+
+  What's New in version 1.6.6
+  ---------------------------
+  - Added x730S family model 
+
+  What's New in version 1.6.5
+  ---------------------------
+  - Added x782 family model  
+
+   What's New in version 1.6.4
+  ---------------------------
+  - Added x741 family model 
+
+  What's New in version 1.6.3
+  ---------------------------
+  - Fixed bug un cvUpgrade when try to upgrade PLL for 8Mb flash
+  
+  What's New in version 1.6.2
+  ---------------------------
+  - Fixed bug un cvUpgrade for Digitizer with 8Mb and 32Mb flash
+  
+  What's New in version 1.6.1
+  ---------------------------
+  - Fixed minor bugs
+
+  What's New in version 1.6.0
+  ---------------------------
+  - support for V2495
+  - add PLL predefined file in PLL folder 
+  - Fix minor bugs
+  
+  What's New in version 1.5.1
+  ---------------------------
+  - increased number of available link in GUI
+  - Fix minor bugs
+  
+  What's New in version 1.5.0
+  ---------------------------
+  - add support for X730 family boards
+  - add support for X743 family boards
+  - add support for X781 family boards
+  - add upgrade HV firmware DT5780 and DT5790
+  - add support for DT55xx board family
+  - add control on the upgrade of .rbf files
+  - add Deskboot utility, GUI integrated
+  - Fix minor bugs
+ 
+  What's New in version 1.4.1
+  ---------------------------
+
+   - add support for DT5780
+   - Fix bug on PLL upgrade
+   - Fix bug on link number and Device number (inverted).
+   - Fix bug on GetBoardInfo under windows 7
+  
+  What's New in version 1.4.0
+  ---------------------------
+
+   - add support for V1761, DT5761, B6761
+   - Fix bug on get firmware release in Bridge UPgrade tab
+   - allow possibility to upgrade backup image of digitizer
+   - added the possibility to retrieve firmware release on Board Upgrade Tab
+  
+  What's New in version 1.3.0
+  ---------------------------
+
+   - Added compatibility with CAEN USB Driver >= 3.4.7
+   - Removed compatibility with CAEN USB Driver < 3.4.7
+  
+  What's New in version 1.2.1
+  ---------------------------
+
+   - Standalone version (removed requirements of CAENComm and CAENVmeLib)
+   - Bugfixes
+
+  What's New in version 1.1.1
+  ---------------------------
+
+   - Added warning when updating V1495 VME flash
+   - Bugfixes
+
+
+  What's New in version 1.1.0
+  ---------------------------
+
+   - Support to the CFA (CAEN Firmware Archive) format
+   - Bugfixes
+
+
+  What's New in version 1.0.0
+  ---------------------------
+
+   - First release              
+                        
+
+  How to get support
+  ------------------
+
+  Our Software Support Group is available for questions, support and any other 
+  software related issue concerning CAEN products; for software support
+  visit the page http://www.caen.it/csite/ProductSupport.jsp.

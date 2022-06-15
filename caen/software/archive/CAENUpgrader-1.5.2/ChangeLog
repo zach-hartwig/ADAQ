@@ -1,0 +1,93 @@
+
+  -----------------------------------------------------------------------------
+
+                   --- CAEN SpA - Computing R&D Division --- 
+
+  -----------------------------------------------------------------------------
+
+  CAENUpgrader Tool Release Notes
+
+  -----------------------------------------------------------------------------
+  
+  Version 1.5.2 - October 2015
+
+  -----------------------------------------------------------------------------
+ 
+
+  Description
+  -----------
+
+  This file describes the revision history of CAENUpgrade firmware upgrade utility.
+
+  System Requirements
+  -------------------
+ 
+  - Linux, 32/64-bit
+  - Java JRE 6 or later
+  
+  What's New in version 1.5.2
+  ---------------------------
+  - add support for x725 board family
+  
+    What's New in version 1.5.1
+  ---------------------------
+  - increased number of available link in GUI
+  - Fix minor bugs
+  
+   What's New in version 1.5.0
+  ---------------------------
+  - add support for X730 family boards
+  - add support for X743 family boards
+  - add support for X781 family boards
+  - add upgrade HV firmware DT5780 and DT5790
+  - add support for DT55xx board family
+  - add control on the upgrade of .rbf files
+  - add Deskboot utility, GUI integrated
+  - Fix minor bugs
+  
+  What's New in version 1.4.0
+  ---------------------------
+
+   - add support for V1761, DT5761, N6761
+   - Fix bug on get firmware release in Bridge UPgrade tab
+   - allow possibility to upgrade backup image of digitizer
+   - added the possibility to retrieve firmware release on Board Upgrade Tab
+  
+  What's New in version 1.3.0
+  ---------------------------
+
+   - Added compatibility with CAEN USB Driver >= 3.4.7
+   - Removed compatibility with CAEN USB Driver < 3.4.7
+  
+  What's New in version 1.2.1
+  ---------------------------
+
+   - Standalone version (removed requirements of CAENComm and CAENVmeLib)
+   - Bugfixes
+
+  What's New in version 1.1.1
+  ---------------------------
+
+   - Added warning when updating V1495 VME flash
+   - Bugfixes
+
+
+  What's New in version 1.1.0
+  ---------------------------
+
+   - Support to the CFA (CAEN Firmware Archive) format
+   - Bugfixes
+
+
+  What's New in version 1.0.0
+  ---------------------------
+
+   - First release              
+                        
+
+  How to get support
+  ------------------
+
+  Our Software Support Group is available for questions, support and any other 
+  software related issue concerning CAEN products; for software support
+  visit the page http://www.caen.it/csite/ProductSupport.jsp.

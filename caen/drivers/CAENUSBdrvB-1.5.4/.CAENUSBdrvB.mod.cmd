@@ -1,0 +1,1 @@
+cmd_/home/hartwig/adaq/ADAQ/caen/drivers/CAENUSBdrvB-1.5.4/CAENUSBdrvB.mod := { echo  /home/hartwig/adaq/ADAQ/caen/drivers/CAENUSBdrvB-1.5.4/CAENUSBdrvB.o;  echo; } > /home/hartwig/adaq/ADAQ/caen/drivers/CAENUSBdrvB-1.5.4/CAENUSBdrvB.mod

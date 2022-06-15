@@ -1,0 +1,1 @@
+cmd_/home/hartwig/adaq/ADAQ/caen/drivers/CAENUSBdrvB-1.5.4/Module.symvers := sed 's/\.ko$$/\.o/' /home/hartwig/adaq/ADAQ/caen/drivers/CAENUSBdrvB-1.5.4/modules.order | scripts/mod/modpost    -o /home/hartwig/adaq/ADAQ/caen/drivers/CAENUSBdrvB-1.5.4/Module.symvers -e -i Module.symvers   -T -

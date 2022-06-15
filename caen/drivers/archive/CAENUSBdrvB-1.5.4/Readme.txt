@@ -37,17 +37,6 @@
 
  - Linux kernel Rel. 2.6/3.x/4.x/5.x with gnu C/C++ compiler
  - Tested on kernel v4.18 and v5.4
- 
- 
- --------------------------------------------------------------------------------------------------------------
- 					N.B.
- CAEN provides Linux drivers for its products as source code (open source). For Linux kernels requiring the
- digital signature for driver installation, the User must compile the driver by signing it with his own digital
- certificate or disable the demand for the digital signature in the kernel.
- If an unsigned driver is loaded on a kernel that requires a signature, the message "ERROR: unable to insert \
- 'DriverName \': Operation not allowed" will appear.
- --------------------------------------------------------------------------------------------------------------
- 
 
  Compilation notes:
  

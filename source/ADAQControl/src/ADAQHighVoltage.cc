@@ -13,7 +13,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 // name: ADAQHighVoltage.cc
-// date: 21 Jul 15
+// date: 14 Sep 22
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 //
@@ -223,6 +223,8 @@ void ADAQHighVoltage::MapRegisters()
       Status.push_back(V653X::STATUS);
       VSet.push_back(V653X::VSET[ch]);
       ISet.push_back(V653X::ISET[ch]);
+      VRampU.push_back(V653X::RMPU[ch]);
+      VRampD.push_back(V653X::RMPD[ch]);
       VMon.push_back(V653X::VMON[ch]);
       IMon.push_back(V653X::IMON[ch]);
       Pw.push_back(V653X::PW[ch]);
@@ -240,9 +242,10 @@ void ADAQHighVoltage::MapRegisters()
       VMax.push_back(DT5790::VMAX[ch]);
       IMax.push_back(DT5790::IMAX[ch]);
       Status.push_back(DT5790::STATUS[ch]);
-      
       VSet.push_back(DT5790::VSET[ch]);
       ISet.push_back(DT5790::ISET[ch]);
+      VRampU.push_back(DT5790::RMPU[ch]);
+      VRampD.push_back(DT5790::RMPD[ch]);
       VMon.push_back(DT5790::VMON[ch]);
       IMon.push_back(DT5790::IMON[ch]);
       Pw.push_back(DT5790::PW[ch]);
@@ -618,6 +621,70 @@ int ADAQHighVoltage::GetMaxVoltage(int Channel, uint16_t *MaxVoltageGet)
     cout << VMax[Channel] << endl;
     (*MaxVoltageGet/=maxVolts2input);
   }
+  return CommandStatus;
+}
+
+
+// Method to set the channel voltage ramp up rate
+int ADAQHighVoltage::SetRampUpRate(int Channel, uint16_t RampUpRate)
+{
+  CommandStatus = -42;
+
+  if(Channel>MaxChannel or Channel<MinChannel){
+    if(Verbose)
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error setting voltage ramp up rate! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
+	   << endl;
+  }
+  else{
+    CommandStatus = CAENComm_Write16(BoardHandle, VRampU[Channel], RampUpRate);
+  }
+
+  return CommandStatus;
+}
+
+
+int ADAQHighVoltage::GetRampUpRate(int, uint16_t)
+{
+  CommandStatus = -42;
+  return CommandStatus;
+}
+
+
+uint16_t ADAQHighVoltage::GetRampUpRate(int)
+{
+  CommandStatus = -42;
+  return CommandStatus;
+}
+
+
+// Method to set the channel voltage ramp down rate
+int ADAQHighVoltage::SetRampDownRate(int Channel, uint16_t RampDownRate)
+{
+  CommandStatus = -42;
+
+  if(Channel>MaxChannel or Channel<MinChannel){
+    if(Verbose)
+      cout << "ADAQHighVoltage [" << BoardID << "] : Error setting voltage ramp down rate! Channel out of range (0 <= ch <= " << NumChannels << ")\n"
+	   << endl;
+  }
+  else{
+    CommandStatus = CAENComm_Write16(BoardHandle, VRampD[Channel], RampDownRate);
+  }
+
+  return CommandStatus;
+}
+
+
+int ADAQHighVoltage::GetRampDownRate(int, uint16_t)
+{
+  CommandStatus = -42;
+  return CommandStatus;
+}
+
+
+uint16_t ADAQHighVoltage::GetRampDownRate(int)
+{
+  CommandStatus = -42;
   return CommandStatus;
 }
 

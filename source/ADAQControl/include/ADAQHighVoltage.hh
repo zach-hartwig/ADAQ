@@ -106,7 +106,7 @@ public:
   // Print present status of all channels to stdout
   int PrintStatus();
 
-  // Set/get individual channel voltages
+  // Set/get channel voltages
   int SetVoltage(int, uint16_t);
   int GetVoltage(int, uint16_t *);
   uint16_t GetVoltage(int);
@@ -115,26 +115,36 @@ public:
   int SetMaxVoltage(int, uint16_t);
   int GetMaxVoltage(int, uint16_t *);
   uint16_t GetMaxVoltage(int);
+
+    // Set/get channel ramp up rates
+  int SetRampUpRate(int, uint16_t);
+  int GetRampUpRate(int, uint16_t);
+  uint16_t GetRampUpRate(int);
+
+  // Set/get channel ramp down rates
+  int SetRampDownRate(int, uint16_t);
+  int GetRampDownRate(int, uint16_t);
+  uint16_t GetRampDownRate(int);
   
-  // Set/get individual channel max. currents
+  // Set/get channel max. currents
   int SetCurrent(int, uint16_t);
   int GetCurrent(int, uint16_t *);
   uint16_t GetCurrent(int);
 
-  // Set individual channels on/off; get individual channel status
+  // Set channels on/off; get individual channel status
   int SetPowerOn(int);
   int SetPowerOff(int);
   int GetPowerState(int, uint16_t *);
   uint16_t GetPowerState(int);
   
-  // Get individual channel polarity (+ or -)
+  // Get channel polarity (+ or -)
   int GetPolarity(int, uint16_t *);
   uint16_t GetPolarity(int);
 
   string GetPolarityString(int);
   int SetPolarityString(int, string);
 
-  // Get individual channel temperature
+  // Get channel temperature
   int GetTemperature(int, uint16_t *);
   uint16_t GetTemperature(int);
 
@@ -163,7 +173,7 @@ private:
 
   uint32_t FirmRel;
   vector<uint32_t> VMax, IMax, Status;
-  vector<uint32_t> VSet, ISet, VMon, IMon, Pw, Pol, Temp;
+  vector<uint32_t> VSet, ISet, VRampU, VRampD, VMon, IMon, Pw, Pol, Temp;
   uint16_t PowerOn, PowerOff;
 
   // Containers to hold present-state of HV settings

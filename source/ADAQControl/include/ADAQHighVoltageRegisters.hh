@@ -13,7 +13,7 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
 // name: ADAQHighVoltageRegisters.hh
-// date: 21 Jul 15
+// date: 14 Sep 22
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 // 
@@ -58,8 +58,11 @@ namespace V653X{
   const uint32_t VMON[6] = {0x0088,  0x0108,  0x0188,  0x0208,  0x0288,  0x0308}; // Voltage monitor
   const uint32_t IMON[6] = {0x008c,  0x010c,  0x018c,  0x020c,  0x028c,  0x030c}; // Current monitor (max)
   const uint32_t   PW[6] = {0x0090,  0x0110,  0x0190,  0x0210,  0x0290,  0x0310}; // Power 
+  const uint32_t RMPD[6] = {0x00a0,  0x0120,  0x01a0,  0x0220,  0x02a0,  0x0320}; // Voltage ramp down
+  const uint32_t RMPU[6] = {0x00a4,  0x0124,  0x01a4,  0x0224,  0x02a4,  0x0324}; // Voltage ramp up
   const uint32_t  POL[6] = {0x00ac,  0x012c,  0x01ac,  0x022c,  0x02ac,  0x032c}; // Polarity
   const uint32_t TEMP[6] = {0x00b0,  0x0130,  0x01b0,  0x0230,  0x02b0,  0x0330}; // Temperature
+
 
   // Register values to control the power state (on/off)
   const uint16_t POWEROFF = 0x00;
@@ -84,7 +87,7 @@ namespace V653X{
 //   below and set to 0x0000
 //
 // - DT5790 registers are all channel-specific (no global settings)
-//   and are addressed as "0xZnZZ", where n==2 is HV channel 0 and
+//   and are addressed as "0x1nXY", where n==2 is HV channel 0 and
 //   n==3 is HV channel 1.
 //
 // - DT5790M has HV channel 0 (positive) and HV channel 1 (negative).
@@ -98,15 +101,15 @@ namespace DT5790{
   const uint32_t   IMAX[2] = {0x0000,  0x0000}; // Current maximum (unused)
   const uint32_t STATUS[2] = {0x1238,  0x1338}; // Status
 
-  const uint32_t VSET[2] = {0x1220,  0x1320}; // Voltage set
-  const uint32_t ISET[2] = {0x1224,  0x1324}; // Current set
-  const uint32_t RMPU[2] = {0x1228,  0x1328}; // Ramp voltage up rate
-  const uint32_t RMPD[2] = {0x122C,  0x132C}; // Ramp voltage down rate
-  const uint32_t VMON[2] = {0x1240,  0x1340}; // Voltage monitor
-  const uint32_t IMON[2] = {0x1244,  0x1344}; // Current monitor (max)
-  const uint32_t   PW[2] = {0x1234,  0x1334}; // Power
-  const uint32_t  POL[2] = {0x0000,  0x0000}; // Polarity (unused)
-  const uint32_t TEMP[2] = {0x0000,  0x0000}; // Temperature (unused)
+  const uint32_t   VSET[2] = {0x1220,  0x1320}; // Voltage set
+  const uint32_t   ISET[2] = {0x1224,  0x1324}; // Current set
+  const uint32_t   RMPU[2] = {0x1228,  0x1328}; // Voltage ramp up 
+  const uint32_t   RMPD[2] = {0x122C,  0x132C}; // Voltage ramp down 
+  const uint32_t   VMON[2] = {0x1240,  0x1340}; // Voltage monitor
+  const uint32_t   IMON[2] = {0x1244,  0x1344}; // Current monitor (max)
+  const uint32_t     PW[2] = {0x1234,  0x1334}; // Power
+  const uint32_t    POL[2] = {0x0000,  0x0000}; // Polarity (unused)
+  const uint32_t   TEMP[2] = {0x0000,  0x0000}; // Temperature (unused)
   
   // Register values to control the power state (on/off)
   const uint16_t POWEROFF = 0x00;

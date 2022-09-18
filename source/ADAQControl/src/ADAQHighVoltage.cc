@@ -364,7 +364,7 @@ int ADAQHighVoltage::SetRegisterValue(uint32_t Addr32, uint16_t Data16)
   CommandStatus = -42;
   
   if(CheckRegisterForWriting(Addr32))
-    CommandStatus =  CAENComm_Write16(BoardHandle, Addr32, Data16);
+    CommandStatus = CAENComm_Write16(BoardHandle, Addr32, Data16);
   
   return CommandStatus;
 }

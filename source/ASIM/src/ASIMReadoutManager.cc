@@ -604,7 +604,7 @@ void ASIMReadoutManager::CreateRunSummary(const G4Run *currentRun)
 {
   if(parallelProcessing)
     ReduceSlaveValuesToMaster();
-
+  
   // In sequential or in parallel on the master node, add a class with
   // information from this run...
   

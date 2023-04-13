@@ -1,1 +1,1 @@
-cmd_/home/hartwig/adaq/ADAQ/caen/drivers/CAENUSBdrvB-1.5.4/CAENUSBdrvB.mod := { echo  /home/hartwig/adaq/ADAQ/caen/drivers/CAENUSBdrvB-1.5.4/CAENUSBdrvB.o;  echo; } > /home/hartwig/adaq/ADAQ/caen/drivers/CAENUSBdrvB-1.5.4/CAENUSBdrvB.mod
+cmd_/home/hartwig/adaq/ADAQ/caen/drivers/CAENUSBdrvB-1.5.4/CAENUSBdrvB.mod := printf '%s\n'   CAENUSBdrvB.o | awk '!x[$$0]++ { print("/home/hartwig/adaq/ADAQ/caen/drivers/CAENUSBdrvB-1.5.4/"$$0) }' > /home/hartwig/adaq/ADAQ/caen/drivers/CAENUSBdrvB-1.5.4/CAENUSBdrvB.mod

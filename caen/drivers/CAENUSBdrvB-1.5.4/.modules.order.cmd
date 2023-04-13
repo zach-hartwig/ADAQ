@@ -1,1 +1,1 @@
-cmd_/home/hartwig/adaq/ADAQ/caen/drivers/CAENUSBdrvB-1.5.4/modules.order := {   echo /home/hartwig/adaq/ADAQ/caen/drivers/CAENUSBdrvB-1.5.4/CAENUSBdrvB.ko; :; } | awk '!x[$$0]++' - > /home/hartwig/adaq/ADAQ/caen/drivers/CAENUSBdrvB-1.5.4/modules.order
+cmd_/home/hartwig/adaq/ADAQ/caen/drivers/CAENUSBdrvB-1.5.4/modules.order := {   echo /home/hartwig/adaq/ADAQ/caen/drivers/CAENUSBdrvB-1.5.4/CAENUSBdrvB.ko; :; } > /home/hartwig/adaq/ADAQ/caen/drivers/CAENUSBdrvB-1.5.4/modules.order

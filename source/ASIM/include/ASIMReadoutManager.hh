@@ -63,8 +63,6 @@ public:
   
   void HandleOpticalPhotonCreation(const G4Track *);
   void HandleOpticalPhotonDetection(const G4Step *);
-  
-  
 
   void ReduceSlaveValuesToMaster();
 

@@ -1,0 +1,21 @@
+#!/bin/sh
+#=============================================================================
+#
+#             --- CAEN SpA - Computing Systems Division ---
+#
+#  Library installation script.
+#
+#
+#
+#=============================================================================
+
+
+search_dir=./x86
+for file in "$search_dir"/*
+do
+  install $file /usr/lib/
+  filename="$(basename -- $file)"
+  ln -sf /usr/lib/$filename /usr/lib/libCAENVME.so
+done
+/sbin/ldconfig
+cp ../include/* /usr/include/

@@ -1,0 +1,104 @@
+  -----------------------------------------------------------------------------
+
+                   --- CAEN SpA - Computing Systems Division --- 
+
+  -----------------------------------------------------------------------------
+
+  CAENComm Library Release Notes
+
+  -----------------------------------------------------------------------------
+  Rel. 1.6.0 - Jan 2023
+  Rel. 1.5.3 - Jan 2023
+  Rel. 1.5.2 - Feb 2022
+  Rel. 1.5.1 - Sep 2021
+  Rel. 1.5   - Jun 2021
+  Rel. 1.4.1 - Mar 2021
+  Rel. 1.4	 - Feb 2021
+  Rel. 1.3   - May 2017
+  Rel. 1.2   - Dec 2013
+  Rel. 1.1   - May 2012
+  Rel. 1.02  - Jul 2010
+  Rel. 1.01  - Mar 2010
+  Rel. 1.0   - Jul 2009
+  -----------------------------------------------------------------------------
+
+
+ What's New in Rel. 1.6.0
+ --------------------------
+  - Remove workaround introduced on version 1.4.1 to deal with the swapped
+     arguments of CAENVME_Init. The previous behavior has been restored with
+     CAENVME 3.4.0. Now CAENComm uses directly CAENVME_Init2, introduced on
+     CAENVME 3.3.0, to open the underlying library, whose interface has not
+     been changed with CAENVME 3.4.0. This makes this version of CAENComm
+     to be compatible only with CAENVME 3.3.0 or newer.
+  - CAENComm_OpenDevice is now marked as deprecated.
+  - Add const to void* argument of CAENComm_OpenDevice2.
+  - Add support for CAENComm_OpenDevice2 on LabVIEW wrapper.
+  - Fix some issues when connecting to CAENComm_USB_V4718.
+ 
+ What's New in Rel. 1.5.3
+ --------------------------
+  - Remove Windows.h and unistd.h from CAENComm (could break existing code if people are using system specific stuff without including proper headers)
+  - New macros in CAENComm.h to get compile time version (see CAEN_COMM_VERSION and related macros)
+  - Add const to pointer arguments, where appropriate
+  - Add arm64 build on Linux package
+  - Fixes on Windows installer
+ 
+ What's New in Rel. 1.5.2
+ --------------------------
+  - Fixed bug on V65xx family board controlled using A4818 and V4718
+ 
+ What's New in Rel. 1.5.1
+ --------------------------
+  - fixed Labview VIs to support V4718 and A4818
+ 
+ What's New in Rel. 1.5
+ --------------------------
+  - add support for V4718 VME Bridge
+ 
+ What's New in Rel. 1.4.1
+ --------------------------
+  - fixed bug on CAENComm_OpenDevice with VME Bridge card
+ 
+ What's New in Rel. 1.4
+ --------------------------
+  - add support for A4818 USB-CONET adapter
+ 
+ What's New in Rel. 1.3
+ --------------------------
+  - FIXED bug on CAENComm_OpenDevice when used with direct connetions and VMEBaseAddress != 0
+  - minor bugfix
+ 
+ What's New in Rel. 1.2
+ --------------------------
+  - add CAENComm_VMELIB_handle in GetInfo
+  - modified CAEN_Comm_ConnectionType removing PCI/PCIE options replacing with OpticalLink
+ 
+ What's New in Rel. 1.1
+ --------------------------
+  - FIXED BUG on OpenDevice
+ 
+ What's New in Rel. 1.02
+ --------------------------
+  - FIXED BUG on VMEIRQWait
+ 
+ What's New in Rel. 1.01
+ --------------------------
+  - FIXED BUG on OpenDevice with CAENComm_USB connection
+ 
+ What's New in Rel. 1.0
+ --------------------------
+  - First release
+
+
+ Determining Your Software Release
+ ---------------------------------
+  To determine the complete software release of the CAENComm Library
+  installed in your machine, you must write a program and use the
+  CAENComm_SWRelease API function.
+
+
+ How to get support
+ ------------------
+  For technical support, go to https://www.caen.it/mycaen/support/ (login and
+  MyCAEN+ account required).

@@ -2,7 +2,7 @@
 # date: 20 Dec 23
 # auth: Zach Hartwig
 # mail: hartwig@psfc.mit.edu
-# desc: GNU makefile for building the CAENAcquisitionTemplate
+# desc: GNU makefile for building the ADAQTemplate C++ program
 
 #***************************#
 #**** MACRO DEFINITIONS ****#
@@ -31,13 +31,13 @@ CXXFLAGS += -I$(ADAQHOME)/include -I$(INCLDIR)
 LDFLAGS+=-L$(ADAQHOME)/lib/$(HOSTTYPE) -lADAQControl
 
 # Specify the location of the CAEN libraries (architecture-dependent)
-LDFLAGS+=-L$(ADAQHOME)/lib/$(HOSTTYPE) -lCAENVME -lCAENComm -lCAENDigitizer -lncurses -lc -lm
+LDFLAGS+=-L$(ADAQHOME)/lib/$(HOSTTYPE) -lCAENVME -lCAENComm -lCAENDigitizer
 
 # Specify Boost libraries to link against
 LDFLAGS+=-lboost_thread
 
 # Specify the target
-TARGET = $(BINDIR)/CAENAcquisitionTemplate
+TARGET = $(BINDIR)/ADAQTemplate
 
 #***************#
 #**** RULES ****#
@@ -47,7 +47,7 @@ TARGET = $(BINDIR)/CAENAcquisitionTemplate
 
 $(TARGET) : $(OBJS) 
 	@echo -e "\nBuilding the binary $@ ..."
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) $(ROOTGLIBS) $(ROOTLIB)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 	@echo -e "\n$@ build is complete!\n"
 
 $(BUILDDIR)/%.o : $(SRCDIR)/%.cc $(INCLS)

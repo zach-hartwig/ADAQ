@@ -1,23 +1,27 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// name: CAENAcquisitionTemplate.cc
+// name: ADAQTemplate.cc
 // date: 20 Dec 23 (last updated)
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 //
-// desc: CAENAcquisitionTemplate is a code intended to provide the
-//       basic foundation for writing acquisition code using CAEN
-//       digitizers. It provides a mature build system, modular code,
-//       and basic layout for rapidly developing acquisition code,
-//       prototypng, and testing suites. The idea is that the user
-//       should copy this directory wholesale into a new directory,
-//       completely rename everything as they fit, and start to
-//       modify/augment the code as they fit.
+// desc: ADAQTemplate is a simple C++ program intended to provide the
+//       foundation for a basic detector waveform acquisition loop
+//       using the ADAQ libraries and CAEN digitizers. It provides a
+//       tutorial with highly commented code to demonstrate how to
+//       program digitizers and read out acquired waveform data, a
+//       basic framework that a user can extend into a more mature
+//       code for his/her purposes, and a GNUmakefile-based build
+//       system foe easy compilation. Dependencies are minimal to
+//       enable portability and usability.
 //
-// dpnd: The code requires the following to be installed:
-//       -> ADAQ libraries
-//       -> ROOT data analysis framework
-//       -> Boost C++ header and libraries
+//       At present, the code supports two types of CAEN firmware:
+//       standard and DPP-PSD. It has been tested on x720, x724, and
+//       x730 type digitizers as well as the DT5790.
+//
+// dpnd: The code requires the following software dependencies:
+//       -> ADAQ libraries (for control/readout of CAEN digitizers)
+//       -> Boost C++ libraries (for threading)
 //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -28,14 +32,14 @@ using namespace std;
 // Boost
 #include <boost/thread.hpp>
 
-// CAENAcquisitionTemplate
+// ADAQTemplate
 #include "AcquisitionManager.hh"
 
 
 int main(int argc, char *argv[])
 {
   if(argc != 1){
-    cout << "\nCAENAcquisitionTemplate : Error! No command line arguments are allowed!\n"
+    cout << "\nADAQTemplate : Error! No command line arguments are allowed!\n"
 	 << endl;
     return -42;
   }
@@ -53,7 +57,7 @@ int main(int argc, char *argv[])
   // Arm the data acquisition system //
   /////////////////////////////////////
 
-  cout << "\nCAENAcquisitionTemplate : Arming the DAQ ...\n"
+  cout << "\nADAQTemplate : Arming the DAQ ...\n"
        << endl;
   
   AcquisitionMgr->Arm();
@@ -63,7 +67,7 @@ int main(int argc, char *argv[])
   // Start the acquisition //
   ///////////////////////////
 
-  cout << "CAENAcquisitionTemplate : Starting the waveform acquisition phase ...\n"
+  cout << "ADAQTemplate : Starting the waveform acquisition phase ...\n"
        << "                          Multithreaded processing will now begin. Creating threads ...\n"
        << endl;
 
@@ -79,7 +83,7 @@ int main(int argc, char *argv[])
   boost::thread Acquisition_thread = boost::thread(&AcquisitionManager::StartAcquisition2,AcquisitionMgr);
   boost::thread Escape_thread = boost::thread(&AcquisitionManager::StopAcquisition,AcquisitionMgr,&Acquisition_thread);
   
-  cout << "CAENAcquisitionTemplate : Joining threads ...\n" 
+  cout << "ADAQTemplate : Joining threads ...\n" 
        << endl;
 
   // Join the threads. At this point, the "main" thread splits into
@@ -94,7 +98,7 @@ int main(int argc, char *argv[])
   // The main thread resumes here after the Acquisition_thread and
   // Escape_thread have concluded their business.
   
-  cout << "CAENAcquisitionTemplate : All worker threads have completed!\n"
+  cout << "ADAQTemplate : All worker threads have completed!\n"
        << endl;
   
 
@@ -102,7 +106,7 @@ int main(int argc, char *argv[])
   // Disarm the data acquisition system //
   ////////////////////////////////////////
   
-  cout << "CAENAcquisitionTemplate : Disarming the DAQ ...\n"
+  cout << "ADAQTemplate : Disarming the DAQ ...\n"
        << endl;
   
   AcquisitionMgr->Disarm();

@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
 // name: CAENAcquisitionTemplate.cc
-// date: 15 Jul 16
+// date: 20 Dec 23 (last updated)
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 //
@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 	 << endl;
     return -42;
   }
-
+  
   ////////////////////////////////////////////
   // Create an "acquisition manager" object //
   ////////////////////////////////////////////
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 
   cout << "\nCAENAcquisitionTemplate : Arming the DAQ ...\n"
        << endl;
-
+  
   AcquisitionMgr->Arm();
 
 

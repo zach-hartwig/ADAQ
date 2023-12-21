@@ -1,25 +1,28 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
 // name: AcquisitionManager.cc
-// date: 15 Jul 16
+// date: 20 Dec 23 (last updated)
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 //
 // desc: The purpose of the AcquisitionManager class is to handle all
-//       aspects of interfacing with the CAEN hardware and readout,
-//       from setting up the digitizer to processing readout data. In
-//       the template, the following standard features are provided:
-//       setup of the ROOT objects necessary for readout, programming
-//       of the digitizer hardware, readout via a standard acquisition
-//       loop, shutdown of the acquisition. It is the task of the user
-//       to (a) modify the above as necessary and (b) to actually
-//       implement something useful to do with the data that is
-//       readout.
+//       aspects of interfacing with the CAEN hardware for control and
+//       readout. In this template (meant to be customized and
+//       expanded by the user), we show how to use the ADAQDigitizer
+//       class to program, arm, acquire waveform data, and safely
+//       shutdown a CAEN digitizer unit in a standard acquisition
+//       thread; control and readout of other hardware (e.g. high
+//       voltage, VME controllers, etc.) can be easily added. While
+//       basic functionality is provided within the acquisition loop
+//       when data is retrieved, the user can implement whatever
+//       method(s) they like to operate on the data.
 //
-//       Control of the acquisition is provided via the separate
-//       ::StartAcquisition() and ::StopAcquisition() Boost threads
-//       (see CAENAcquisitionTemplate.cc). This enables keyboard entry
-//       by the user to initiate acquisition during acquisition.
+//       To enable user-control during acquisition, two threads (using
+//       the Boost library implementation) are created: an
+//       "acquisition thread" that runs the acquisition loop to
+//       readout and unpack digitized data; and a "control thread"
+//       that enables the user to manually intervene to, for example,
+//       terminate the acquisition process.
 //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -35,8 +38,8 @@ using namespace boost::assign;
 
 
 AcquisitionManager::AcquisitionManager()
-  :  DGType(zDT5790M), DGEnable(true), DGLinkOpen(false), DGBoardAddress(0x00000000),
-     Verbose(true), Debug(false)
+  :  DGType(zDT5790M), DGBoardAddress(0x00000000), DGLinkOpen(false),
+     Debug(false)
 {
   //////////////////////////////////
   // Instantiate a digitizer manager
@@ -46,14 +49,14 @@ AcquisitionManager::AcquisitionManager()
 				DGBoardAddress, // Address in VME space
 				0,              // USB link number
 				0);             // CONET node number
+
   DGManager->SetVerbose(true);
 }
 
 
 AcquisitionManager::~AcquisitionManager()
 {
-  if(DGEnable)
-    delete DGManager;
+  delete DGManager;
 }
 
 
@@ -76,26 +79,20 @@ void AcquisitionManager::InitConnection()
   ////////////////////////////
   // VME link to the digitizer
   
-  if(DGEnable){
-    
-    if(Verbose)
-      cout << "\nAcquisitionManager (main thread) : Opening a link to the digitizer ...\n"
-	   << endl;
-    
-    int Status = DGManager->OpenLink();
-    (Status==0) ? DGLinkOpen = true : DGLinkOpen = false;
-    
-    if(!DGLinkOpen){
-      if(Verbose)
-	cout << "AcquisitionManager (main thread) : Error! A link to the digitizer could not be established! Exiting...\n"
-	     << endl;
-      exit(-42);
-    }
-    else
-      if(Verbose)
-	cout << "AcquisitionManager (main thread) : A link to the digitizer has been established!\n"
-	     << endl;
+  cout << "AcquisitionManager (main thread) : Opening a link to the digitizer ...\n"
+       << endl;
+  
+  int Status = DGManager->OpenLink();
+  (Status==0) ? DGLinkOpen = true : DGLinkOpen = false;
+  
+  if(!DGLinkOpen){
+    cout << "AcquisitionManager (main thread) : Error! A link to the digitizer could not be established! Exiting...\n"
+	 << endl;
+    exit(-42);
   }
+  else
+    cout << "AcquisitionManager (main thread) : A link to the digitizer has been established!\n"
+	 << endl;
 }
 
 
@@ -119,7 +116,7 @@ void AcquisitionManager::InitParameters()
   // Init readout parameters //
   /////////////////////////////
   
-  Int_t NumChannels = DGManager->GetNumChannels();
+  int NumChannels = DGManager->GetNumChannels();
 
   if(DGStandardFW){
     EventPointer = NULL;
@@ -133,7 +130,7 @@ void AcquisitionManager::InitParameters()
   Buffer = NULL;
 
   BufferSize = ReadSize = FPGAEvents = PCEvents = 0;
-  for(Int_t ch=0; ch<NumChannels; ch++)
+  for(int ch=0; ch<NumChannels; ch++)
     NumPSDEvents.push_back(0);
   
   DGManager->MallocReadoutBuffer(&Buffer, &BufferSize);
@@ -148,7 +145,7 @@ void AcquisitionManager::InitParameters()
   // Init control parameters //
   /////////////////////////////
   
-  for(Int_t ch=0; ch<NumChannels; ch++){
+  for(int ch=0; ch<NumChannels; ch++){
     ChEnabled.push_back(false);
     ChPosPolarity.push_back(false);
     ChNegPolarity.push_back(true);
@@ -231,7 +228,7 @@ void AcquisitionManager::InitDigitizer()
   DGManager->Reset();
 
   // Get the number of digitizer channels
-  Int_t NumChannels = DGManager->GetNumChannels();
+  int NumChannels = DGManager->GetNumChannels();
 
   /////////////////////////////////////////
   // Program the STD firmware digitizers //
@@ -308,7 +305,7 @@ void AcquisitionManager::InitDigitizer()
     ///////////////////////////////////////////////////////
     // Set channel-specific, non-PSD structure PSD settings
     
-    for(Int_t ch=0; ch<NumChannels; ch++){
+    for(int ch=0; ch<NumChannels; ch++){
       
       DGManager->SetRecordLength(ChRecordLength[ch], ch);
       DGManager->SetChannelDCOffset(ch, ChDCOffset[ch]);
@@ -488,7 +485,5 @@ void AcquisitionManager::Disarm()
   }
   
   // Close a VME link to the digitizer
-  if(DGEnable){
-    DGManager->CloseLink();
-  }
+  DGManager->CloseLink();
 }

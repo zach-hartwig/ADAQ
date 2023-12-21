@@ -1,100 +1,77 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
 // name: AcquisitionManager.hh
-// date: 16 Jul 16
+// date: 20 Dec 23 (last updated)
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 //
 // desc: The purpose of the AcquisitionManager class is to handle all
-//       aspects of interfacing with the CAEN hardware and readout,
-//       from setting up the digitizer to processing readout data. In
-//       the template, the following standard features are provided:
-//       setup of the ROOT objects necessary for readout, programming
-//       of the digitizer hardware, readout via a standard acquisition
-//       loop, shutdown of the acquisition. It is the task of the user
-//       to (a) modify the above as necessary and (b) to actually
-//       implement something useful to do with the data that is
-//       readout.
+//       aspects of interfacing with the CAEN hardware for control and
+//       readout. In this template (meant to be customized and
+//       expanded by the user), we show how to use the ADAQDigitizer
+//       class to program, arm, acquire waveform data, and safely
+//       shutdown a CAEN digitizer unit in a standard acquisition
+//       thread; control and readout of other hardware (e.g. high
+//       voltage, VME controllers, etc.) can be easily added. While
+//       basic functionality is provided within the acquisition loop
+//       when data is retrieved, the user can implement whatever
+//       method(s) they like to operate on the data.
 //
-//       Control of the acquisition is provided via the separate
-//       ::StartAcquisition() and ::StopAcquisition() Boost threads
-//       (see CAENAcquisitionTemplate.cc). This enables keyboard entry
-//       by the user to initiate acquisition during acquisition.
+//       To enable user-control during acquisition, two threads (using
+//       the Boost library implementation) are created: an
+//       "acquisition thread" that runs the acquisition loop to
+//       readout and unpack digitized data; and a "control thread"
+//       that enables the user to manually intervene to, for example,
+//       terminate the acquisition process.
 //
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef __AcquisitionManager_hh__
 #define __AcquisitionManager_hh__ 1
 
-// ROOT
-#include <TObject.h>
-#include <TTimer.h>
-
 // C++
 #include <vector>
-#include <map>
 #include <string>
 using namespace std;
 
-// Boost and CAEN
-#ifndef __CINT__
+// Boost
 #include <boost/thread.hpp>
 #include <boost/cstdint.hpp>
-#include "CAENDigitizerType.h"
-#endif
 
 // ADAQ
-#include "ADAQRootClasses.hh"
 #include "ADAQDigitizer.hh"
 
-
-class AcquisitionManager : public TObject
+class AcquisitionManager
 {
 public:
   AcquisitionManager();
   ~AcquisitionManager();
   
-  // Prepare for data acquisition
+  // Methods to prepare for and cleanup after data acquisition
   void Arm();
   void InitConnection();
   void InitParameters();
   void InitDigitizer();
-
-  
-  // Begin data acquisition
-  void StartAcquisition();
-  void StartAcquisition2();
-
-  // Stop data acquisition; note that the Boost.Thread
-  // functionality must be protected from ROOT's CINT
-#ifndef __CINT__
-  void StopAcquisition(boost::thread *);
-#endif
-
-  // Safely shutdown the DAQ
   void Disarm();
 
+  // Methods to start/stop data acquisition
+  void StartAcquisition();
+  void StartAcquisition2();
+  void StopAcquisition(boost::thread *);
 
 private:
-  // ADAQ manager object for the digitizer
+  // ADAQ manager object to control interface to the digitizer
   ADAQDigitizer *DGManager;
   
   // Initialization variables for the  digitizer
+
   ZBoardType DGType;
-  bool DGEnable, DGLinkOpen;
   int DGBoardAddress;
+  bool DGLinkOpen;
   bool DGStandardFW, DGPSDFW;
-
+  
   // General program control variables
-  bool Verbose, Debug;
-
-  /*
-    Important: Anything that uses Boost's Integer types (uint16_t,
-    uint32_t, etc) or CAEN's defined types from "CAENDigitizerType.h"
-    must be protected from ROOT's CINT
-  */
-
-#ifndef __CINT__
+  bool Debug;
 
   // Variables for the digitizer common to all firmware types
   
@@ -139,10 +116,6 @@ private:
   // A double-vector for readout of digitizer channels
   vector< vector<uint16_t> > Waveforms;
 
-#endif
-  
-  // Define the AcquisitionManager class to ROOT
-  ClassDef(AcquisitionManager,1);
 };
 
 #endif

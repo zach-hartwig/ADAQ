@@ -68,35 +68,32 @@ int main(int argc, char *argv[])
   ///////////////////////////
 
   cout << "ADAQTemplate : Starting the waveform acquisition phase ...\n"
-       << "                          Multithreaded processing will now begin. Creating threads ...\n"
+       << "               Multithreaded processing will now begin. Creating threads ...\n"
        << endl;
 
   // Create two Boost threads. The first thread ("Acquisition_thread")
-  // will handle waveform acquisition (setup, waveform digitization,
-  // persistent storage, shutdown). The Acquisition_thread is
-  // configured to accept interrupt signals from the second thread
-  // ("Escape_thread"), which allows the user to interface with the
+  // will contain the acquisition loop, which reads out waveform data
+  // from the digitizer and operates on it. The Acquisition_thread is
+  // configured to accept control signals from the second thread
+  // ("Control_thread"), which allows the user to interface with the
   // code while the acquisiion loop is running in a separate thread
-  // (e.g. to manually trigger the digitizer or to terminate
-  // acquisition).
 
-  boost::thread Acquisition_thread = boost::thread(&AcquisitionManager::StartAcquisition2,AcquisitionMgr);
-  boost::thread Escape_thread = boost::thread(&AcquisitionManager::StopAcquisition,AcquisitionMgr,&Acquisition_thread);
+  boost::thread Acquisition_thread = boost::thread(&AcquisitionManager::RunAcquisitionLoop, AcquisitionMgr);
+  boost::thread Control_thread = boost::thread(&AcquisitionManager::RunControlLoop, AcquisitionMgr, &Acquisition_thread);
   
   cout << "ADAQTemplate : Joining threads ...\n" 
        << endl;
 
   // Join the threads. At this point, the "main" thread splits into
-  // the Acquisition_thread and the Escape_thread. The main thread
-  // will wait until both threads have concluded (which occurs when
-  // the user uses the Escape_thread to terminate the waveform
-  // digitization)
+  // the Acquisition_thread and the Control_thread. The main thread
+  // waits until both threads have concluded, which occurs when the
+  // user uses the Control_thread to terminate the acquisition loop
   
   Acquisition_thread.join();
-  Escape_thread.join();
-
+  Control_thread.join();
+  
   // The main thread resumes here after the Acquisition_thread and
-  // Escape_thread have concluded their business.
+  // Control_thread have concluded their business.
   
   cout << "ADAQTemplate : All worker threads have completed!\n"
        << endl;

@@ -49,15 +49,14 @@ public:
   
   // Methods to prepare for and cleanup after data acquisition
   void Arm();
-  void InitConnection();
   void InitParameters();
+  void InitConnection();
   void InitDigitizer();
   void Disarm();
 
   // Methods to start/stop data acquisition
-  void StartAcquisition();
-  void StartAcquisition2();
-  void StopAcquisition(boost::thread *);
+  void RunAcquisitionLoop();
+  void RunControlLoop(boost::thread *);
 
 private:
   // ADAQ manager object to control interface to the digitizer
@@ -65,10 +64,8 @@ private:
   
   // Initialization variables for the  digitizer
 
-  ZBoardType DGType;
-  int DGBoardAddress;
   bool DGLinkOpen;
-  bool DGStandardFW, DGPSDFW;
+  string DGFirmwareType;
   
   // General program control variables
   bool Debug;

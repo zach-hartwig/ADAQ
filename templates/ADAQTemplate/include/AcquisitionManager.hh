@@ -84,7 +84,8 @@ private:
   
   // All firwmare 
   
-  vector<bool> ChEnabled, ChPosPolarity, ChNegPolarity;
+  vector<bool> ChEnabled;
+  vector<CAEN_DGTZ_PulsePolarity_t> ChPulsePolarity;
   vector<uint32_t> ChDCOffset, ChTriggerThreshold;
   int EventsBeforeReadout;
   uint32_t ChannelEnableMask;
@@ -124,8 +125,8 @@ private:
   // Pulse Shape Discrimination (PSD) firmware
 
   CAEN_DGTZ_DPP_PSD_Event_t *PSDEvents[2];
+  uint32_t NumPSDEvents[2];
   CAEN_DGTZ_DPP_PSD_Waveforms_t *PSDWaveforms = NULL;
-  vector<uint32_t> NumPSDEvents;
 
   // A double-vector for readout of digitizer channels
   vector< vector<uint16_t> > Waveforms;

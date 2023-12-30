@@ -49,11 +49,11 @@ public:
   
   // Methods to prepare for and cleanup after data acquisition
   void Arm();
-  void InitParameters();
-  void InitConnection();
-  void InitDigitizer();
+  void OpenConnection();
+  void InitializeParameters();
+  void ProgramDigitizer();
   void Disarm();
-
+  
   // Methods to start/stop data acquisition
   void RunAcquisitionLoop();
   void RunControlLoop(boost::thread *);
@@ -66,11 +66,23 @@ private:
 
   bool DGLinkOpen;
   string DGFirmwareType;
+  int DGNumChannels;
   
   // General program control variables
   bool Debug;
 
-  // Variables for the digitizer common to all firmware types
+  ///////////////////////////////////////////
+  // Variables used for digitizer programming
+
+  // These variables hold values that the user can specify to control
+  // the behavior of the digitizer. They are optional in the sense
+  // that the user could hardcode them directly into the various
+  // function calls. They are created as class member variables for
+  // clarity and could, if so desired, be set via loading a parameter
+  // file. At present, they are simply set in the member function
+  // AcquisitionManager::InitParams().
+  
+  // All firwmare 
   
   vector<bool> ChEnabled, ChPosPolarity, ChNegPolarity;
   vector<uint32_t> ChDCOffset, ChTriggerThreshold;
@@ -79,36 +91,41 @@ private:
   bool TriggerEdgeRising, TriggerEdgeFalling;
   bool TriggerTypeAutomatic, TriggerTypeSoftware;
   
-  // Variables for CAEN standard firmware (STD) settings
+  // Standard (STD) firmware 
 
   uint32_t RecordLength, PostTriggerSize;
   vector<uint32_t> ChBaselineCalcMin, ChBaselineCalcMax; 
 
-  // Variables for CAEN DPP-PSD firwmare (PSD) settings
+  // Pulse Shape Discrimination (PSD) firmware
 
-  vector<uint32_t> ChRecordLength, ChBaselineSamples, ChChargeSensitivity;
-  vector<uint32_t> ChShortGate, ChLongGate, ChPreTrigger, ChGateOffset;
-  uint32_t TriggerHoldoff;
+  CAEN_DGTZ_DPP_PSD_Params_t PSDParameters;
+  vector<uint32_t> PSDChRecordLength, PSDChPreTrigger;
 
-  // Variables for digitizer readout with STD firmware
 
-  char *EventPointer;
-  CAEN_DGTZ_EventInfo_t EventInfo;
-  CAEN_DGTZ_UINT16_EVENT_t *EventWaveform;
+  //////////////////////////////////
+  // Variables for digitizer readout
 
-  // Variables for digitizer readout with DPP-PSD firmware
+  // These variables are mandatory and CAEN-specific for proper
+  // readout of the digitizer waveform data from the FPGA to the
+  // PC. Different firmware require different variables for readout to
+  // the differences in FPGA operations and data structures.
 
-  CAEN_DGTZ_DPP_PSD_Params_t *PSDParams[16];
-  CAEN_DGTZ_DPP_PSD_Event_t *PSDEvents[16];
-  CAEN_DGTZ_DPP_PSD_Waveforms_t *PSDWaveforms;
-  vector<uint32_t> NumPSDEvents;
-
-  // Variables for PC buffer readout
-
-  char *Buffer;
+  char *Buffer = NULL;
   uint32_t BufferSize, PSDEventSize, PSDWaveformSize, ReadSize;
   uint32_t FPGAEvents, PCEvents;
   vector<bool> BufferFull;
+
+  // Standard (STD) firmware
+
+  char *EventPointer = NULL;
+  CAEN_DGTZ_EventInfo_t EventInfo;
+  CAEN_DGTZ_UINT16_EVENT_t *EventWaveform = NULL;;
+
+  // Pulse Shape Discrimination (PSD) firmware
+
+  CAEN_DGTZ_DPP_PSD_Event_t *PSDEvents[2];
+  CAEN_DGTZ_DPP_PSD_Waveforms_t *PSDWaveforms = NULL;
+  vector<uint32_t> NumPSDEvents;
 
   // A double-vector for readout of digitizer channels
   vector< vector<uint16_t> > Waveforms;

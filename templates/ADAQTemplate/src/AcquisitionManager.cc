@@ -38,7 +38,7 @@ using namespace boost::assign;
 
 
 AcquisitionManager::AcquisitionManager()
-  :  DGLinkOpen(false), Debug(true)
+  : DGLinkOpen(false), Debug(true)
 {
   //////////////////////////////////
   // Instantiate a digitizer manager
@@ -61,151 +61,133 @@ AcquisitionManager::~AcquisitionManager()
 
 void AcquisitionManager::Arm()
 {
-  InitConnection();
-  InitParameters();
-  InitDigitizer();
+  OpenConnection();
+  InitializeParameters();
+  ProgramDigitizer();
 }
 
 
-void AcquisitionManager::InitConnection()
+void AcquisitionManager::OpenConnection()
 {
-  ////////////////////////////
-  // VME link to the digitizer
+  /////////////////////////////////
+  // Open VME link to the digitizer
   
   cout << "AcquisitionManager (main thread) : Opening a link to the digitizer ...\n"
        << endl;
   
-  int Status = DGManager->OpenLink();
-  (Status==0) ? DGLinkOpen = true : DGLinkOpen = false;
-  
-  if(!DGLinkOpen){
+  int DGStatus = DGManager->OpenLink();
+  (DGStatus==0) ? DGLinkOpen = true : DGLinkOpen = false;
+
+  if(DGLinkOpen){
+    cout << "AcquisitionManager (main thread) : A link to the digitizer has been established!\n"
+	 << endl;
+    DGFirmwareType = DGManager->GetBoardFirmwareType();
+    DGNumChannels = DGManager->GetNumChannels();
+  }
+  else{
     cout << "AcquisitionManager (main thread) : Error! A link to the digitizer could not be established! Exiting...\n"
 	 << endl;
     exit(-42);
   }
-  else
-    cout << "AcquisitionManager (main thread) : A link to the digitizer has been established!\n"
-	 << endl;
 }
 
 
-void AcquisitionManager::InitParameters()
+void AcquisitionManager::InitializeParameters()
 {
   if(!DGLinkOpen)
     return;
   
-  /////////////////////////////
-  // Determine firmware type //
-  /////////////////////////////
+  //////////////////////////////
+  // Firmware-agnostic variables
   
-  DGFirmwareType = DGManager->GetBoardFirmwareType();
-
-  
-  /////////////////////////////
-  // Init readout parameters //
-  /////////////////////////////
-  
-  int NumChannels = DGManager->GetNumChannels();
-
-  if(DGFirmwareType == "STD"){
-    EventPointer = NULL;
-    EventWaveform = NULL;
-    DGManager->AllocateEvent(&EventWaveform);
-  }
-  else if(DGFirmwareType == "PSD"){
-    PSDWaveforms = NULL;
-  }
-
-  Buffer = NULL;
-
-  BufferSize = ReadSize = FPGAEvents = PCEvents = 0;
-  for(int ch=0; ch<NumChannels; ch++)
-    NumPSDEvents.push_back(0);
-  
-  DGManager->MallocReadoutBuffer(&Buffer, &BufferSize);
-  
-  if(DGFirmwareType == "PSD"){
-    DGManager->MallocDPPEvents(PSDEvents, &PSDEventSize);
-    DGManager->MallocDPPWaveforms(&PSDWaveforms, &PSDWaveformSize); 
-  }
-
-  
-  /////////////////////////////
-  // Init control parameters //
-  /////////////////////////////
-  
-  for(int ch=0; ch<NumChannels; ch++){
+  for(int ch=0; ch<DGNumChannels; ch++){
     ChEnabled.push_back(false);
     ChPosPolarity.push_back(false);
     ChNegPolarity.push_back(true);
     ChDCOffset.push_back(0x8000);
-    ChTriggerThreshold.push_back(2000);
   }
+
   ChEnabled[0] = true;
+  ChannelEnableMask = DGManager->CalculateChannelEnableMask(ChEnabled);
 
-  // Events to accumulate on the digitizer before transfer to PC
   EventsBeforeReadout = 25;
-  
-  // Trigger type
-  TriggerTypeAutomatic = false;
-  TriggerTypeSoftware = true;
 
-  // Trigger edge type
-  TriggerEdgeRising = true;
-  TriggerEdgeFalling = !TriggerEdgeRising;
-
-  // Calculate the channel enable mask, which is a 32-bit integer
-  // describing which of the digitizer channels are enabled.
   
-  for(int ch=0; ch<DGManager->GetNumChannels(); ch++){
-    if(ChEnabled[ch]){
-      uint32_t Ch = 0x00000001<<ch;
-      ChannelEnableMask |= Ch;
-    }
-  }
-  
-  // Ensure that at least one channel is enabled 
-  if((0xff & ChannelEnableMask)==0){
-    cout << "\nAcquisitionManager (main thread) : Error! No digitizer channels were enabled, ie, ChannelEnableMask==0!\n"
-	 << endl;
-    exit(-42);
-  }
+  //////////////////////////////////
+  // STD firmware specific variables
   
   if(DGFirmwareType == "STD"){
 
-    // Initialize vector-of-vectors; outer vector is size of channels,
-    // inner vector is length of waveform in samples
-
-    Waveforms.resize(DGManager->GetNumChannels());
-    for(int ch=0; ch<DGManager->GetNumChannels(); ch++)
-      Waveforms[ch].resize(RecordLength);
-    
-    // The "width" or "length" of the acquisition window [samples]
+    // Control variables
     RecordLength = 512;
-    
-    // Position of the trigger within the acquisition window [%]
     PostTriggerSize = 50;
-    
-    for(int ch=0; ch<NumChannels; ch++){
+    for(int ch=0; ch<DGNumChannels; ch++){
+      ChTriggerThreshold.push_back(2000);
       ChBaselineCalcMin.push_back(0);
       ChBaselineCalcMax.push_back(50);
     }
+
+    // Readout variables
+    Buffer = NULL;
+    BufferSize = 0;
+    
+    EventPointer = NULL;
+    EventWaveform = NULL;
+    //DGManager->AllocateEvent(&EventWaveform);
+    
+    Waveforms.resize(DGManager->GetNumChannels());
+    for(int ch=0; ch<DGManager->GetNumChannels(); ch++)
+      Waveforms[ch].resize(RecordLength);
   }
+
+
+  /////////////////////////////////
+  // PSD firmware specific variable
+
   else if(DGFirmwareType == "PSD"){
-    for(int ch=0; ch<NumChannels; ch++){
-      ChRecordLength.push_back(512);
-      ChBaselineSamples.push_back(0);
-      ChChargeSensitivity.push_back(0);
-      ChShortGate.push_back(50);
-      ChLongGate.push_back(462);
-      ChPreTrigger.push_back(100);
-      ChGateOffset.push_back(50);
+
+    // Control variables
+    
+    for(int ch=0; ch<DGNumChannels; ch++){
+      PSDParameters.thr[ch] = 100;
+      PSDParameters.nsbl[ch] = 2;
+      PSDParameters.lgate[ch] = 512;
+      PSDParameters.sgate[ch] = 128;
+      PSDParameters.pgate[ch] = 64;
+      PSDParameters.selft[ch] = 1;
+      PSDParameters.csens[ch] = 0;
+      PSDParameters.tvaw[ch] = 50;
+      PSDParameters.trgc[ch] = CAEN_DGTZ_DPP_TriggerConfig_Threshold;
+
+      PSDChRecordLength.push_back(512);
+      PSDChPreTrigger.push_back(32);
     }
+    PSDParameters.purh = CAEN_DGTZ_DPP_PSD_PUR_DetectOnly;
+    PSDParameters.purgap = 100;
+    PSDParameters.blthr = 5;
+    PSDParameters.bltmo = 100;
+    PSDParameters.trgho = 10;
+
+    // Readout variables
+
+    Buffer = NULL;
+    BufferSize = 0;
+    PSDEventSize = 0;
+    for(int ch=0; ch<DGNumChannels; ch++)
+      NumPSDEvents.push_back(0);
+    
+    PSDWaveforms = NULL;
   }
-}  
+  
+  else{
+    cout << "\nAcquisitionManager (main thread) : Error! Firmware type '" << DGFirmwareType << "' is not supported\n!"
+	 << endl;
+    exit(-42);
+  }
+}
 
 
-void AcquisitionManager::InitDigitizer()
+void AcquisitionManager::ProgramDigitizer()
 {
   if(!DGLinkOpen)
     return;
@@ -216,16 +198,13 @@ void AcquisitionManager::InitDigitizer()
   // Reset the digitizer to default state
   DGManager->Reset();
 
-  // Get the number of digitizer channels
-  int NumChannels = DGManager->GetNumChannels();
-
   /////////////////////////////////////////
   // Program the STD firmware digitizers //
   /////////////////////////////////////////
 
   if(DGFirmwareType == "STD"){
     
-    for(int ch=0; ch<NumChannels; ch++){
+    for(int ch=0; ch<DGNumChannels; ch++){
       DGManager->SetChannelTriggerThreshold(ch, ChTriggerThreshold[ch]);
       DGManager->SetChannelDCOffset(ch, ChDCOffset[ch]);
 
@@ -260,6 +239,14 @@ void AcquisitionManager::InitDigitizer()
     DGManager->DisableExternalTrigger();
   }
 
+
+  if((0xff & ChannelEnableMask)==0){
+    cout << "\nAcquisitionManager (main thread) : Error! No digitizer channels were enabled, ie, ChannelEnableMask==0!\n"
+	 << endl;
+    exit(-42);
+  }
+
+
   
   /////////////////////////////////////////
   // Program the PSD firmware digitizers //
@@ -267,26 +254,6 @@ void AcquisitionManager::InitDigitizer()
 
   else if(DGFirmwareType == "PSD"){
     
-    CAEN_DGTZ_DPP_PSD_Params_t PSDParameters;
-    
-    for(int ch=0; ch<NumChannels; ch++){
-      
-      PSDParameters.nsbl[ch] = ChBaselineSamples[ch];
-      PSDParameters.csens[ch] = ChChargeSensitivity[ch];
-      
-      if(TriggerTypeAutomatic)
-	PSDParameters.selft[ch] = 1;
-      else if(TriggerTypeSoftware)
-	PSDParameters.selft[ch] = 0;
-      
-      PSDParameters.thr[ch] = ChTriggerThreshold[ch];
-      PSDParameters.tvaw[ch] = 0;
-      PSDParameters.trgc[ch] = CAEN_DGTZ_DPP_TriggerConfig_Threshold;
-      
-      PSDParameters.sgate[ch] = ChShortGate[ch];
-      PSDParameters.lgate[ch] = ChLongGate[ch]; 
-      PSDParameters.pgate[ch] = ChGateOffset[ch];
-    }
 
     DGManager->SetDPPParameters(ChannelEnableMask, &PSDParameters);
 
@@ -294,11 +261,11 @@ void AcquisitionManager::InitDigitizer()
     ///////////////////////////////////////////////////////
     // Set channel-specific, non-PSD structure PSD settings
     
-    for(int ch=0; ch<NumChannels; ch++){
+    for(int ch=0; ch<DGNumChannels; ch++){
       
-      DGManager->SetRecordLength(ChRecordLength[ch], ch);
+      DGManager->SetRecordLength(PSDChRecordLength[ch], ch);
       DGManager->SetChannelDCOffset(ch, ChDCOffset[ch]);
-      DGManager->SetDPPPreTriggerSize(ch, ChPreTrigger[ch]);
+      DGManager->SetDPPPreTriggerSize(ch, PSDChPreTrigger[ch]);
       
       if(ChPosPolarity[ch])
 	DGManager->SetChannelPulsePolarity(ch, CAEN_DGTZ_PulsePolarityPositive);
@@ -316,6 +283,18 @@ void AcquisitionManager::InitDigitizer()
     DGManager->SetDPPEventAggregation(EventsBeforeReadout, 0);
     DGManager->SetRunSynchronizationMode(CAEN_DGTZ_RUN_SYNC_Disabled);
   }
+
+
+  
+  /* Move to after digitizer programming
+  DGManager->MallocReadoutBuffer(&Buffer, &BufferSize);
+  
+  if(DGFirmwareType == "PSD"){
+    DGManager->MallocDPPEvents(PSDEvents, &PSDEventSize);
+    DGManager->MallocDPPWaveforms(&PSDWaveforms, &PSDWaveformSize); 
+  }
+  */
+
 }
 
 

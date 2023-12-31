@@ -1,27 +1,38 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
 // name: ADAQTemplate.cc
-// date: 20 Dec 23 (last updated)
+// date: 31 Dec 23 (last updated)
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 //
-// desc: ADAQTemplate is a simple C++ program intended to provide the
-//       foundation for a basic detector waveform acquisition loop
-//       using the ADAQ libraries and CAEN digitizers. It provides a
-//       tutorial with highly commented code to demonstrate how to
-//       program digitizers and read out acquired waveform data, a
-//       basic framework that a user can extend into a more mature
-//       code for his/her purposes, and a GNUmakefile-based build
-//       system foe easy compilation. Dependencies are minimal to
-//       enable portability and usability.
+// desc: ADAQTemplate is a relatively simple C++ program intended to
+//       provide a basic code framework for digitized data acquisition
+//       using the ADAQ libraries and CAEN digitizers. It essentially
+//       functions as a tutorial with commented code to demonstrate
+//       how to first program digitizers and then read out waveform
+//       data during acquisition. It is also intended to be copied and
+//       extended by a user into a more mature data acquisition
+//       framework intended to satisfy more complex needs. The code
+//       provides a reasonable directory structure for doing so as
+//       well as a GNUmakefile build system to integrate dependencies
+//       and control compilation. Dependencies are minimal to maximize
+//       portability.
 //
 //       At present, the code supports two types of CAEN firmware:
-//       standard and DPP-PSD. It has been tested on x720, x724, and
-//       x730 type digitizers as well as the DT5790.
+//       standard (STD) and pulse shape discrimination (PSD). It has
+//       been developed and tested on x720, x724, and x730 type
+//       digitizers as well as the DT5790.
 //
 // dpnd: The code requires the following software dependencies:
-//       -> ADAQ libraries (for control/readout of CAEN digitizers)
+//       -> ADAQ libraries (to enhance control/readout of CAEN digitizers)
 //       -> Boost C++ libraries (for threading)
+//
+// 2run: Ensure appropriate CAEN driver is installed, the USB/Optical
+//       cord is connected between the CAEN hardware and PC, and the
+//       CAEN hardware is powered on! Then:
+//
+//       $ make
+//       $ ./bin/ADAQTemplate
 //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -47,9 +58,7 @@ int main(int argc, char *argv[])
   ////////////////////////////////////////////
   // Create an "acquisition manager" object //
   ////////////////////////////////////////////
-  // The AcquisitionManager control all the DAQ functionality,
-  // including "arming" the DAQ (setting V6534 and V1720 registers,
-  // powering up the V6534 high voltage channels, etc)
+
   AcquisitionManager *AcquisitionMgr = new AcquisitionManager;
 
 
@@ -79,7 +88,6 @@ int main(int argc, char *argv[])
   // code while the acquisiion loop is running in a separate thread
 
   boost::thread Acquisition_thread = boost::thread(&AcquisitionManager::RunAcquisitionLoop, AcquisitionMgr);
-  //m  boost::thread Acquisition_thread = boost::thread(&AcquisitionManager::RunDebugLoop, AcquisitionMgr);
   boost::thread Control_thread = boost::thread(&AcquisitionManager::RunControlLoop, AcquisitionMgr, &Acquisition_thread);
   
   cout << "ADAQTemplate : Joining threads ...\n" 

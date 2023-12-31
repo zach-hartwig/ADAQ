@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
 // name: AcquisitionManager.cc
-// date: 20 Dec 23 (last updated)
+// date: 31 Dec 23 (last updated)
 // auth: Zach Hartwig
 // mail: hartwig@psfc.mit.edu
 //
@@ -40,8 +40,8 @@ using namespace boost::assign;
 AcquisitionManager::AcquisitionManager()
   : DGLinkOpen(false), Debug(false)
 {
-  //////////////////////////////////
-  // Instantiate a digitizer manager
+  // Instantiate an ADAQDigitizer class to facilitate programming and
+  // readout with the digitizer hardware
   
   DGManager = new ADAQDigitizer(zDT5790M,   // ADAQ-specified CAEN device type
 				0,          // User-specified ID
@@ -78,8 +78,9 @@ void AcquisitionManager::Arm()
 
 void AcquisitionManager::OpenConnection()
 {
-  /////////////////////////////////
-  // Open VME link to the digitizer
+  // This method attempts to open a link to the digitizer. If
+  // successful then obtain some useful information about the
+  // hardware; if unsuccesseful then alert the user and exit.
   
   cout << "AcquisitionManager (main thread) : Opening a link to the digitizer ...\n"
        << endl;
@@ -103,6 +104,9 @@ void AcquisitionManager::OpenConnection()
 
 void AcquisitionManager::InitializeParameters()
 {
+  // This method initializes many of the class member variables that
+  // will be needed to program and readout the digitizer
+  
   if(!DGLinkOpen)
     return;
   
@@ -111,20 +115,24 @@ void AcquisitionManager::InitializeParameters()
   
   for(int ch=0; ch<DGNumChannels; ch++){
     ChEnabled.push_back(false);
-    ChPulsePolarity.push_back(CAEN_DGTZ_PulsePolarityPositive);
+    ChPulsePolarity.push_back(CAEN_DGTZ_PulsePolarityNegative);
     ChDCOffset.push_back(0x8000);
   }
 
+  // Enable channel 0 and calculate the required channel enable mask
   ChEnabled[0] = true;
   ChannelEnableMask = DGManager->CalculateChannelEnableMask(ChEnabled);
 
+  // Number of events aggregated before triggering readout to the PC
   EventsBeforeReadout = 1;
-
+  
   
   //////////////////////////////////
   // STD firmware specific variables
   
   if(DGFirmwareType == "STD"){
+
+    /*
 
     // Control variables
 
@@ -147,6 +155,8 @@ void AcquisitionManager::InitializeParameters()
     Waveforms.resize(DGManager->GetNumChannels());
     for(int ch=0; ch<DGManager->GetNumChannels(); ch++)
       Waveforms[ch].resize(RecordLength);
+
+    */
   }
 
 
@@ -156,26 +166,38 @@ void AcquisitionManager::InitializeParameters()
   else if(DGFirmwareType == "PSD"){
 
     // Control variables
-    
+
     for(int ch=0; ch<DGNumChannels; ch++){
-      PSDParameters.thr[ch] = 100;
-      PSDParameters.nsbl[ch] = 2;
-      PSDParameters.lgate[ch] = 40;
-      PSDParameters.sgate[ch] = 10;
-      PSDParameters.pgate[ch] = 10;
-      PSDParameters.selft[ch] = 0;
-      PSDParameters.csens[ch] = 0;
-      PSDParameters.tvaw[ch] = 10;
+
+      // Channels-specific settings
+
+      // Acquisition window configuration
+      PSDChRecordLength.push_back(64); // Total acquisition length [samples]
+      PSDChPreTrigger.push_back(24);   // Time from start to trigger [samples]
+
+      // Charge integration settings
+      PSDParameters.lgate[ch] = 36; // Long integration gate [sample]
+      PSDParameters.sgate[ch] = 8;  // Short integration gate [sample]
+      PSDParameters.pgate[ch] = 8;  // Pre gate offset from trigger [sample]
+
+      // Trigger settings
+      PSDParameters.thr[ch] = 100; // Trigger threshold above baseline [ADC]
+      PSDParameters.selft[ch] = 0; // Channel self-trigger flag
+      PSDParameters.tvaw[ch] = 10; // Trigger validation window [sample]
       PSDParameters.trgc[ch] = CAEN_DGTZ_DPP_TriggerConfig_Threshold;
 
-      PSDChRecordLength.push_back(64);
-      PSDChPreTrigger.push_back(40);
+      // General purpose settings
+      PSDParameters.nsbl[ch] = 1;   // Setting for baseline samples in average
+      PSDParameters.csens[ch] = 0;  // Setting for dynamic range conversion
     }
-    PSDParameters.purh = CAEN_DGTZ_DPP_PSD_PUR_DetectOnly;
-    PSDParameters.purgap = 100;
-    PSDParameters.blthr = 5;
-    PSDParameters.bltmo = 100;
-    PSDParameters.trgho = 10;
+
+    // Board-specific settings
+
+    PSDParameters.purh = CAEN_DGTZ_DPP_PSD_PUR_DetectOnly; // Pile-up detection
+    PSDParameters.purgap = 50;  // Piled-up peak discrimination level
+    PSDParameters.blthr = 10;   // Fixed baseline threshold value (if nsbl[n] == 0)
+    PSDParameters.bltmo = 100;  // Baseline timeout (possibly depracated by DPP PSD)
+    PSDParameters.trgho = 44;   // Trigger hold-off (all channels
     
     // Readout variables
     
@@ -186,25 +208,23 @@ void AcquisitionManager::InitializeParameters()
       NumPSDEvents[ch] = 0;
     PSDWaveforms = NULL;
   }
-  
-  else{
-    cout << "\nAcquisitionManager (main thread) : Error! Firmware type '" << DGFirmwareType << "' is not supported\n!"
-	 << endl;
-    return;
-  }
 }
 
 
 void AcquisitionManager::ProgramDigitizer()
 {
+  // This method (1) programs the digitizer with all necessary
+  // information before acquisition and (2) allocates the necessary
+  // memory for readout of all event and waveform data during
+  // acquisition. Note that step #1 must be completed before step #2.
+  
   if(!DGLinkOpen)
     return;
 
-  // Reset the digitizer
-  //  DGManager->Initialize();
+  // Initialize the digitizer to a clean state
+  DGManager->Initialize();
   DGManager->Reset();
-  //  DGManager->ClearData();
-
+  
   /////////////////////////////////////////
   // Program the STD firmware digitizers //
   /////////////////////////////////////////
@@ -252,6 +272,8 @@ void AcquisitionManager::ProgramDigitizer()
   // Program digitizer with PSD firmware //
   /////////////////////////////////////////
 
+  // Program the digitizer with all relevant control parameters
+
   else if(DGFirmwareType == "PSD"){
 
     DGManager->SetChannelEnableMask(ChannelEnableMask);
@@ -262,11 +284,6 @@ void AcquisitionManager::ProgramDigitizer()
     DGManager->DisableExternalTrigger();
     DGManager->DisableAutoTrigger(ChannelEnableMask);
     DGManager->EnableSWTrigger();
-
-    DGManager->SetDPPAcquisitionMode(CAEN_DGTZ_DPP_ACQ_MODE_Mixed, CAEN_DGTZ_DPP_SAVE_PARAM_EnergyAndTime);
-    DGManager->SetDPPEventAggregation(EventsBeforeReadout,0);
-    DGManager->SetDPPTriggerMode(CAEN_DGTZ_DPP_TriggerMode_Normal);
-    DGManager->SetDPPParameters(ChannelEnableMask, &PSDParameters);
     
     for(int ch=0; ch<DGNumChannels; ch++){
       DGManager->SetRecordLength(PSDChRecordLength[ch], ch);
@@ -274,6 +291,14 @@ void AcquisitionManager::ProgramDigitizer()
       DGManager->SetChannelPulsePolarity(ch, ChPulsePolarity[ch]);
       DGManager->SetDPPPreTriggerSize(ch, PSDChPreTrigger[ch]);
     }
+
+    DGManager->SetDPPAcquisitionMode(CAEN_DGTZ_DPP_ACQ_MODE_Mixed, CAEN_DGTZ_DPP_SAVE_PARAM_EnergyAndTime);
+    DGManager->SetDPPTriggerMode(CAEN_DGTZ_DPP_TriggerMode_Normal);
+    DGManager->SetDPPParameters(ChannelEnableMask, &PSDParameters);
+    DGManager->SetDPPEventAggregation(EventsBeforeReadout,0);
+
+
+    // Allocation of memory must be done AFTER digitizer programming
 
     DGManager->MallocReadoutBuffer(&Buffer, &BufferSize);
     DGManager->MallocDPPEvents(PSDEvents, &PSDEventSize);
@@ -289,12 +314,18 @@ void AcquisitionManager::ProgramDigitizer()
 
 void AcquisitionManager::RunAcquisitionLoop()
 {
+  // This method provides the acquisition loop, which reads out data
+  // from the digitizer (waveforms in the case of STD firmware;
+  // event-level data and waveforms in the case of PSD firmware). Note
+  // that this method runs in its own Boost.thread in parallel with
+  // another Boost.thread that enables the user to intervene.
+  
   if(!DGLinkOpen)
     return;
-
+  
   if(Debug)
     RunDebugLoop();
-    
+  
   cout << "AcquisitionManager (acquisition thread) : Beginning waveform acquisition...\n"
        << endl;
   
@@ -354,29 +385,53 @@ void AcquisitionManager::RunAcquisitionLoop()
     
     while(true){
 
+      // Determine if the user has intervened via the control thread
       boost::this_thread::interruption_point();
-      
+
+      // Read data from the digitizer; get the data and data size
       DGManager->ReadData(Buffer, &BufferSize);
-      
+
+      // Loop until the readout buffer contains data to process
       if(BufferSize==0)
       	continue;
-      
+
+      // Get all the data (events) from the buffer
       DGManager->GetDPPEvents(Buffer, BufferSize, PSDEvents, NumPSDEvents);
 
+      // Loop over all channels on this board
       for(int ch=0; ch<DGNumChannels; ch++){
-	
+
+	// Skip disabled channels for loop efficiency
 	if(!(ChannelEnableMask & (1<<ch)))
 	  continue;
-	
+
+	// Loop over all events in this channel
 	for(int evt=0; evt<NumPSDEvents[ch]; evt++){
+
+	  // Get the event-level data and print it
+	  
+	  uint32_t Time = PSDEvents[ch][evt].TimeTag;
+	  int16_t Short = PSDEvents[ch][evt].ChargeShort;
+	  int16_t Long = PSDEvents[ch][evt].ChargeLong;
+	  int16_t Base = PSDEvents[ch][evt].Baseline;
+	  
+	  cout << "EVENT[" << evt << "] DATA:\n"
+	       << "  Time tag : " << Time << "\n"
+	       << "  Charge S : " << Short << " ADC\n"
+	       << "  Charge L : " << Long << " ADC\n"
+	       << "  Baseline : " << Base << " ADC\n"
+	       << endl;
+	  
+	  // Get the digitized waveform and print it
 	  
 	  DGManager->DecodeDPPWaveforms(&PSDEvents[ch][evt], PSDWaveforms);
 	  
 	  int Size = (int)PSDWaveforms->Ns;
 	  uint16_t *Voltage = PSDWaveforms->Trace1;
 
+	  cout << "EVENT[" << evt << "] WAVEFORM:\n";
 	  for(int i=0; i<Size; i++)
-	    cout << i << " " << Voltage[i] << endl;
+	    cout << "  " << i << " " << Voltage[i] << endl;
 	}
       }
     }
@@ -386,6 +441,10 @@ void AcquisitionManager::RunAcquisitionLoop()
 
 void AcquisitionManager::RunDebugLoop()
 {
+  // This method provides a dummy acquisition loop with no digitizer
+  // interaction as a useful debugging and development feature. It is
+  // enabled by setting the class member variable "Debug" to "true".
+
   while(true){
     boost::posix_time::milliseconds Time(500);
     cout << "AcquisitionManager (acquisition thread) : Acquisition loop is running in debug mode with 500 ms cycles" << endl;
@@ -397,13 +456,18 @@ void AcquisitionManager::RunDebugLoop()
 
 void AcquisitionManager::RunControlLoop(boost::thread *Acquisition_thread)
 {
+  // This method provides the user with the ability to intervene
+  // during the acquisition loop with keystrokes for control. This
+  // method is run in a separate Boost.thread in parallel with the
+  // acquisition loop.
+  
   cout << "AcquisitionManager (control thread) : Enter a '0' to terminate acquisition!\n" 
        << "                                      Enter 1 '1' to trigger the digitizer!\n" 
        << endl;
 
   int Choice = -1;
   bool RunLoop = true;
-
+  
   while(RunLoop){
     cin >> Choice;
     
@@ -425,6 +489,9 @@ void AcquisitionManager::RunControlLoop(boost::thread *Acquisition_thread)
 
 void AcquisitionManager::Disarm()
 {
+  // This method safely closes the digitizer, first freeing all of the
+  // allocated memory and then safely closing the digitizer link.
+  
   DGManager->FreeReadoutBuffer(&Buffer);
 
   if(DGFirmwareType == "STD"){

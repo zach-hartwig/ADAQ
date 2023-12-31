@@ -79,6 +79,7 @@ int main(int argc, char *argv[])
   // code while the acquisiion loop is running in a separate thread
 
   boost::thread Acquisition_thread = boost::thread(&AcquisitionManager::RunAcquisitionLoop, AcquisitionMgr);
+  //m  boost::thread Acquisition_thread = boost::thread(&AcquisitionManager::RunDebugLoop, AcquisitionMgr);
   boost::thread Control_thread = boost::thread(&AcquisitionManager::RunControlLoop, AcquisitionMgr, &Acquisition_thread);
   
   cout << "ADAQTemplate : Joining threads ...\n" 

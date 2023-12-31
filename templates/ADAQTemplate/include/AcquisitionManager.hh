@@ -56,6 +56,7 @@ public:
   
   // Methods to start/stop data acquisition
   void RunAcquisitionLoop();
+  void RunDebugLoop();
   void RunControlLoop(boost::thread *);
 
 private:
@@ -112,22 +113,21 @@ private:
   // the differences in FPGA operations and data structures.
 
   char *Buffer = NULL;
-  uint32_t BufferSize, PSDEventSize, PSDWaveformSize, ReadSize;
-  uint32_t FPGAEvents, PCEvents;
+  uint32_t BufferSize;
   vector<bool> BufferFull;
 
   // Standard (STD) firmware
-
+  uint32_t ReadSize, FPGAEvents, PCEvents;
   char *EventPointer = NULL;
   CAEN_DGTZ_EventInfo_t EventInfo;
   CAEN_DGTZ_UINT16_EVENT_t *EventWaveform = NULL;;
-
+  
   // Pulse Shape Discrimination (PSD) firmware
-
+  uint32_t PSDEventSize, PSDWaveformSize;
   CAEN_DGTZ_DPP_PSD_Event_t *PSDEvents[2];
   uint32_t NumPSDEvents[2];
   CAEN_DGTZ_DPP_PSD_Waveforms_t *PSDWaveforms = NULL;
-
+  
   // A double-vector for readout of digitizer channels
   vector< vector<uint16_t> > Waveforms;
 

@@ -92,8 +92,9 @@ public:
   ////////////////////////////////////////
 
   // General
-  bool CheckForEnabledChannel();
-
+  bool CheckForEnabledChannels();
+  uint32_t CalculateChannelEnableMask(vector<bool>);
+  
   // Trigger control
 
   int EnableAutoTrigger(uint32_t);
@@ -419,8 +420,6 @@ public:
   //////////////////////////////////////
   
   int Reset() {return CAEN_DGTZ_Reset(BoardHandle);}
-  
-
   
   int SetAnalogMonOutput(CAEN_DGTZ_AnalogMonitorOutputMode_t mode) {return CAEN_DGTZ_SetAnalogMonOutput(BoardHandle, mode);}
   int GetAnalogMonOutput(CAEN_DGTZ_AnalogMonitorOutputMode_t *mode) {return CAEN_DGTZ_GetAnalogMonOutput(BoardHandle, mode);}

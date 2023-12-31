@@ -397,7 +397,7 @@ bool ADAQDigitizer::CheckRegisterForWriting(uint32_t Addr32)
 // General methods //
 /////////////////////
 
-bool ADAQDigitizer::CheckForEnabledChannel()
+bool ADAQDigitizer::CheckForEnabledChannels()
 {
   uint32_t ChannelEnableMask = 0;
   GetChannelEnableMask(&ChannelEnableMask);
@@ -410,6 +410,21 @@ bool ADAQDigitizer::CheckForEnabledChannel()
   else 
     return true;
 }
+
+
+uint32_t ADAQDigitizer::CalculateChannelEnableMask(vector<bool> EnabledChannels)
+{
+  uint32_t ChannelEnableMask = 0;
+  for(int ch=0; ch<EnabledChannels.size(); ch++){
+    if(EnabledChannels[ch]){
+      uint32_t Ch = 0b1<<ch;
+      ChannelEnableMask |= Ch;
+    }
+  }
+  cout << ChannelEnableMask << endl;
+  return ChannelEnableMask;
+}
+    
 
 
 ////////////////////////

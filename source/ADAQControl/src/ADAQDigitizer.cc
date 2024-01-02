@@ -424,7 +424,27 @@ uint32_t ADAQDigitizer::CalculateChannelEnableMask(vector<bool> EnabledChannels)
   cout << ChannelEnableMask << endl;
   return ChannelEnableMask;
 }
-    
+
+
+uint16_t ADAQDigitizer::CalculateDCOffset(double DCOffset_Voltage)
+{
+ 
+  uint16_t Min  = 0x0000;
+  uint16_t Max  = 0xFFFF;
+  uint16_t Zero = 0x8000;
+  uint16_t VoltageRange = 2.0; // [V]
+  
+  uint16_t DCOffset_Hex = int((Min-Max*1.0/VoltageRange)*DCOffset_Voltage+Zero);
+  
+  if(DCOffset_Voltage < -1.0 or DCOffset_Voltage > 1.0){
+    std::cout << "ADAQDigitizer[" << BoardID << "] : Warning! DC offset value must be between -1 to +1 V! Setting to 0 V!"
+	      << std::endl;
+    return Zero;
+  }
+  else{
+    return DCOffset_Hex;
+  }
+}
 
 
 ////////////////////////

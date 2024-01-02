@@ -92,8 +92,10 @@ public:
   ////////////////////////////////////////
 
   // General
+
   bool CheckForEnabledChannels();
   uint32_t CalculateChannelEnableMask(vector<bool>);
+  uint16_t CalculateDCOffset(double);
   
   // Trigger control
 

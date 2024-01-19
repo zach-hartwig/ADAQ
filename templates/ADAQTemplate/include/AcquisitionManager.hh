@@ -95,7 +95,7 @@ private:
   
   // Standard (STD) firmware 
 
-  uint32_t RecordLength, PostTriggerSize;
+  uint32_t RecordLength, TriggerThreshold, PostTriggerSize;
   vector<uint32_t> ChBaselineCalcMin, ChBaselineCalcMax; 
 
   // Pulse Shape Discrimination (PSD) firmware
@@ -117,10 +117,10 @@ private:
   vector<bool> BufferFull;
 
   // Standard (STD) firmware
-  uint32_t ReadSize, FPGAEvents, PCEvents;
+  uint32_t FPGAEvents, PCEvents;
   char *EventPointer = NULL;
   CAEN_DGTZ_EventInfo_t EventInfo;
-  CAEN_DGTZ_UINT16_EVENT_t *EventWaveform = NULL;;
+  CAEN_DGTZ_UINT16_EVENT_t *EventWaveform = NULL;
   
   // Pulse Shape Discrimination (PSD) firmware
   uint32_t PSDEventSize, PSDWaveformSize;

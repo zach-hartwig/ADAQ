@@ -38,14 +38,16 @@ using namespace boost::assign;
 
 
 AcquisitionManager::AcquisitionManager()
-  : DGLinkOpen(false), Debug(false)
+  : DGLinkOpen(false), Debug(false),
+    BufferSize(0), FPGAEvents(0), PCEvents(0),
+    PSDEventSize(0), PSDWaveformSize(0)
 {
   // Instantiate an ADAQDigitizer class to facilitate programming and
   // readout with the digitizer hardware
   
-  DGManager = new ADAQDigitizer(zDT5790M,   // ADAQ-specified CAEN device type
+  DGManager = new ADAQDigitizer(zV1724,     // ADAQ-specified CAEN device type
 				0,          // User-specified ID
-				0x00000000, // Address in VME space
+				0x22220000, // Address in VME space
 				0,          // USB link number
 				0);         // CONET node number
 
@@ -62,7 +64,7 @@ AcquisitionManager::~AcquisitionManager()
 void AcquisitionManager::Arm()
 {
   OpenConnection();
-  
+
   if(DGFirmwareType == "STD" or DGFirmwareType == "PSD"){
     InitializeParameters();
     ProgramDigitizer();
@@ -114,35 +116,28 @@ void AcquisitionManager::InitializeParameters()
   // Firmware-agnostic variables
   
   for(int ch=0; ch<DGNumChannels; ch++){
+    ChDCOffset.push_back(0x8000);
     ChEnabled.push_back(false);
     ChPulsePolarity.push_back(CAEN_DGTZ_PulsePolarityNegative);
-    ChDCOffset.push_back(0x8000);
+    ChTriggerThreshold.push_back(2000);
   }
 
   // Enable channel 0 and calculate the required channel enable mask
   ChEnabled[0] = true;
   ChannelEnableMask = DGManager->CalculateChannelEnableMask(ChEnabled);
-
+  
   // Number of events aggregated before triggering readout to the PC
-  EventsBeforeReadout = 1;
-  
-  
+  EventsBeforeReadout = 10;
+    
   //////////////////////////////////
   // STD firmware specific variables
   
   if(DGFirmwareType == "STD"){
 
-    /*
-
     // Control variables
-
+    
     RecordLength = 512;
-    PostTriggerSize = 50;
-    for(int ch=0; ch<DGNumChannels; ch++){
-      ChTriggerThreshold.push_back(2000);
-      ChBaselineCalcMin.push_back(0);
-      ChBaselineCalcMax.push_back(50);
-    }
+    PostTriggerSize = 75;
 
     // Readout variables
 
@@ -155,8 +150,6 @@ void AcquisitionManager::InitializeParameters()
     Waveforms.resize(DGManager->GetNumChannels());
     for(int ch=0; ch<DGManager->GetNumChannels(); ch++)
       Waveforms[ch].resize(RecordLength);
-
-    */
   }
 
 
@@ -169,7 +162,7 @@ void AcquisitionManager::InitializeParameters()
 
     for(int ch=0; ch<DGNumChannels; ch++){
 
-      // Channels-specific settings
+      // Channel-specific settings
 
       // Acquisition window configuration
       PSDChRecordLength.push_back(64); // Total acquisition length [samples]
@@ -231,41 +224,26 @@ void AcquisitionManager::ProgramDigitizer()
 
   if(DGFirmwareType == "STD"){
 
-    /*
-    for(int ch=0; ch<DGNumChannels; ch++){
-      DGManager->SetChannelTriggerThreshold(ch, ChTriggerThreshold[ch]);
-      DGManager->SetChannelDCOffset(ch, ChDCOffset[ch]);
-
-      if(ChPosPolarity[ch])
-	DGManager->SetChannelPulsePolarity(ch, CAEN_DGTZ_PulsePolarityPositive);
-      else
-	DGManager->SetChannelPulsePolarity(ch, CAEN_DGTZ_PulsePolarityNegative);
-
-      if(TriggerEdgeRising)
-	DGManager->SetTriggerEdge(ch, "Rising");
-      else
-	DGManager->SetTriggerEdge(ch, "Falling");
-    }
-
     DGManager->SetChannelEnableMask(ChannelEnableMask);
     DGManager->SetRecordLength(RecordLength);
     DGManager->SetPostTriggerSize(PostTriggerSize);
     DGManager->SetAcquisitionControl("Software");
     DGManager->SetZSMode("None");
     DGManager->SetMaxNumEventsBLT(EventsBeforeReadout);
-
-    if(TriggerTypeAutomatic)
-      DGManager->EnableAutoTrigger(ChannelEnableMask);
-    else
-      DGManager->DisableAutoTrigger(ChannelEnableMask);
-
-    if(TriggerTypeSoftware)
-      DGManager->EnableSWTrigger();
-    else
-      DGManager->DisableSWTrigger();
-
+    
+    DGManager->SetChannelSelfTrigger(CAEN_DGTZ_TRGMODE_ACQ_ONLY,ChannelEnableMask);
+    DGManager->EnableAutoTrigger(ChannelEnableMask);
+    DGManager->DisableSWTrigger();
     DGManager->DisableExternalTrigger();
-    */
+    
+    for(int ch=0; ch<DGNumChannels; ch++){
+      DGManager->SetChannelTriggerThreshold(ch, ChTriggerThreshold[ch]);
+      DGManager->SetChannelDCOffset(ch, ChDCOffset[ch]);
+      DGManager->SetChannelPulsePolarity(ch, ChPulsePolarity[ch]);
+      DGManager->SetTriggerEdge(ch, "Falling");
+    }
+    DGManager->AllocateEvent(&EventWaveform);
+    DGManager->MallocReadoutBuffer(&Buffer, &BufferSize);
   }
   
   /////////////////////////////////////////
@@ -290,13 +268,13 @@ void AcquisitionManager::ProgramDigitizer()
       DGManager->SetChannelDCOffset(ch, ChDCOffset[ch]);
       DGManager->SetChannelPulsePolarity(ch, ChPulsePolarity[ch]);
       DGManager->SetDPPPreTriggerSize(ch, PSDChPreTrigger[ch]);
+      DGManager->SetTriggerEdge(ch, "Falling");
     }
 
     DGManager->SetDPPAcquisitionMode(CAEN_DGTZ_DPP_ACQ_MODE_Mixed, CAEN_DGTZ_DPP_SAVE_PARAM_EnergyAndTime);
     DGManager->SetDPPTriggerMode(CAEN_DGTZ_DPP_TriggerMode_Normal);
     DGManager->SetDPPParameters(ChannelEnableMask, &PSDParameters);
     DGManager->SetDPPEventAggregation(EventsBeforeReadout,0);
-
 
     // Allocation of memory must be done AFTER digitizer programming
 
@@ -332,55 +310,59 @@ void AcquisitionManager::RunAcquisitionLoop()
   DGManager->SWStartAcquisition();
 
   if(DGFirmwareType == "STD"){
-    /*
-    
-    // Determine the number of events in the buffer
-    DGManager->GetNumEvents(Buffer, BufferSize, &PCEvents);
 
-    // If there are no events in the current buffer then continue in
-    // the 'while' loop without executing the CPU intensive 'for'
-    // loops on the next lines. This maximizes code efficiency and
-    // only scans/processes events when there is need to do so.
-    if(PCEvents==0)
-      continue;
-    
-    // For each event in the PC memory buffer...
-    for(uint32_t evt=0; evt<PCEvents; evt++){
+    int TotalEvents = 0;
+
+    while(true){
+
+      // Determine if the user has intervened via the control thread
+      boost::this_thread::interruption_point();
       
-      // Get the event information
-      DGManager->GetEventInfo(Buffer, BufferSize, evt, &EventInfo, &EventPointer);
+      DGManager->GetNumFPGAEvents(&FPGAEvents);
       
-      // Decode the event and obtain the waveform (voltage as a function of time)
-      DGManager->DecodeEvent(EventPointer, &EventWaveform);
-      
-      // If there is no waveform in the PC buffer, continue in the
-      // while loop to avoid segfaulting
-      if(EventWaveform==NULL)
+      if(FPGAEvents < EventsBeforeReadout)
 	continue;
       
-      // For each channel...
-      for(int ch=0; ch<DGManager->GetNumChannels(); ch++){
-	
-	// Only proceed to waveform analysis if the channel is enabled
-	if(!ChEnabled[ch])
-	  continue;
-
-	for(uint32_t sample=0; sample<RecordLength; sample++){
-	  // Get the digitized voltage in units of analog-to-digital conversion bits
-	  Voltage[sample] = EventWaveform->DataChannel[ch][sample]; // [ADC]
-	}
-      }
-
-      TotalEvents++;
+      DGManager->ReadData(Buffer, &BufferSize);
+      DGManager->GetNumEvents(Buffer, BufferSize, &PCEvents);
       
-      if(TotalEvents % 1 == 0){
-	cout << "\r" << flush;
-	cout << "Accumulated events = " << TotalEvents << flush;
+      if(PCEvents==0)
+	continue;
+      
+      // For each event in the PC memory buffer...
+      for(uint32_t evt=0; evt<PCEvents; evt++){
+	
+	// Get the event information
+	EventPointer = NULL;
+	DGManager->GetEventInfo(Buffer, BufferSize, evt, &EventInfo, &EventPointer);
+	
+	// Decode the event and obtain the waveform (voltage as a function of time)
+	DGManager->DecodeEvent(EventPointer, &EventWaveform);
+	
+	if(EventWaveform==NULL)
+	  continue;
+	
+	// For each channel...
+	for(int ch=0; ch<DGManager->GetNumChannels(); ch++){
+	  
+	  // Only proceed to waveform analysis if the channel is enabled
+	  if(!ChEnabled[ch])
+	    continue;
+	  
+	  cout << "\n\nWAVEFORM: " << TotalEvents << endl;
+	  for(uint32_t sample=0; sample<RecordLength; sample++){
+	    cout << EventWaveform->DataChannel[ch][sample] << " ";
+	    // Get the digitized voltage in units of analog-to-digital conversion bits
+	    //Voltage[sample] = EventWaveform->DataChannel[ch][sample]; // [ADC]
+
+	  }
+	}
+	DGManager->FreeEvent(&EventWaveform);
+	TotalEvents++;
       }
     }
-    */
   }
-
+  
   else if(DGFirmwareType == "PSD"){
     
     while(true){
@@ -493,7 +475,7 @@ void AcquisitionManager::Disarm()
   // allocated memory and then safely closing the digitizer link.
   
   DGManager->FreeReadoutBuffer(&Buffer);
-
+  
   if(DGFirmwareType == "STD"){
     DGManager->FreeEvent(&EventWaveform);
   }
@@ -501,6 +483,6 @@ void AcquisitionManager::Disarm()
     DGManager->FreeDPPEvents((void**)PSDEvents);
     DGManager->FreeDPPWaveforms(PSDWaveforms);
   }
-
+  
   DGManager->CloseLink();
 }

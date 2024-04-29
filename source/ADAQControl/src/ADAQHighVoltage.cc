@@ -71,19 +71,7 @@ ADAQHighVoltage::ADAQHighVoltage(ZBoardType Type,  // ADAQ-specific device type 
 				 int BN,           // USB link number
 				 int CN)           // CONET node ID
 
-  : ADAQVBoard(Type, ID, Address, BN, CN),
-    
-    // The desired channel voltage (in volts) must be set in the
-    // registers as (V[volts]*10). Here define a conversion value.
-    volts2input(10),
-
-    // The desired maximum channel voltage (in volts) must be set in
-    // the regsisters as (V[volts]/20). Here define a conversion value.
-    maxVolts2input(1./20),
-    
-    // The desired channel current (in microamps) must be set in the
-    // registers as (I[microamps]*50). Here define a conversion value.
-    microamps2input(50)
+  : ADAQVBoard(Type, ID, Address, BN, CN)
 {
   // Configure member data based on HV unit type
   ConfigureVariables();
@@ -105,6 +93,11 @@ void ADAQHighVoltage::ConfigureVariables()
     MaxChannel = NumChannels-1;
     MaxVoltage = 4000; // [V]
     MaxCurrent = 3000; // [uA]
+
+    Volts2Input = 10; // [input/volt]
+    MaxVolts2Input = 10; // [input/volt]
+    Microamps2Input = 50; // [input/uA]
+    
     IsV653X = true;
     IsDT5790 = false;
 
@@ -135,6 +128,11 @@ void ADAQHighVoltage::ConfigureVariables()
     MaxChannel = NumChannels-1;
     MaxVoltage = 6000; // [V]
     MaxCurrent = 1000; // [uA]
+    
+    Volts2Input = 10; // [Value/V]
+    MaxVolts2Input = 10; // [Value/V]
+    Microamps2Input = 50; // [Value/uA]
+    
     IsV653X = true;
     IsDT5790 = false;
     
@@ -164,6 +162,11 @@ void ADAQHighVoltage::ConfigureVariables()
     MaxChannel = NumChannels-1;
     MaxVoltage = 4000; // [V]
     MaxCurrent = 3000; // [uA]
+
+    Volts2Input = 10; // [Value/V]
+    MaxVolts2Input = 1./20; // [Value/V]
+    Microamps2Input = 20; // [Value/uA]
+    
     IsV653X = false;
     IsDT5790 = true;
     
@@ -218,16 +221,14 @@ void ADAQHighVoltage::MapRegisters()
     FirmRel = V653X::FIRMREL;
     
     for(int ch=0; ch<NumChannels; ch++){
-      VMax.push_back(V653X::VMAX);
-      IMax.push_back(V653X::IMAX);
-      Status.push_back(V653X::STATUS);
       VSet.push_back(V653X::VSET[ch]);
       ISet.push_back(V653X::ISET[ch]);
-      VRampU.push_back(V653X::RMPU[ch]);
-      VRampD.push_back(V653X::RMPD[ch]);
       VMon.push_back(V653X::VMON[ch]);
       IMon.push_back(V653X::IMON[ch]);
       Pw.push_back(V653X::PW[ch]);
+      VMax.push_back(V653X::SVMAX[ch]);
+      VRampU.push_back(V653X::RMPU[ch]);
+      VRampD.push_back(V653X::RMPD[ch]);
       Pol.push_back(V653X::POL[ch]);
       Temp.push_back(V653X::TEMP[ch]);
     }
@@ -489,8 +490,8 @@ int ADAQHighVoltage::PrintStatus()
     // Output each channel's parameters, being certain to convert the
     // V6534 input units for voltage and current ([V]*10 and [uA]*50)
     // into output units ([V] and [uA]) for the user's benefit
-    cout << "     CH[" << ch << "] voltage : " << sign << dec << (Voltage/volts2input) << " V\n"
-	 << "     CH[" << ch << "] current : " << dec <<(ChannelSetCurrent[ch]/microamps2input) << " uA\n";
+    cout << "     CH[" << ch << "] voltage : " << sign << dec << (Voltage/Volts2Input) << " V\n"
+	 << "     CH[" << ch << "] current : " << dec <<(ChannelSetCurrent[ch]/Microamps2Input) << " uA\n";
     
     if(PowerState == PowerOff)
       cout << "     CH[" << ch << "] power : OFF\n"
@@ -542,7 +543,7 @@ int ADAQHighVoltage::SetVoltage(int Channel, uint16_t VoltageSet)
   }
   else{
     ChannelSetVoltage[Channel] = VoltageSet;
-    VoltageSet*=volts2input;
+    VoltageSet*=Volts2Input;
     CommandStatus = CAENComm_Write16(BoardHandle, VSet[Channel], VoltageSet);
   }
   return CommandStatus;
@@ -561,7 +562,7 @@ int ADAQHighVoltage::GetVoltage(int Channel, uint16_t *VoltageGet)
   }
   else{
     CommandStatus = CAENComm_Read16(BoardHandle, VMon[Channel], VoltageGet);
-    (*VoltageGet/=volts2input);
+    (*VoltageGet/=Volts2Input);
   }
   return CommandStatus;
 }
@@ -582,7 +583,7 @@ uint16_t ADAQHighVoltage::GetVoltage(int Channel)
   else{
     uint16_t VoltageGet;
     CommandStatus = CAENComm_Read16(BoardHandle, VMon[Channel], &VoltageGet);
-    VoltageGet /= volts2input;
+    VoltageGet /= Volts2Input;
     return VoltageGet;
   }
 }
@@ -599,7 +600,7 @@ int ADAQHighVoltage::SetMaxVoltage(int Channel, uint16_t MaxVoltageSet)
 	   << endl;
   }
   else{
-    MaxVoltageSet *= maxVolts2input;
+    MaxVoltageSet *= MaxVolts2Input;
     CommandStatus = CAENComm_Write16(BoardHandle, VMax[Channel], MaxVoltageSet);
   }
   return CommandStatus;
@@ -618,8 +619,7 @@ int ADAQHighVoltage::GetMaxVoltage(int Channel, uint16_t *MaxVoltageGet)
   }
   else{
     CommandStatus = CAENComm_Read16(BoardHandle, VMax[Channel], MaxVoltageGet);
-    cout << VMax[Channel] << endl;
-    (*MaxVoltageGet/=maxVolts2input);
+    (*MaxVoltageGet/=MaxVolts2Input);
   }
   return CommandStatus;
 }
@@ -704,7 +704,7 @@ uint16_t ADAQHighVoltage::GetMaxVoltage(int Channel)
   else{
     uint16_t MaxVoltageGet = -1;
     CommandStatus = CAENComm_Read16(BoardHandle, VMax[Channel], &MaxVoltageGet);
-    MaxVoltageGet /= maxVolts2input;
+    MaxVoltageGet /= MaxVolts2Input;
     return MaxVoltageGet;
   }
 }
@@ -722,7 +722,7 @@ int ADAQHighVoltage::SetCurrent(int Channel, uint16_t CurrentSet)
   }
   else{
     ChannelSetCurrent[Channel] = CurrentSet;
-    CurrentSet*=microamps2input;
+    CurrentSet*=Microamps2Input;
     CommandStatus = CAENComm_Write16(BoardHandle, ISet[Channel], CurrentSet);
   }
   return CommandStatus;
@@ -741,7 +741,7 @@ int ADAQHighVoltage::GetCurrent(int Channel, uint16_t *CurrentGet)
   }
   else{
     CommandStatus = CAENComm_Read16(BoardHandle, IMon[Channel], CurrentGet);
-    (*CurrentGet)/=microamps2input;
+    (*CurrentGet)/=Microamps2Input;
   }
   return CommandStatus;
 }
@@ -762,7 +762,7 @@ uint16_t ADAQHighVoltage::GetCurrent(int Channel)
   else{
     uint16_t CurrentGet;
     CommandStatus = CAENComm_Read16(BoardHandle, IMon[Channel], &CurrentGet);
-    CurrentGet/=microamps2input;
+    CurrentGet/=Microamps2Input;
     return CurrentGet;
   }
 }

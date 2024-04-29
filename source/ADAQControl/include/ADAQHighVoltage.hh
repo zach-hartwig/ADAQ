@@ -158,12 +158,11 @@ public:
   
 private:
 
-  // CAEN-specific constants for voltage/current setting
-
-  const int volts2input, microamps2input;
-  const double maxVolts2input;
-
   // HV-unit specific description variables
+
+  int Volts2Input;
+  double MaxVolts2Input;
+  int Microamps2Input;
 
   int NumChannels, MinChannel, MaxChannel;
   int MaxVoltage, MaxCurrent;

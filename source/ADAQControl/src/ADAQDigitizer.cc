@@ -251,8 +251,6 @@ int ADAQDigitizer::OpenLink()
 	BoardFirmwareType = "STD";
 	break;
       }
-
-      
       
       // Conceptual information about the digitization
       NumChannels = BoardInformation.Channels;
@@ -421,14 +419,12 @@ uint32_t ADAQDigitizer::CalculateChannelEnableMask(vector<bool> EnabledChannels)
       ChannelEnableMask |= Ch;
     }
   }
-  cout << ChannelEnableMask << endl;
   return ChannelEnableMask;
 }
 
 
 uint16_t ADAQDigitizer::CalculateDCOffset(double DCOffset_Voltage)
 {
- 
   uint16_t Min  = 0x0000;
   uint16_t Max  = 0xFFFF;
   uint16_t Zero = 0x8000;

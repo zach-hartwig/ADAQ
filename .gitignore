@@ -29,6 +29,9 @@ source/ADAQReadout/build/*
 source/ASIM/build/*
 source/ASIM/example/lib/*
 
+# Ignore local boost files
+*include/boost/*
+
 # Miscellaneous
 templates/CAENAcquisitionTemplate/build/*
 templates/CAENAcquisitionTemplate/bin/*
@@ -50,4 +53,4 @@ ref/caen/drivers/CAENUSBdrvB-1.4/.CAENUSBdrvB.o.cmd
 ref/caen/drivers/CAENUSBdrvB-1.4/.tmp_versions/
 ref/caen/drivers/CAENUSBdrvB-1.4/CAENUSBdrvB.ko
 ref/caen/drivers/CAENUSBdrvB-1.4/CAENUSBdrvB.mod.c
-
+caen/software/archive/*

@@ -379,7 +379,7 @@ int ADAQDigitizer::GetRegisterValue(uint32_t Addr32, uint32_t *Data32)
 bool ADAQDigitizer::CheckRegisterForWriting(uint32_t Addr32)
 {
   if((Addr32 < 0x1024) or
-     (Addr32 > 0x814c and Addr32 < 0xef00) or
+     (Addr32 > 0x818c and Addr32 < 0xef00) or
      (Addr32 > 0xf3fc)){
     if(Verbose)
       cout << "ADAQDigitizer : Error attempting to access a protected register address!\n"
@@ -529,20 +529,124 @@ int ADAQDigitizer::SetTriggerCoincidence(bool Enable, int Level)
   CommandStatus = -42;
 
   if(Enable){
+    string BoardFirmwareType = GetBoardFirmwareType();
     
-    uint32_t TriggerSourceEnableMask = 0;
+    if (BoardFirmwareType == "STD"){
+      uint32_t TriggerSourceEnableMask = 0;
 
-    uint32_t TriggerCoincidenceLevel_BitShifted = Level << 24;
+      uint32_t TriggerCoincidenceLevel_BitShifted = Level << 24;
 
-    CommandStatus = GetRegisterValue(0x810C,&TriggerSourceEnableMask);
+      CommandStatus = GetRegisterValue(0x810C,&TriggerSourceEnableMask);
     
-    TriggerSourceEnableMask = TriggerSourceEnableMask | TriggerCoincidenceLevel_BitShifted;
+      TriggerSourceEnableMask = TriggerSourceEnableMask | TriggerCoincidenceLevel_BitShifted;
     
-    CommandStatus = SetRegisterValue(0x810C,TriggerSourceEnableMask);
+      CommandStatus = SetRegisterValue(0x810C,TriggerSourceEnableMask);
+    }
+    else if (BoardFirmwareType == "PSD"){
+      string BoardModel = GetBoardModelName();
+      
+      if (BoardModel == "DT5790" or BoardModel == "DT5790M"){
+        // Enable Propagation of ITL to mezzanines
+        uint32_t ITLEnableMask = 0;
+
+        uint32_t ITLEnable = 0x4;
+
+        CommandStatus = GetRegisterValue(0x8000,&ITLEnableMask);
+
+        ITLEnableMask = ITLEnableMask | ITLEnable;
+
+        CommandStatus = SetRegisterValue(0x8000,ITLEnableMask);
+
+        // Set channel 1 and 0 to coincidence 
+
+        uint32_t CoincidenceEnable_Mask = 0;
+
+        uint32_t CoincidenceEnable_Value = 0x40000;
+
+          // Channel 0
+        CommandStatus = GetRegisterValue(0x1080, &CoincidenceEnable_Mask);
+        CoincidenceEnable_Mask = CoincidenceEnable_Mask | CoincidenceEnable_Value;
+        CommandStatus = SetRegisterValue(0x1080,CoincidenceEnable_Mask);
+
+          // Channel 1
+        CoincidenceEnable_Mask = 0;
+        CommandStatus = GetRegisterValue(0x1180, &CoincidenceEnable_Mask);
+        CoincidenceEnable_Mask = CoincidenceEnable_Mask | CoincidenceEnable_Value;
+        CommandStatus = SetRegisterValue(0x1180, CoincidenceEnable_Mask);
+
+        // Set Coincidence Windows in number of clock cycles
+
+        uint32_t CoincidenceWindow_And_Mask = 0x7ffffc00;
+        uint32_t CoincidenceWindow_Mask = 0;
+        uint32_t CoincidenceWindow_Value = 0x2;
+
+          // Channel 0
+        CommandStatus = GetRegisterValue(0x1070, &CoincidenceWindow_Mask);
+        // this keeps the values in bits [31:10] and sets the values in bits [9:0]
+        // (which we are allowed) to write to 0
+        CoincidenceWindow_Mask = CoincidenceEnable_Mask & CoincidenceWindow_And_Mask;
+        // Now we mask the edited values with the actual values we want to write
+        CoincidenceWindow_Mask = CoincidenceWindow_Mask | CoincidenceWindow_Value;
+        CommandStatus = SetRegisterValue(0x1070, CoincidenceWindow_Mask);
+
+        CoincidenceWindow_Mask = 0;
+
+          // Channel 1
+        CommandStatus = GetRegisterValue(0x1170, &CoincidenceWindow_Mask);
+        CoincidenceWindow_Mask = CoincidenceEnable_Mask & CoincidenceWindow_And_Mask;        
+        CoincidenceWindow_Mask = CoincidenceWindow_Mask | CoincidenceWindow_Value;
+        CommandStatus = SetRegisterValue(0x1170,CoincidenceWindow_Mask);
+
+        // Set Trigger Latency (always equal to 9 clock cycles. Manual says it has to be this way)
+        // I think the STD firmware software writes 32 to this by default, due to different register
+        // map structures, so we fully overwrite that here.
+        // From investigating the manual, and what is intially written to it, it looks like bits [0:9]
+        // are reserved for trigger latency and bits [10:31] are not supposed to be written.
+
+        uint32_t TriggerLatency_Mask = 0;
+        uint32_t TriggerLatency_And_Mask = 0x7ffffc00;
+        uint32_t TriggerLatency_Value = 0x9;
+
+          // Channel 0
+        CommandStatus = GetRegisterValue(0x106c, &TriggerLatency_Mask);
+        TriggerLatency_Mask = TriggerLatency_And_Mask & TriggerLatency_Mask;
+        TriggerLatency_Mask = TriggerLatency_Mask | TriggerLatency_Value;
+        CommandStatus = SetRegisterValue(0x106c, TriggerLatency_Mask);
+
+        TriggerLatency_Mask = 0;
+
+          // Channel 1
+        CommandStatus = GetRegisterValue(0x116c, &TriggerLatency_Mask);
+        TriggerLatency_Mask = TriggerLatency_And_Mask & TriggerLatency_Mask;
+        TriggerLatency_Mask = TriggerLatency_Mask | TriggerLatency_Value;
+        CommandStatus = SetRegisterValue(0x116c, TriggerLatency_Mask);
+
+        // Write trigger validation logic (actually tell the boards to do what we already told them to do)
+        // Bit 2 controls channel 0, Bit 3 controls channel 1. 01 to propagate TRG_REQ to motherboard
+        // Bits 9:8 controls validation: 00 for OR, 01 for AND, 10 for MAJORITY
+
+        uint32_t TriggerValidation_Mask = 0;
+        uint32_t TriggerValidation_Value = 0x10c;
+
+        // Channel 0
+        CommandStatus = GetRegisterValue(0x8188,&TriggerValidation_Mask);
+        TriggerValidation_Mask = TriggerValidation_Mask | TriggerValidation_Value;
+        CommandStatus = SetRegisterValue(0x8188, TriggerValidation_Mask);
+
+        TriggerValidation_Mask = 0;
+
+        //Channel 1
+        CommandStatus = GetRegisterValue(0x818C,&TriggerValidation_Mask);
+        TriggerValidation_Mask = TriggerValidation_Mask | TriggerValidation_Value;
+        CommandStatus = SetRegisterValue(0x818C, TriggerValidation_Mask);
+
+        std::cout<<"Coincidence Enabled!"<<std::endl;
+
+      }
+    }
   }
   return CommandStatus;
 }
-
 
 /////////////////////////
 // Acquisition methods //

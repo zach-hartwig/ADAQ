@@ -556,8 +556,200 @@ int ADAQDigitizer::SetTriggerCoincidence(bool Enable, int Level, int Window, int
     
 
       if (BoardModel == "V1725" or BoardModel == "V1730"){
-        std::cout<<"Paired channel coincidence not yet supported."<<std::endl;
-        std::cout<<"Coincidence Not Enabled"<<std::endl;
+        // Set channels to coincidence per the DPP Algorithm
+
+        uint32_t CoincidenceEnable_Mask = 0;
+
+        uint32_t CoincidenceEnable_Value = 0x40000;
+
+        uint32_t Channel1_bitshifted = Channel1 << 8;
+
+        uint32_t Channel1_Register = 0x1080 | Channel1_bitshifted;
+
+          // First Channel
+        CommandStatus = GetRegisterValue(Channel1_Register, &CoincidenceEnable_Mask);
+        CoincidenceEnable_Mask = CoincidenceEnable_Mask | CoincidenceEnable_Value;
+        CommandStatus = SetRegisterValue(Channel1_Register,CoincidenceEnable_Mask);
+
+        uint32_t Channel2_bitshifted = Channel2 << 8;
+
+        uint32_t Channel2_Register = 0x1080 | Channel2_bitshifted;
+
+          // Second Channel
+        CoincidenceEnable_Mask = 0;
+        CommandStatus = GetRegisterValue(Channel2_Register, &CoincidenceEnable_Mask);
+        CoincidenceEnable_Mask = CoincidenceEnable_Mask | CoincidenceEnable_Value;
+        CommandStatus = SetRegisterValue(Channel2_Register, CoincidenceEnable_Mask);
+
+        // Set Coincidence Windows in number of clock cycles
+
+        uint32_t CoincidenceWindow_And_Mask = 0x7ffffc00;
+        uint32_t CoincidenceWindow_Mask = 0;
+        uint32_t CoincidenceWindow_Value = Window;
+
+        Channel1_Register = 0x1070 | Channel1_bitshifted;
+
+        Channel2_Register = 0x1070 | Channel2_bitshifted;
+
+          // First Channel
+        CommandStatus = GetRegisterValue(Channel1_Register, &CoincidenceWindow_Mask);
+        // this keeps the values in bits [31:10] and sets the values in bits [9:0]
+        // (which we are allowed) to write to 0
+        CoincidenceWindow_Mask = CoincidenceWindow_Mask & CoincidenceWindow_And_Mask;
+        // Now we mask the edited values with the actual values we want to write
+        CoincidenceWindow_Mask = CoincidenceWindow_Mask | CoincidenceWindow_Value;
+        CommandStatus = SetRegisterValue(Channel1_Register, CoincidenceWindow_Mask);
+
+        CoincidenceWindow_Mask = 0;
+
+          // Second Channel
+        CommandStatus = GetRegisterValue(Channel2_Register, &CoincidenceWindow_Mask);
+        CoincidenceWindow_Mask = CoincidenceWindow_Mask & CoincidenceWindow_And_Mask;        
+        CoincidenceWindow_Mask = CoincidenceWindow_Mask | CoincidenceWindow_Value;
+        CommandStatus = SetRegisterValue(Channel2_Register,CoincidenceWindow_Mask);
+
+        // Set Trigger Latency (equal to 9 clock cycles here. Manual says it has to be this way)
+        // I think the STD firmware software writes 32 to this by default, due to different register
+        // map structures, so we fully overwrite that here.
+        // From investigating the manual, and what is intially written to it, it looks like bits [0:9]
+        // are reserved for trigger latency and bits [10:31] are not supposed to be written.
+
+        uint32_t TriggerLatency_Mask = 0;
+        uint32_t TriggerLatency_And_Mask = 0x7ffffc00;
+        uint32_t TriggerLatency_Value = 0x9;
+
+        uint32_t Pwr = Channel1 % 2;
+        if (Channel1+pow(-1,Pwr) == Channel2){
+          // Set the latency to 2 clock cycles if the coincidence is in couple
+          TriggerLatency_Value = 0x2;
+        }    
+
+        Channel1_Register = 0x106c | Channel1_bitshifted;
+
+        Channel2_Register = 0x106c | Channel2_bitshifted;
+
+          // Channel 0
+        CommandStatus = GetRegisterValue(Channel1_Register, &TriggerLatency_Mask);
+        TriggerLatency_Mask = TriggerLatency_And_Mask & TriggerLatency_Mask;
+        TriggerLatency_Mask = TriggerLatency_Mask | TriggerLatency_Value;
+        CommandStatus = SetRegisterValue(Channel1_Register, TriggerLatency_Mask);
+
+        TriggerLatency_Mask = 0;
+
+          // Channel 1
+        CommandStatus = GetRegisterValue(Channel2_Register, &TriggerLatency_Mask);
+        TriggerLatency_Mask = TriggerLatency_And_Mask & TriggerLatency_Mask;
+        TriggerLatency_Mask = TriggerLatency_Mask | TriggerLatency_Value;
+        CommandStatus = SetRegisterValue(Channel2_Register, TriggerLatency_Mask);
+
+          // DPP Algorithm Control 2
+          // This changes depending on whether or not the channels are paired
+          //
+          // To determine if channels are paired, we check if Channel1 + (-1)^(Channel1%2) == Channel2
+          // Channels are paired in (0,1),(2,3)... couples thus if a channel is even, it is paired
+          // if the other channel is 1 greater, and if it is odd, it is paired if the other channel
+          // is one less. 
+
+        if (Channel1+pow(-1,Pwr) == Channel2){
+          uint32_t AlgorithmControl_Mask = 0;
+
+          uint32_t AlgorithmControl_And_Mask = 0x7fffffd4;
+
+          uint32_t AlgorithmControl_Value = 0x60;
+          
+          if(Channel1 < Channel2)
+            Channel1_Register = 0x1084 | Channel1_bitshifted;
+          else
+            Channel1_Register = 0x1084 | Channel2_bitshifted;
+
+          CommandStatus = GetRegisterValue(Channel1_Register, &AlgorithmControl_Mask);
+
+          AlgorithmControl_Mask = AlgorithmControl_And_Mask & AlgorithmControl_Mask;
+
+          AlgorithmControl_Mask = AlgorithmControl_Mask | AlgorithmControl_Value;
+
+          CommandStatus = SetRegisterValue(Channel1_Register, AlgorithmControl_Mask);
+
+          std::cout<<"Coincidence Enabled Inside of Couple"<<std::endl;
+        }
+        else{
+         // Turn on ITL signal propagation
+          uint32_t ITLEnable_Mask = 0;
+
+          uint32_t ITLEnable_Value = 0x4;
+          
+          CommandStatus = GetRegisterValue(0x8000, &ITLEnable_Mask);
+
+          ITLEnable_Mask = ITLEnable_Mask | ITLEnable_Value;
+
+          CommandStatus = SetRegisterValue(0x8000, ITLEnable_Mask);
+
+          // Set the DPP Coincidence Algorithm 2
+          uint32_t AlgorithmControl_Mask = 0;
+
+          uint32_t AlgorithmControl_And_Mask = 0x7fffffd8;
+
+          // If coincidence channel is even set this to 55 otherwise set
+          // to 56. This value can be different for each coincidence channel
+          // but is the same across a couple.
+          uint32_t AlgorithmControl_Value = 0x55; 
+
+          // Only set the register corresponding with the first channel in a couple
+
+          uint32_t Channel1_Couple = Channel1 - Pwr*(1);
+          uint32_t Channel1_Couple_bitshifted = Channel1_Couple << 8;
+
+          uint32_t Channel2_Couple = Channel2 - (Channel2 % 2)*(1);
+                  
+          uint32_t Channel2_Couple_bitshifted = Channel2_Couple << 8;
+
+          Channel1_Register = 0x1084 | Channel1_Couple_bitshifted;
+
+          Channel2_Register = 0x1084 | Channel2_Couple_bitshifted;
+
+          // Set Channel 1 DPP algorithm
+          if(Channel1 % 2 == 1)
+            AlgorithmControl_Value = 0x56;
+
+          CommandStatus = GetRegisterValue(Channel1_Register, &AlgorithmControl_Mask);
+          AlgorithmControl_Mask = AlgorithmControl_And_Mask & AlgorithmControl_Mask;
+          AlgorithmControl_Mask = AlgorithmControl_Mask | AlgorithmControl_Value;
+          CommandStatus = SetRegisterValue(Channel1_Register, AlgorithmControl_Mask);
+
+          // Set Channel 2 DPP algorithm
+          AlgorithmControl_Value = 0x55;
+          if (Channel2 % 2 == 1)
+            AlgorithmControl_Value = 0x56;
+
+          CommandStatus = GetRegisterValue(Channel2_Register, &AlgorithmControl_Mask);
+          AlgorithmControl_Mask = AlgorithmControl_And_Mask & AlgorithmControl_Mask;
+          AlgorithmControl_Mask = AlgorithmControl_Mask | AlgorithmControl_Value;
+          CommandStatus = SetRegisterValue(Channel2_Register, AlgorithmControl_Mask);
+
+          // Set the Trigger Validation Logic
+
+          uint32_t TriggerValidation_Mask = 0;
+          uint32_t TriggerValidation_Value = 0x10F;
+
+          Channel1_Register = 0x8180 + 4*Channel1_Couple/2;
+
+          Channel2_Register = 0x8180 + 4*Channel2_Couple/2;
+
+          // Channel 0
+          CommandStatus = GetRegisterValue(Channel1_Register,&TriggerValidation_Mask);
+          TriggerValidation_Mask = TriggerValidation_Mask | TriggerValidation_Value;
+          CommandStatus = SetRegisterValue(Channel1_Register, TriggerValidation_Mask);
+
+          TriggerValidation_Mask = 0;
+
+          //Channel 1
+          CommandStatus = GetRegisterValue(Channel2_Register,&TriggerValidation_Mask);
+          TriggerValidation_Mask = TriggerValidation_Mask | TriggerValidation_Value;
+          CommandStatus = SetRegisterValue(Channel2_Register, TriggerValidation_Mask);
+
+        std::cout<<"Ch "<<Channel1<< " AND Any Coincidence Enabled"<<std::endl;
+        std::cout<<"Ch "<<Channel2<< " AND Ch "<<Channel1<<" Coincidence Enabled on Ch "<<Channel2<<std::endl;
+        }
       }
 
       else{
